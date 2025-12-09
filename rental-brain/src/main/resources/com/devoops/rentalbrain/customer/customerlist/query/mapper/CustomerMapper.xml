@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.devoops.rentalbrain.customer.customerlist.query.mapper.CustomerMapper">
+
+    <sql id="customerColumns">
+        c.id, c.name, c.in_charge, c.dept, c.call_num, c.phone,
+        c.email, c.business_num, c.addr, c.last_transaction,
+        c.first_contract_date, c.memo, c.star,
+        ch.name AS channelName,
+        s.name AS segmentName
+    </sql>
+
+    <select id="selectCustomerList"
+            parameterType="com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerSearchDto"
+            resultType="com.devoops.rentalbrain.customer.common.dto.CustomerDto">
+        SELECT
+        <include refid="customerColumns" />
+        FROM customer c
+        LEFT JOIN channel ch ON c.channel_id = ch.id
+        LEFT JOIN segment s ON c.segment_id = s.id
+        <where>
+            <if test="name != null and name != ''">
+                AND c.name LIKE CONCAT('%', #{name}, '%')
+            </if>
+            <if test="email != null and email != ''">
+                AND c.email LIKE CONCAT('%', #{email}, '%')
+            </if>
+        </where>
+        ORDER BY c.id DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="selectCustomerCount"
+            parameterType="com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerSearchDto"
+            resultType="int">
+        SELECT COUNT(*)
+        FROM customer c
+        <where>
+            <if test="name != null and name != ''">
+                AND c.name LIKE CONCAT('%', #{name}, '%')
+            </if>
+            <if test="email != null and email != ''">
+                AND c.email LIKE CONCAT('%', #{email}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="selectCustomerById" resultType="com.devoops.rentalbrain.customer.common.dto.CustomerDto">
+        SELECT
+        <include refid="customerColumns" />
+        FROM customer c
+        LEFT JOIN channel ch ON c.channel_id = ch.id
+        LEFT JOIN segment s ON c.segment_id = s.id
+        WHERE c.id = #{id}
+    </select>
+
+</mapper>
