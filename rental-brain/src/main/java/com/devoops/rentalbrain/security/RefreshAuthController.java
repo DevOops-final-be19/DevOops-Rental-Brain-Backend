@@ -36,9 +36,12 @@ public class RefreshAuthController {
     private ResponseEntity<?> refreshTokenValidate(HttpServletRequest request) throws IOException {
         String accessToken = request.getHeader("Authorization");
         String refreshToken = request.getHeader("Refresh-Token");
+
         log.info("엑세스 토큰: {}, \n 리프레쉬 토큰: {}",accessToken,refreshToken);
+
         if(accessToken == null || !accessToken.startsWith("Bearer ")){
             log.info("엑세스 토큰이 없습니다.");
+
             return ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED).body("엑세스 토큰이 없습니다.");
         }
         if(refreshToken==null){
@@ -49,6 +52,7 @@ public class RefreshAuthController {
 
         accessToken = accessToken.substring(7);
         String sub = null;
+
         // 리프레쉬 토큰 검증
         try{
            sub = jwtUtil.validateRefreshToken(refreshToken);
@@ -75,11 +79,11 @@ public class RefreshAuthController {
         try{
             // redis 저장
             redisTemplate.opsForHash().putAll("RT:" + sub, Map.of(
-                    "Refresh-Token", refreshToken,
-                    "Access-Token",accessToken));
+                    "Refresh-Token", newRefreshToken,
+                    "Access-Token",newAccessToken));
             redisTemplate.expire("RT:" + sub, Long.parseLong(env.getProperty("token.refresh_expiration_time")), TimeUnit.MILLISECONDS);
             log.info("redis 저장 완료");
-        }catch (Exception e){
+        } catch (Exception e){
             log.info("redis 오류!");
         }
 
