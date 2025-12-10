@@ -148,7 +148,7 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
         // 로그인 이력 저장
         String ipAddress = getClientIp(request);
-//        memberCommandService.saveLoginHistory(user.getId(), ipAddress, 'Y');
+        employeeCommandService.saveLoginHistory(user.getId(), ipAddress, 'Y');
     }
 
 
@@ -164,7 +164,7 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
             response.getWriter().write("{\"error\": \"" + failed.getMessage().split(",")[0] + "\"}");
             Long id = Long.parseLong(failed.getMessage().split(",")[1]);
             String ipAddress = getClientIp(request);
-//            memberCommandService.saveLoginHistory(id, ipAddress, 'N');      // 실패했을때 비밀번호 불일치 Exception 일 시 실패한 id 값을 이력에 저장
+            employeeCommandService.saveLoginHistory(id, ipAddress, 'N');      // 실패했을때 비밀번호 불일치 Exception 일 시 실패한 id 값을 이력에 저장
         }
         else{
             response.getWriter().write("{\"error\": \"" + failed.getMessage() + "\"}");

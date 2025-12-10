@@ -3,16 +3,16 @@ package com.devoops.rentalbrain.employee.command.service;
 import com.devoops.rentalbrain.employee.command.dto.*;
 import com.devoops.rentalbrain.employee.command.entity.EmpPositionAuth;
 import com.devoops.rentalbrain.employee.command.entity.Employee;
+import com.devoops.rentalbrain.employee.command.entity.LoginHistory;
 import com.devoops.rentalbrain.employee.command.repository.EmpPositionAuthCommandRepository;
 import com.devoops.rentalbrain.employee.command.repository.EmployeeCommandRepository;
-import com.devoops.rentalbrain.employee.query.service.EmployeeQueryService;
+import com.devoops.rentalbrain.employee.command.repository.LoginHistoryCommandRepository;
+import com.devoops.rentalbrain.employee.query.service.EmployeeQueryServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -30,23 +30,26 @@ import java.util.stream.Collectors;
 @Slf4j
 public class EmployeeCommandServiceImpl implements EmployeeCommandService {
     private final EmployeeCommandRepository employeeCommandRepository;
-    private final EmployeeQueryService employeeQueryService;
+    private final EmployeeQueryServiceImpl employeeQueryService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final RedisTemplate<String, String> redisTemplate;
     private final Environment env;
     private final EmpPositionAuthCommandRepository empPositionAuthCommandRepository;
+    private final LoginHistoryCommandRepository loginHistoryCommandRepository;
 
     public EmployeeCommandServiceImpl(EmployeeCommandRepository employeeCommandRepository,
-                                      EmployeeQueryService employeeQueryService,
+                                      EmployeeQueryServiceImpl employeeQueryServiceImpl,
                                       RedisTemplate<String, String> redisTemplate,
                                       Environment env,
-                                      EmpPositionAuthCommandRepository empPositionAuthCommandRepository) {
+                                      EmpPositionAuthCommandRepository empPositionAuthCommandRepository,
+                                      LoginHistoryCommandRepository loginHistoryCommandRepository) {
         this.employeeCommandRepository = employeeCommandRepository;
         this.bCryptPasswordEncoder = new BCryptPasswordEncoder();
-        this.employeeQueryService = employeeQueryService;
+        this.employeeQueryService = employeeQueryServiceImpl;
         this.redisTemplate = redisTemplate;
         this.env = env;
         this.empPositionAuthCommandRepository = empPositionAuthCommandRepository;
+        this.loginHistoryCommandRepository = loginHistoryCommandRepository;
     }
 
     @Override
@@ -148,5 +151,17 @@ public class EmployeeCommandServiceImpl implements EmployeeCommandService {
         // 남아있는 positionId + authId는 db 에서 삭제
         empPositionAuthCommandRepository.deleteAll(empPositionAuths.values());
         log.info("권한 수정 완료");
+    }
+
+    @Override
+    @Transactional
+    public void saveLoginHistory(Long id, String ipAddress, char y) {
+        LoginHistory loginHistory = new LoginHistory();
+        LocalDateTime now = LocalDateTime.now();
+        loginHistory.setLoginSuccessDate(now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss")));
+        loginHistory.setLoginIsSucceed(y);
+        loginHistory.setLoginIp(ipAddress);
+        loginHistory.setEmpId(id);
+        loginHistoryCommandRepository.save(loginHistory);
     }
 }
