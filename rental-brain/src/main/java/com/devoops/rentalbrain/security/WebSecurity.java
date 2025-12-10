@@ -51,6 +51,7 @@ public class WebSecurity {
                                    authz
                                            .requestMatchers("/**").permitAll()        // 개발시에는 주석 풀고 진행
                                         .requestMatchers(HttpMethod.GET, "/health").permitAll()
+                                        .requestMatchers(HttpMethod.POST, "/auth/validate").permitAll()
                                         .requestMatchers("/member/customerread").hasAuthority("CUSTOMER_READ")
                                         .requestMatchers("/member/customerwrite").hasAuthority("CUSTOMER_WRITE")
                                         .requestMatchers("/member/contractapprove").hasAuthority("CONTRACT_APPROVE")
@@ -60,8 +61,6 @@ public class WebSecurity {
                 /* 설명. Session 방식이 아닌 JWT Token 방식으로 인증된 회원(Authentication)을 Local Thread로 저장하겠다. */
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
-
 
 
         // authenticationFilter를 추가하는 과정
