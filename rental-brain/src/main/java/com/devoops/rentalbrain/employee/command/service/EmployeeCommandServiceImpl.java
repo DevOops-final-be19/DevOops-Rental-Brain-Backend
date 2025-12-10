@@ -1,10 +1,9 @@
 package com.devoops.rentalbrain.employee.command.service;
 
-import com.devoops.rentalbrain.employee.command.dto.LogoutDTO;
-import com.devoops.rentalbrain.employee.command.dto.SignUpDTO;
-import com.devoops.rentalbrain.employee.command.dto.UserDetailInfoDTO;
-import com.devoops.rentalbrain.employee.command.dto.UserImpl;
+import com.devoops.rentalbrain.employee.command.dto.*;
+import com.devoops.rentalbrain.employee.command.entity.EmpPositionAuth;
 import com.devoops.rentalbrain.employee.command.entity.Employee;
+import com.devoops.rentalbrain.employee.command.repository.EmpPositionAuthCommandRepository;
 import com.devoops.rentalbrain.employee.command.repository.EmployeeCommandRepository;
 import com.devoops.rentalbrain.employee.query.service.EmployeeQueryService;
 import lombok.extern.slf4j.Slf4j;
@@ -17,10 +16,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -32,16 +33,19 @@ public class EmployeeCommandServiceImpl implements EmployeeCommandService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final RedisTemplate<String, String> redisTemplate;
     private final Environment env;
+    private final EmpPositionAuthCommandRepository empPositionAuthCommandRepository;
 
     public EmployeeCommandServiceImpl(EmployeeCommandRepository employeeCommandRepository,
                                       EmployeeQueryService employeeQueryService,
                                       RedisTemplate<String, String> redisTemplate,
-                                      Environment env) {
+                                      Environment env,
+                                      EmpPositionAuthCommandRepository empPositionAuthCommandRepository) {
         this.employeeCommandRepository = employeeCommandRepository;
         this.bCryptPasswordEncoder = new BCryptPasswordEncoder();
         this.employeeQueryService = employeeQueryService;
         this.redisTemplate = redisTemplate;
         this.env = env;
+        this.empPositionAuthCommandRepository = empPositionAuthCommandRepository;
     }
 
     @Override
@@ -85,6 +89,7 @@ public class EmployeeCommandServiceImpl implements EmployeeCommandService {
     }
 
     @Override
+    @Transactional
     public void signup(SignUpDTO signUpDTO) {
         Employee employee = new Employee();
         employee.setEmpId(signUpDTO.getEmpId());
@@ -115,5 +120,32 @@ public class EmployeeCommandServiceImpl implements EmployeeCommandService {
         catch (Exception e){
             log.info("redis 오류!");
         }
+    }
+
+    @Override
+    @Transactional
+    public void modifyAuth(List<EmpPositionAuthDTO> empPositionAuthDTO) {
+        // db에 있는 직책별 권한 조회
+        List<EmpPositionAuth> empPositionAuthList = empPositionAuthCommandRepository.findAll();
+        Map<String, EmpPositionAuth> empPositionAuths = empPositionAuthList.stream()
+                .collect(Collectors.toMap(v->v.getPositionId() + "-" + v.getAuthId(), v -> v));
+
+        for(EmpPositionAuthDTO empPositionAuthElement : empPositionAuthDTO){
+            if(empPositionAuths.get(empPositionAuthElement.getPositionId() + "-" + empPositionAuthElement.getAuthId()) == null) {
+                // 존재하지 않는 positionId + authId 일 때
+                EmpPositionAuth empPositionAuth = new EmpPositionAuth();
+
+                empPositionAuth.setPositionId(empPositionAuthElement.getPositionId());
+                empPositionAuth.setAuthId(empPositionAuthElement.getAuthId());
+                empPositionAuthCommandRepository.save(empPositionAuth);
+            }else{
+                // 이미 존재하는 positionId + authId 일 때
+                empPositionAuths.remove(empPositionAuthElement.getPositionId() + "-" + empPositionAuthElement.getAuthId());
+            }
+        }
+
+        // 남아있는 positionId + authId는 db 에서 삭제
+        empPositionAuthCommandRepository.deleteAll(empPositionAuths.values());
+        log.info("권한 수정 완료");
     }
 }

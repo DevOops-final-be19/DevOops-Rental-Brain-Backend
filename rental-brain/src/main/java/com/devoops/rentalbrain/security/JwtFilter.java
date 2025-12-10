@@ -69,10 +69,8 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e){
             log.info("유효하지 않은 JWT Token(값이 없음)");
-
         }  catch(UnsupportedJwtException e){
             log.info("지원하지 않는 JWT Token");
-
         } catch(IllegalArgumentException e){
             log.info("토큰의 클레임이 없음");
         }
