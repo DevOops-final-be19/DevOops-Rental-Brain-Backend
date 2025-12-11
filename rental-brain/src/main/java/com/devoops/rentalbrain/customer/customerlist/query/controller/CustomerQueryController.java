@@ -18,7 +18,7 @@ public class CustomerQueryController {
 
     // 목록 조회 (페이징 + 검색)
     @GetMapping
-    public ResponseEntity<PageResponse<CustomerDto>> list(
+    public ResponseEntity<PageResponseDTO<CustomerDto>> list(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String email,
             @RequestParam(defaultValue = "1") int page,
