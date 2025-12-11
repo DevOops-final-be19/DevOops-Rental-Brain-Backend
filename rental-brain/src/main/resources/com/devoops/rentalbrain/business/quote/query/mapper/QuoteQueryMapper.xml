@@ -37,8 +37,8 @@
 
         C.name            AS channel_name
         FROM quote A
-        JOIN customer B ON A.cum_id = B.id
-        JOIN channel  C ON A.channel_id = C.id
+        LEFT JOIN customer B ON A.cum_id = B.id
+        LEFT JOIN channel  C ON A.channel_id = C.id
         <where>
             <!-- 기업명 -->
             <if test="customerName != null and customerName != ''">
@@ -70,13 +70,13 @@
     <!-- 전체 조회 (검색만, 페이징 X) -->
     <select id="getQuoteList" resultMap="QuoteQueryMap">
         <include refid="quoteBaseSelect"/>
-        ORDER BY A.counseling_date DESC
+        ORDER BY A.id DESC
     </select>
 
     <!-- 검색 + 페이징 조회 -->
     <select id="getQuoteListWithPaging" resultMap="QuoteQueryMap">
         <include refid="quoteBaseSelect"/>
-        ORDER BY A.counseling_date DESC
+        ORDER BY A.id DESC
         LIMIT #{limit} OFFSET #{offset}
     </select>
 
@@ -103,17 +103,17 @@
 
             C.name             AS channelName
         FROM quote A
-                 JOIN customer B ON A.cum_id = B.id
-                 JOIN channel  C ON A.channel_id = C.id
+                 LEFT JOIN customer B ON A.cum_id = B.id
+                 LEFT JOIN channel  C ON A.channel_id = C.id
         WHERE A.id = #{quoteId}
     </select>
 
     <!-- 총 건수 (페이지 수 계산용) -->
     <select id="countQuoteList" resultType="long">
         SELECT COUNT(*)
-        FROM quote   A
-        JOIN customer B ON A.cum_id = B.id
-        JOIN channel  C ON A.channel_id = C.id
+        FROM quote A
+        LEFT JOIN customer B ON A.cum_id = B.id
+        LEFT JOIN channel  C ON A.channel_id = C.id
         <where>
             <if test="customerName != null and customerName != ''">
                 AND B.name LIKE CONCAT('%', #{customerName}, '%')

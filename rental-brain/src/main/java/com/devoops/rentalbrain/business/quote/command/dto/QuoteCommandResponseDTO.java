@@ -1,5 +1,9 @@
 package com.devoops.rentalbrain.business.quote.command.dto;
 
+import com.devoops.rentalbrain.customer.customerlist.command.entity.CustomerlistCommandEntity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -12,9 +16,7 @@ import java.time.LocalDateTime;
 public class QuoteCommandResponseDTO {
     // quote 테이블
     private Long quoteId;
-
     private LocalDateTime quoteCounselingDate;
-
     private String quoteCounselor;
     private String quoteSummary;
     private String quoteContent;
@@ -32,4 +34,10 @@ public class QuoteCommandResponseDTO {
 
     // channel join 할 부분
     private String channelName;
+
+    // customer 필요시 join
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cum_id", insertable = false, updatable = false)
+    private CustomerlistCommandEntity customer;
+
 }
