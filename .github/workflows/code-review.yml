@@ -1,0 +1,45 @@
+name: Code Review
+
+# GitHub 저장소 읽기 및 PR 쓰기 권한을 설정
+permissions:
+  contents: read
+  pull-requests: write
+
+# PR 이벤트 관련해서 워크플로우 실행
+on:
+  pull_request:
+    types: [opened]
+
+# 워크플로우 실행 작업 정의
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: ChatGPT codeReviewer
+        uses: anc95/ChatGPT-CodeReview@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          # optional
+          MODEL: "gpt-4o-mini" # https://platform.openai.com/docs/models
+          OPENAI_API_ENDPOINT: https://api.openai.com/v1
+          LANGUAGE: Korean
+          PROMPT: |
+            이 PR을 Google/Meta/Stripe 수준의 엄격한 코드 리뷰 관점으로 분석해주세요:
+            
+            피드백은:
+              - P0(반드시 수정)/P1(중요)/P2(권장) 우선순위로 분류
+              - 문제보다 해결책 중심으로 제시
+              - 구체적인 코드 예시 포함
+              - "왜 고쳐야 하는지"를 설계 원칙 또는 베스트 프랙티스 관점에서 설명할 것.
+              - 중복 코드 탐지: 동일한 로직 반복 여부 및 리팩터링 가능 여부
+              - 트랜잭션 경계 문제: @Transactional 사용 위치와 DB 일관성 문제
+              - 예외 처리 일관성: Controller → Service → Repository 레이어 간 예외 전달 규칙
+              - N+1 가능성 체크: JPA 연관관계 / MyBatis 조인 구조에서의 성능 이슈
+              - 서비스 / 도메인 책임 분리: 서비스가 너무 비대하거나 도메인이 빈약해지는 반패턴 여부
+              - 동시성 문제 가능성: synchronized 필요성, 비관/낙관 락 고려 여부
+              - 코드 스타일 & 유지보수성: 네이밍, 메서드 길이, SRP 적용 여부
+            
+            
+            최고 수준의 코드만 승인하고, "잘 돌아가니까 괜찮아"는 수용하지 않음.
+            응답 코드는 pr 코드 리뷰에 반드시 반드시 친절하고 협업 친화적인 어조로 작성하고, 이모지를 항상 활용할 것(특히 상대방이 기분나쁘지 않게)
