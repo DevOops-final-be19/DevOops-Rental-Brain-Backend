@@ -7,10 +7,7 @@ import com.devoops.rentalbrain.product.productlist.query.service.ItemQueryServic
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -37,7 +34,11 @@ public class ItemQueryController {
     }
 
     @GetMapping("/read-groupby-name")
-    public ResponseEntity<List<ItemNameDTO>> readItemsGroupByName() {
+    public ResponseEntity<List<ItemNameDTO>> readItemsGroupByName(@RequestParam(defaultValue = "1") int page,    // 페이징
+                                                                  @RequestParam(defaultValue = "10") int size) {
+
+        // 공용 Criteria 사용 (페이지 정보만 사용)
+//        Criteria criteria = new Criteria(page, size);
         log.info("컨트롤러 실행됨..");
         List<ItemNameDTO> itemNameList = itemQueryService.readItemsGroupByName();
         return ResponseEntity.ok().body(itemNameList);
