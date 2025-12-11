@@ -194,6 +194,55 @@ public class EmployeeCommandServiceImpl implements EmployeeCommandService {
         modifyInfo(employee,employeeInfoModifyDTO);
     }
 
+    @Override
+    @Transactional
+    public void modifyEmpInfoByAdmin(EmployeeInfoModifyByAdminDTO employeeInfoModifyByAdminDTO) {
+        Employee employee = employeeCommandRepository.findByEmpId(employeeInfoModifyByAdminDTO.getEmpId());
+
+        if(employeeCommandRepository.existsByEmail(employeeInfoModifyByAdminDTO.getEmail())) {
+            if(!employeeInfoModifyByAdminDTO.getEmail().equals(employee.getEmail())) {
+            throw new RuntimeException("이미 존재하는 이메일입니다.");
+            }
+        }
+        modifyInfoByAdmin(employee,employeeInfoModifyByAdminDTO);
+    }
+
+    private void modifyInfoByAdmin(Employee employee, EmployeeInfoModifyByAdminDTO employeeInfoModifyByAdminDTO) {
+        if(!bCryptPasswordEncoder.encode(employeeInfoModifyByAdminDTO.getPwd()).equals(employee.getPwd())) {
+            employee.setPwd(bCryptPasswordEncoder.encode(employeeInfoModifyByAdminDTO.getPwd()));
+        }
+        if(!employeeInfoModifyByAdminDTO.getName().equals(employee.getName())) {
+            employee.setName(employeeInfoModifyByAdminDTO.getName());
+        }
+        if(!employeeInfoModifyByAdminDTO.getPhone().equals(employee.getPhone())) {
+            employee.setPhone(employeeInfoModifyByAdminDTO.getPhone());
+        }
+        if(!employeeInfoModifyByAdminDTO.getEmail().equals(employee.getEmail())) {
+            employee.setEmail(employeeInfoModifyByAdminDTO.getEmail());
+        }
+        if(!employeeInfoModifyByAdminDTO.getAddr().equals(employee.getAddr())) {
+            employee.setAddr(employeeInfoModifyByAdminDTO.getAddr());
+        }
+        if(!employeeInfoModifyByAdminDTO.getBirthday().equals(employee.getBirthday())) {
+            employee.setBirthday(employeeInfoModifyByAdminDTO.getBirthday());
+        }
+        if(!employeeInfoModifyByAdminDTO.getGender().equals(employee.getGender())) {
+            employee.setGender(employeeInfoModifyByAdminDTO.getGender());
+        }
+        if(!employeeInfoModifyByAdminDTO.getDept().equals(employee.getDept())) {
+            employee.setDept(employeeInfoModifyByAdminDTO.getDept());
+        }
+        if(!employeeInfoModifyByAdminDTO.getHireDate().equals(employee.getHireDate())) {
+            employee.setHireDate(employeeInfoModifyByAdminDTO.getHireDate());
+        }
+        if(employeeInfoModifyByAdminDTO.getResignDate()!=null&&!employeeInfoModifyByAdminDTO.getResignDate().equals(employee.getResignDate())) {
+            employee.setResignDate(employeeInfoModifyByAdminDTO.getResignDate());
+        }
+        if(!employeeInfoModifyByAdminDTO.getPositionId().equals(employee.getPositionId())) {
+            employee.setPositionId(employeeInfoModifyByAdminDTO.getPositionId());
+        }
+    }
+
     private void modifyInfo(Employee employee, EmployeeInfoModifyDTO employeeInfoModifyDTO) {
         if(!employeeInfoModifyDTO.getName().equals(employee.getName())) {
             employee.setName(employeeInfoModifyDTO.getName());

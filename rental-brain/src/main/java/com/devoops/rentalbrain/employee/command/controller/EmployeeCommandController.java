@@ -1,10 +1,7 @@
 package com.devoops.rentalbrain.employee.command.controller;
 
 
-import com.devoops.rentalbrain.employee.command.dto.EmployeeAuthDTO;
-import com.devoops.rentalbrain.employee.command.dto.EmployeeInfoModifyDTO;
-import com.devoops.rentalbrain.employee.command.dto.LogoutDTO;
-import com.devoops.rentalbrain.employee.command.dto.SignUpDTO;
+import com.devoops.rentalbrain.employee.command.dto.*;
 import com.devoops.rentalbrain.employee.command.entity.EmployeeAuth;
 import com.devoops.rentalbrain.employee.command.service.EmployeeCommandService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -57,6 +54,16 @@ public class EmployeeCommandController {
         try {
             employeeCommandService.modifyEmpInfo(employeeInfoModifyDTO);
         }catch (Exception e){
+            return ResponseEntity.ok().body(e.getMessage());
+        }
+        return ResponseEntity.ok().body("Done");
+    }
+
+    @PutMapping("/admin/info/modify")
+    public ResponseEntity<?> modifyEmpInfoByAdmin(@RequestBody EmployeeInfoModifyByAdminDTO employeeInfoModifyByAdminDTO){
+        try{
+            employeeCommandService.modifyEmpInfoByAdmin(employeeInfoModifyByAdminDTO);
+        } catch (Exception e){
             return ResponseEntity.ok().body(e.getMessage());
         }
         return ResponseEntity.ok().body("Done");
