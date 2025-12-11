@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.devoops.rentalbrain.business.quote.query.mapper.QuoteQueryMapper">
+    <resultMap id="QuoteQueryMap" type="com.devoops.rentalbrain.business.quote.query.dto.QuoteQueryResponseDTO">
+
+        <!-- quote -->
+        <id     property="quoteId"             column="quote_id"/>
+        <result property="quoteCounselingDate" column="counseling_date"/>
+        <result property="quoteCounselor"      column="counselor"/>
+        <result property="quoteSummary"        column="summary"/>
+        <result property="quoteProcessingTime" column="processing_time"/>
+
+        <!-- customer -->
+        <result property="customerName"        column="customer_name"/>
+        <result property="customerInCharge"    column="customer_in_charge"/>
+        <result property="customerCallNum"     column="customer_call_num"/>
+
+        <!-- channel -->
+        <result property="channelName"         column="channel_name"/>
+    </resultMap>
+
+
+    <!-- 공통 SELECT + 검색 조건 -->
+    <sql id="quoteBaseSelect">
+        SELECT
+        A.id              AS quote_id,
+        A.counseling_date AS counseling_date,
+        A.counselor       AS counselor,
+        A.summary         AS summary,
+        A.processing_time AS processing_time,
+
+        B.name            AS customer_name,
+        B.in_charge       AS customer_in_charge,
+        B.call_num        AS customer_call_num,
+
+        C.name            AS channel_name
+        FROM quote A
+        JOIN customer B ON A.cum_id = B.id
+        JOIN channel  C ON A.channel_id = C.id
+        <where>
+            <!-- 기업명 -->
+            <if test="customerName != null and customerName != ''">
+                AND B.name LIKE CONCAT('%', #{customerName}, '%')
+            </if>
+
+            <!-- 담당자 -->
+            <if test="customerInCharge != null and customerInCharge != ''">
+                AND B.in_charge LIKE CONCAT('%', #{customerInCharge}, '%')
+            </if>
+
+            <!-- 연락처 -->
+            <if test="customerCallNum != null and customerCallNum != ''">
+                AND B.call_num LIKE CONCAT('%', #{customerCallNum}, '%')
+            </if>
+
+            <!-- 유형(채널) : 채널 ID로 검색 -->
+            <if test="quoteChannelId != null">
+                AND A.channel_id = #{quoteChannelId}
+            </if>
+
+            <!-- 상담사 -->
+            <if test="quoteCounselor != null and quoteCounselor != ''">
+                AND A.counselor LIKE CONCAT('%', #{quoteCounselor}, '%')
+            </if>
+        </where>
+    </sql>
+
+    <!-- 전체 조회 (검색만, 페이징 X) -->
+    <select id="getQuoteList" resultMap="QuoteQueryMap">
+        <include refid="quoteBaseSelect"/>
+        ORDER BY A.counseling_date DESC
+    </select>
+
+    <!-- 검색 + 페이징 조회 -->
+    <select id="getQuoteListWithPaging" resultMap="QuoteQueryMap">
+        <include refid="quoteBaseSelect"/>
+        ORDER BY A.counseling_date DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 견적/상담 id로 detail -->
+    <select id="getQuoteDetail"
+            parameterType="long"
+            resultType="com.devoops.rentalbrain.business.quote.query.dto.QuoteDetailQueryResponseDTO">
+        SELECT
+            A.id               AS quoteId,
+            A.counseling_date  AS quoteCounselingDate,
+            A.counselor        AS quoteCounselor,
+            A.summary          AS quoteSummary,
+            A.content          AS quoteContent,
+            A.processing_time  AS quoteProcessingTime,
+            A.channel_id       AS quoteChannelId,
+            A.cum_id           AS quoteCumId,
+
+            B.name             AS customerName,
+            B.in_charge        AS customerInCharge,
+            B.call_num         AS customerCallNum,
+            B.email            AS customerEmail,
+            B.dept             AS customerDept,
+            B.addr             AS customerAddr,
+
+            C.name             AS channelName
+        FROM quote A
+                 JOIN customer B ON A.cum_id = B.id
+                 JOIN channel  C ON A.channel_id = C.id
+        WHERE A.id = #{quoteId}
+    </select>
+
+    <!-- 총 건수 (페이지 수 계산용) -->
+    <select id="countQuoteList" resultType="long">
+        SELECT COUNT(*)
+        FROM quote   A
+        JOIN customer B ON A.cum_id = B.id
+        JOIN channel  C ON A.channel_id = C.id
+        <where>
+            <if test="customerName != null and customerName != ''">
+                AND B.name LIKE CONCAT('%', #{customerName}, '%')
+            </if>
+            <if test="customerInCharge != null and customerInCharge != ''">
+                AND B.in_charge LIKE CONCAT('%', #{customerInCharge}, '%')
+            </if>
+            <if test="customerCallNum != null and customerCallNum != ''">
+                AND B.call_num LIKE CONCAT('%', #{customerCallNum}, '%')
+            </if>
+            <if test="quoteChannelId != null">
+                AND A.channel_id = #{quoteChannelId}
+            </if>
+            <if test="quoteCounselor != null and quoteCounselor != ''">
+                AND A.counselor LIKE CONCAT('%', #{quoteCounselor}, '%')
+            </if>
+        </where>
+    </select>
+
+    <!-- KPI 카드용 집계 쿼리  -->
+    <select id="getQuoteKpi" resultType="com.devoops.rentalbrain.business.quote.query.dto.QuoteKpiResponseDTO">
+        SELECT
+            COUNT(*) AS totalCount,         -- 전체 상담 건수
+            SUM(CASE
+                    WHEN DATE(A.counseling_date) = CURDATE() THEN 1
+                ELSE 0
+                END) AS todayCount,         -- 오늘 상담 건수
+            AVG(A.processing_time) AS avgProcessingAll,   -- 전체 평균 처리시간(분)
+            AVG(CASE
+                    WHEN A.counseling_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+                        THEN A.processing_time
+                    ELSE NULL
+                END) AS avgProcessing7Days  -- 최근 7일 평균 처리시간(분)
+        FROM quote A
+    </select>
+
+</mapper>
