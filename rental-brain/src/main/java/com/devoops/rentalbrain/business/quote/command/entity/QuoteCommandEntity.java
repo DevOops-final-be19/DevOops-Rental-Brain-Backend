@@ -40,4 +40,5 @@ public class QuoteCommandEntity {
     @Column(name = "cum_id", nullable = false)
     private Integer quoteCumId;
 
+
 }
