@@ -32,12 +32,13 @@ public class QuoteCommandEntity {
     private String quoteContent;
 
     @Column(name = "processing_time", nullable = false)
-    private LocalDateTime quoteProcessingTime;
+    private Integer quoteProcessingTime;
 
     @Column(name = "channel_id", nullable = false)
-    private Integer quoteChannelId;
+    private Long quoteChannelId;
 
     @Column(name = "cum_id", nullable = false)
-    private Integer quoteCumId;
+    private Long quoteCumId;
+
 
 }

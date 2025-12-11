@@ -1,0 +1,16 @@
+package com.devoops.rentalbrain.employee.query.mapper;
+
+import com.devoops.rentalbrain.employee.query.dto.EmployeeInfoDTO;
+import org.apache.ibatis.annotations.Mapper;
+import org.springframework.security.core.GrantedAuthority;
+
+import java.util.List;
+
+@Mapper
+public interface EmployeeQueryMapper {
+    List<String> getUserAuth(Long empId);
+
+    EmployeeInfoDTO getEmpInfoPage(String empId);
+
+    List<EmployeeInfoDTO> getEmpList();
+}

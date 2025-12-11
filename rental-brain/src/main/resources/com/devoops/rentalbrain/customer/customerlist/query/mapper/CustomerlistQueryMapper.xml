@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.devoops.rentalbrain.customer.customerlist.query.mapper.CustomerlistQueryMapper">
+
+    <resultMap id="CustomerMap" type="com.devoops.rentalbrain.customer.common.CustomerDto">
+        <id property="id" column="ID"/>
+        <result property="name" column="NAME"/>
+        <result property="inCharge" column="IN_CHARGE"/>
+        <result property="dept" column="DEPT"/>
+        <result property="callNum" column="CALL_NUM"/>
+        <result property="phone" column="PHONE"/>
+        <result property="email" column="EMAIL"/>
+        <result property="businessNum" column="BUSINESS_NUM"/>
+        <result property="addr" column="ADDR"/>
+        <result property="lastTransaction" column="LAST_TRANSACTION"/>
+        <result property="firstContractDate" column="FIRST_CONTRACT_DATE"/>
+        <result property="memo" column="MEMO"/>
+        <result property="star" column="STAR"/>
+
+        <result property="isDeleted" column="IS_DELETED"/>
+
+        <result property="channelName" column="CHANNEL_NAME"/>
+        <result property="segmentName" column="SEGMENT_NAME"/>
+    </resultMap>
+
+    <select id="selectCustomerList" resultMap="CustomerMap"
+            parameterType="com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerlistSearchDTO">
+        SELECT
+               A.ID
+             , A.NAME
+             , A.IN_CHARGE
+             , A.DEPT
+             , A.CALL_NUM
+             , A.PHONE
+             , A.EMAIL
+             , A.BUSINESS_NUM
+             , A.ADDR
+             , A.LAST_TRANSACTION
+             , A.FIRST_CONTRACT_DATE
+             , A.MEMO
+             , A.STAR
+             , A.IS_DELETED
+             , B.NAME AS CHANNEL_NAME
+             , C.NAME AS SEGMENT_NAME
+          FROM customer A
+          LEFT JOIN channel B ON A.CHANNEL_ID = B.ID
+          LEFT JOIN segment C ON A.SEGMENT_ID = C.ID
+        <where>
+            <if test="name != null and name != ''">
+                AND A.NAME LIKE CONCAT('%', #{name}, '%')
+            </if>
+            <if test="email != null and email != ''">
+                AND A.EMAIL LIKE CONCAT('%', #{email}, '%')
+            </if>
+        </where>
+        ORDER BY A.ID DESC
+        LIMIT #{amount} OFFSET #{offset}
+    </select>
+
+    <select id="selectCustomerCount" resultType="long"
+            parameterType="com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerlistSearchDTO">
+        SELECT COUNT(*)
+        FROM customer A
+        <where>
+            <if test="name != null and name != ''">
+                AND A.NAME LIKE CONCAT('%', #{name}, '%')
+            </if>
+            <if test="email != null and email != ''">
+                AND A.EMAIL LIKE CONCAT('%', #{email}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="selectCustomerById" resultMap="CustomerMap" parameterType="long">
+        SELECT
+               A.ID
+             , A.NAME
+             , A.IN_CHARGE
+             , A.DEPT
+             , A.CALL_NUM
+             , A.PHONE
+             , A.EMAIL
+             , A.BUSINESS_NUM
+             , A.ADDR
+             , A.LAST_TRANSACTION
+             , A.FIRST_CONTRACT_DATE
+             , A.MEMO
+             , A.STAR
+             , A.IS_DELETED
+             , B.NAME AS CHANNEL_NAME
+             , C.NAME AS SEGMENT_NAME
+          FROM customer A
+          LEFT JOIN channel B ON A.CHANNEL_ID = B.ID
+          LEFT JOIN segment C ON A.SEGMENT_ID = C.ID
+         WHERE A.ID = #{id}
+    </select>
+
+</mapper>

@@ -33,7 +33,7 @@ public class Pagination {
         return new PagingButtonInfo(currentPage, startPage, endPage);
     }
 
-    // ✅ MyBatis용 (추가)
+    // MyBatis용 (추가)
     public static PagingButtonInfo getPagingButtonInfo(com.devoops.rentalbrain.common.Pagination.Criteria criteria,
                                                        long totalCount) {
 
