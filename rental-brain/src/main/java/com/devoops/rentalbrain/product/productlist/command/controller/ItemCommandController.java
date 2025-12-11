@@ -27,4 +27,11 @@ public class ItemCommandController {
 
         return result;
     }
+
+    @DeleteMapping("/delete/{itemId}")
+    public String deleteItem(@PathVariable int itemId) {
+        String result = itemCommandService.deleteItem(itemId);
+
+        return result;
+    }
 }

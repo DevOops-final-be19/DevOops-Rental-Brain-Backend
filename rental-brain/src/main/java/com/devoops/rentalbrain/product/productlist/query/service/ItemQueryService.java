@@ -1,5 +1,7 @@
 package com.devoops.rentalbrain.product.productlist.query.service;
 
+import com.devoops.rentalbrain.common.Pagination.Criteria;
+import com.devoops.rentalbrain.common.Pagination.PageResponseDTO;
 import com.devoops.rentalbrain.product.productlist.query.dto.EachItemDTO;
 import com.devoops.rentalbrain.product.productlist.query.dto.ItemKpiDTO;
 import com.devoops.rentalbrain.product.productlist.query.dto.ItemNameDTO;
@@ -9,9 +11,11 @@ import java.util.List;
 public interface ItemQueryService {
     List<EachItemDTO> readAllItems(String itemName);
 
-    List<ItemNameDTO> readItemsGroupByName();
+    PageResponseDTO<ItemNameDTO> readItemsGroupByName(Criteria criteria);
 
-    List<ItemNameDTO> searchItemsByName(String keyword);
+    PageResponseDTO<ItemNameDTO> searchItemsByName(String keyword, Criteria criteria);
 
     ItemKpiDTO countItems();
+
+    PageResponseDTO<ItemNameDTO> filteringItemsByCategory(String categoryName, Criteria criteria);
 }

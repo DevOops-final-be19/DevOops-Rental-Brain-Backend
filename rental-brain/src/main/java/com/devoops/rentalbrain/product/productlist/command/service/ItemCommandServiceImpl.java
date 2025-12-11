@@ -83,4 +83,11 @@ public class ItemCommandServiceImpl implements ItemCommandService {
 
         return "item update success";
     }
+
+    @Override
+    @Transactional
+    public String deleteItem(int itemId) {
+        itemRepository.deleteById((long)itemId);
+        return "item delete success";
+    }
 }

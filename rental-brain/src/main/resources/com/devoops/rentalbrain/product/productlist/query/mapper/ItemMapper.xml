@@ -67,7 +67,7 @@
         SUM(A.WHOLE_REPAIR_COST) AS WHOLE_REPAIR_COST,
         SUM(CASE WHEN A.STATUS = 'S'    THEN A.ITEM_COUNT ELSE 0 END)/SUM(A.ITEM_COUNT)*100 AS UTILIZATION_RATE
         FROM stocked_item A
-        WHERE A.ITEM_NAME = #{keyword}
+        WHERE A.ITEM_NAME LIKE CONCAT('%', #{keyword}, '%')
         GROUP BY A.ITEM_NAME;
     </select>
     <resultMap id="getItemCountMap" type="com.devoops.rentalbrain.product.productlist.query.dto.ItemKpiDTO">
@@ -81,5 +81,41 @@
                COUNT(CASE WHEN A.STATUS = 'S' THEN 1 END) AS RENTAL_COUNT,
                COUNT(CASE WHEN A.STATUS = 'S' THEN 1 END) AS REPAIR_COUNT
           FROM item A
+    </select>
+    <select id="countItemsList">
+        SELECT
+               COUNT(DISTINCT A.ITEM_NAME)
+          FROM stocked_item A;
+    </select>
+    <select id="filteringItemsByCategory" resultMap="getItemNameMap" parameterType="string">
+        SELECT
+               A.ITEM_NAME,
+               A.CATEGORY_NAME,
+               A.MONTHLY_PRICE,
+               SUM(A.ITEM_COUNT) AS STOCK_AMOUNT,
+               SUM(CASE WHEN A.STATUS = 'S'    THEN A.ITEM_COUNT ELSE 0 END) AS RENTAL_AMOUNT,
+               SUM(CASE WHEN A.STATUS = 'P'    THEN A.ITEM_COUNT ELSE 0 END) AS POSSIBLE_AMOUNT,
+               SUM(CASE WHEN A.STATUS = 'R'    THEN A.ITEM_COUNT ELSE 0 END) AS REPAIR_AMOUNT,
+               SUM(CASE WHEN A.STATUS = 'O'    THEN A.ITEM_COUNT ELSE 0 END) AS OVERDUE_AMOUNT,
+               SUM(A.WHOLE_SALES) AS WHOLE_SALES,
+               SUM(A.WHOLE_REPAIR_COST) AS WHOLE_REPAIR_COST,
+               SUM(CASE WHEN A.STATUS = 'S'    THEN A.ITEM_COUNT ELSE 0 END)/SUM(A.ITEM_COUNT)*100 AS UTILIZATION_RATE
+          FROM stocked_item A
+          LEFT JOIN item_category B ON A.CATEGORY_NAME = B.NAME
+         WHERE B.NAME = #{categoryName}
+         GROUP BY A.ITEM_NAME;
+    </select>
+    <select id="countSearchItemsList">
+        SELECT
+               COUNT(DISTINCT A.ITEM_NAME)
+        FROM stocked_item A
+        WHERE A.ITEM_NAME LIKE CONCAT('%', #{keyword}, '%')
+    </select>
+    <select id="countFilteringItemsList">
+        SELECT
+               COUNT(DISTINCT A.ITEM_NAME)
+          FROM stocked_item A
+          LEFT JOIN item_category B ON A.CATEGORY_NAME = B.NAME
+         WHERE B.NAME = #{categoryName}
     </select>
 </mapper>

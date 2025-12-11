@@ -1,5 +1,7 @@
 package com.devoops.rentalbrain.product.productlist.query.controller;
 
+import com.devoops.rentalbrain.common.Pagination.Criteria;
+import com.devoops.rentalbrain.common.Pagination.PageResponseDTO;
 import com.devoops.rentalbrain.product.productlist.query.dto.EachItemDTO;
 import com.devoops.rentalbrain.product.productlist.query.dto.ItemKpiDTO;
 import com.devoops.rentalbrain.product.productlist.query.dto.ItemNameDTO;
@@ -34,19 +36,24 @@ public class ItemQueryController {
     }
 
     @GetMapping("/read-groupby-name")
-    public ResponseEntity<List<ItemNameDTO>> readItemsGroupByName(@RequestParam(defaultValue = "1") int page,    // 페이징
-                                                                  @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<PageResponseDTO<ItemNameDTO>> readItemsGroupByName(@RequestParam(defaultValue = "1") int page,
+                                                                             @RequestParam(defaultValue = "10") int size) {
 
         // 공용 Criteria 사용 (페이지 정보만 사용)
-//        Criteria criteria = new Criteria(page, size);
-        log.info("컨트롤러 실행됨..");
-        List<ItemNameDTO> itemNameList = itemQueryService.readItemsGroupByName();
+        Criteria criteria = new Criteria(page, size);
+
+        PageResponseDTO<ItemNameDTO> itemNameList = itemQueryService.readItemsGroupByName(criteria);
         return ResponseEntity.ok().body(itemNameList);
     }
 
     @GetMapping("/search/{keyword}")
-    public ResponseEntity<List<ItemNameDTO>> searchItems(@PathVariable String keyword) {
-        List<ItemNameDTO> itemNameList = itemQueryService.searchItemsByName(keyword);
+    public ResponseEntity<PageResponseDTO<ItemNameDTO>> searchItems(@PathVariable String keyword,
+                                                                    @RequestParam(defaultValue = "1") int page,
+                                                                    @RequestParam(defaultValue = "10") int size) {
+        // 공용 Criteria 사용 (페이지 정보만 사용)
+        Criteria criteria = new Criteria(page, size);
+
+        PageResponseDTO<ItemNameDTO> itemNameList = itemQueryService.searchItemsByName(keyword, criteria);
 
         return ResponseEntity.ok().body(itemNameList);
     }
@@ -55,5 +62,16 @@ public class ItemQueryController {
     public ItemKpiDTO kpiCount() {
         ItemKpiDTO result = itemQueryService.countItems();
         return result;
+    }
+
+    @GetMapping("/filtering/{categoryName}")
+    public ResponseEntity<PageResponseDTO<ItemNameDTO>> filteringItemByCategory(@PathVariable String categoryName,
+                                                                    @RequestParam(defaultValue = "1") int page,
+                                                                    @RequestParam(defaultValue = "10") int size) {
+        Criteria criteria = new Criteria(page, size);
+
+        PageResponseDTO<ItemNameDTO> itemNameList = itemQueryService.filteringItemsByCategory(categoryName, criteria);
+
+        return ResponseEntity.ok().body(itemNameList);
     }
 }

@@ -7,4 +7,6 @@ public interface ItemCommandService {
     void insertNewItem(ItemDTO itemDTO);
 
     String updateItem(int itemId, ModifyItemDTO itemDTO);
+
+    String deleteItem(int itemId);
 }

@@ -1,5 +1,9 @@
 package com.devoops.rentalbrain.product.productlist.query.service;
 
+import com.devoops.rentalbrain.common.Pagination.Criteria;
+import com.devoops.rentalbrain.common.Pagination.PageResponseDTO;
+import com.devoops.rentalbrain.common.Pagination.Pagination;
+import com.devoops.rentalbrain.common.Pagination.PagingButtonInfo;
 import com.devoops.rentalbrain.product.productlist.query.dto.EachItemDTO;
 import com.devoops.rentalbrain.product.productlist.query.dto.ItemKpiDTO;
 import com.devoops.rentalbrain.product.productlist.query.dto.ItemNameDTO;
@@ -29,23 +33,53 @@ public class ItemQueryServiceImpl implements ItemQueryService {
     }
 
     @Override
-    public List<ItemNameDTO> readItemsGroupByName() {
+    public PageResponseDTO<ItemNameDTO> readItemsGroupByName(Criteria criteria) {
         log.info("서비스 계층 실행됨..");
-        List<ItemNameDTO> itemNameList = itemMapper.selectItemsByName();
+        // 1) 데이터 목록 조회
+        List<ItemNameDTO> itemNameList = itemMapper.selectItemsByName(criteria.getOffset(),
+                criteria.getAmount());
 
-        return itemNameList;
+        // 2) 전체 건수 조회
+        long totalCount = itemMapper.countItemsList();
+
+
+        // 3) 페이지 버튼 정보 계산 (MyBatis용 유틸 사용)
+        PagingButtonInfo paging =
+                Pagination.getPagingButtonInfo(criteria, totalCount);
+
+        // 4) 공통 페이지 응답으로 감싸서 반환
+        return new PageResponseDTO<>(itemNameList, totalCount, paging);
     }
 
     @Override
-    public List<ItemNameDTO> searchItemsByName(String keyword) {
-        List<ItemNameDTO> itemNameList = itemMapper.searchItemByName(keyword);
+    public PageResponseDTO<ItemNameDTO> searchItemsByName(String keyword, Criteria criteria) {
+        List<ItemNameDTO> itemNameList = itemMapper.searchItemByName(keyword, criteria.getOffset(),
+                criteria.getAmount());
 
-        return itemNameList;
+        long totalCount = itemMapper.countSearchItemsList(keyword);
+
+        PagingButtonInfo paging =
+                Pagination.getPagingButtonInfo(criteria, totalCount);
+
+        return new PageResponseDTO<>(itemNameList, totalCount, paging);
     }
 
     @Override
     public ItemKpiDTO countItems() {
         ItemKpiDTO result = itemMapper.countItems();
         return result;
+    }
+
+    @Override
+    public PageResponseDTO<ItemNameDTO> filteringItemsByCategory(String categoryName, Criteria criteria) {
+        List<ItemNameDTO> itemNameList = itemMapper.filteringItemsByCategory(categoryName, criteria.getOffset(),
+                criteria.getAmount());
+
+        long totalCount = itemMapper.countFilteringItemsList(categoryName);
+
+        PagingButtonInfo paging =
+                Pagination.getPagingButtonInfo(criteria, totalCount);
+
+        return new PageResponseDTO<>(itemNameList, totalCount, paging);
     }
 }
