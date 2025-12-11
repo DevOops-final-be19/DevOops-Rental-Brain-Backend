@@ -24,6 +24,7 @@ public class CustomerDto {
     private LocalDateTime firstContractDate;
     private String memo;
     private Integer star;
+    private String isDeleted;
 
     // Join된 정보
     private String channelName;

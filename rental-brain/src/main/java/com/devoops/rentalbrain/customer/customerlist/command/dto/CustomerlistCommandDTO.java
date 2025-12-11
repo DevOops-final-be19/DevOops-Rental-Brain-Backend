@@ -8,7 +8,7 @@ import lombok.*;
 @Getter
 @Setter
 @ToString
-public class CustomerCommandDto {
+public class CustomerlistCommandDTO {
     private String name;
     private String inCharge;
     private String dept;

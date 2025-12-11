@@ -2,6 +2,7 @@ package com.devoops.rentalbrain.customer.customerlist.command.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import java.time.LocalDateTime;
 
@@ -12,8 +13,9 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @ToString
-@DynamicUpdate
-public class Customer {
+@DynamicUpdate // 변경된 필드만 Update
+@DynamicInsert // null인 필드는 Insert 구문에서 제외 -> DB Default 값 적용됨
+public class CustomerlistCommandEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -54,6 +56,9 @@ public class Customer {
 
     @Column
     private Integer star;
+
+    @Column(name = "is_deleted", length = 1)
+    private String isDeleted;
 
     @Column(name = "channel_id", nullable = false)
     private Long channelId;

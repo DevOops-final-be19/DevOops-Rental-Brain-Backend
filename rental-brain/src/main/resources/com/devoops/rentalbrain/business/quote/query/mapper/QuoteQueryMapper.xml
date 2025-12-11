@@ -12,7 +12,7 @@
         <result property="quoteSummary"        column="summary"/>
         <result property="quoteProcessingTime" column="processing_time"/>
 
-        <!-- customer -->
+        <!-- customerlistCommandEntity -->
         <result property="customerName"        column="customer_name"/>
         <result property="customerInCharge"    column="customer_in_charge"/>
         <result property="customerCallNum"     column="customer_call_num"/>
@@ -37,7 +37,7 @@
 
         C.name            AS channel_name
         FROM quote A
-        JOIN customer B ON A.cum_id = B.id
+        JOIN customerlistCommandEntity B ON A.cum_id = B.id
         JOIN channel  C ON A.channel_id = C.id
         <where>
             <!-- 기업명 -->
@@ -103,7 +103,7 @@
 
             C.name             AS channelName
         FROM quote A
-                 JOIN customer B ON A.cum_id = B.id
+                 JOIN customerlistCommandEntity B ON A.cum_id = B.id
                  JOIN channel  C ON A.channel_id = C.id
         WHERE A.id = #{quoteId}
     </select>
@@ -112,7 +112,7 @@
     <select id="countQuoteList" resultType="long">
         SELECT COUNT(*)
         FROM quote   A
-        JOIN customer B ON A.cum_id = B.id
+        JOIN customerlistCommandEntity B ON A.cum_id = B.id
         JOIN channel  C ON A.channel_id = C.id
         <where>
             <if test="customerName != null and customerName != ''">
