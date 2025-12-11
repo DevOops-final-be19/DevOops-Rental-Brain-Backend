@@ -8,7 +8,6 @@ import lombok.*;
 @Setter
 @ToString
 public class ItemNameDTO {
-    private Long id;
     private String itemName;
     private String categoryName;
     private int monthlyPrice;

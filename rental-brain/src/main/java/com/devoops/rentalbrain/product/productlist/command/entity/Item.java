@@ -26,24 +26,21 @@ public class Item {
     private String serialNum;
 
     @Column(name = "monthly_price")
-    private int monthlyPrice;
+    private Integer monthlyPrice;
 
     @Column(name = "status")
     private String status;
-
-    @Column(name = "start_date")
-    private LocalDateTime startDate;
 
     @Column(name = "last_inspect_date")
     private LocalDateTime lastInspectDate;
 
     @Column(name = "sales")
-    private int sales;
+    private Integer sales;
 
     @Column(name = "repair_cost")
-    private int repairCost;
+    private Integer repairCost;
 
     @Column(name = "category_id")
-    private long categoryId;
+    private Long categoryId;
 }
 
