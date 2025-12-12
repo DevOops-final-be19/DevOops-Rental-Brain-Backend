@@ -3,12 +3,12 @@ package com.devoops.rentalbrain.customer.customersupport.command.service;
 import com.devoops.rentalbrain.customer.customersupport.command.dto.CustomersupportDTO;
 import com.devoops.rentalbrain.customer.customersupport.command.entity.CustomersupportCommandCustomersupportEntity;
 import com.devoops.rentalbrain.customer.customersupport.command.repository.CustomersupportCommandCustomersupportRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
