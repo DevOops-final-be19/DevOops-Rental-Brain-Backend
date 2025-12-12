@@ -11,6 +11,7 @@ import java.util.List;
 @ToString
 public class EmployeeListDTO {
     private Long id;
+    private String employeeCode;
     private String emp_id;
     private String name;
     private String phone;

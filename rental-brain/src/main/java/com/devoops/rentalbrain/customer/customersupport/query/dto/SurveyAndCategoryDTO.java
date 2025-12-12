@@ -10,6 +10,7 @@ import lombok.*;
 @ToString
 public class SurveyAndCategoryDTO {
     private Long id;
+    private String surveyCode;
     private String name;
     private String link;
     private String status;

@@ -9,6 +9,7 @@ import lombok.*;
 @ToString
 public class SurveyDTO {
     private Long id;
+    private String surveyCode;
     private String name;
     private String link;
     private String status;

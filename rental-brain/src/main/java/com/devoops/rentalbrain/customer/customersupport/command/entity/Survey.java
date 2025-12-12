@@ -14,6 +14,8 @@ public class Survey {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(name = "survey_code", nullable = false, unique = true)
+    private String surveyCode;
     @Column
     private String name;
     @Column

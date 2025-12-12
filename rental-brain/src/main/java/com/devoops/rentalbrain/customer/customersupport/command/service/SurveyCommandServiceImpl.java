@@ -1,5 +1,7 @@
 package com.devoops.rentalbrain.customer.customersupport.command.service;
 
+import com.devoops.rentalbrain.common.codegenerator.CodeGenerator;
+import com.devoops.rentalbrain.common.codegenerator.CodeType;
 import com.devoops.rentalbrain.customer.common.SurveyDTO;
 import com.devoops.rentalbrain.customer.customersupport.command.entity.Survey;
 import com.devoops.rentalbrain.customer.customersupport.command.repository.SurveyCommandRepository;
@@ -24,10 +26,14 @@ import java.nio.charset.StandardCharsets;
 public class SurveyCommandServiceImpl implements SurveyCommandService {
     private final ModelMapper modelMapper;
     private final SurveyCommandRepository surveyCommandRepository;
+    private final CodeGenerator codeGenerator;
+
     public SurveyCommandServiceImpl(ModelMapper modelMapper,
-                                    SurveyCommandRepository surveyCommandRepository) {
+                                    SurveyCommandRepository surveyCommandRepository,
+                                    CodeGenerator codeGenerator) {
         this.modelMapper = modelMapper;
         this.surveyCommandRepository = surveyCommandRepository;
+        this.codeGenerator = codeGenerator;
     }
 
     @Override
@@ -58,6 +64,8 @@ public class SurveyCommandServiceImpl implements SurveyCommandService {
     public void startSurvey(SurveyDTO surveyDTO) {
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
         Survey survey = modelMapper.map(surveyDTO, Survey.class);
+
+        survey.setSurveyCode(codeGenerator.generate(CodeType.SURVEY));
 
         log.info("survey : {}", survey);
         surveyCommandRepository.save(survey);

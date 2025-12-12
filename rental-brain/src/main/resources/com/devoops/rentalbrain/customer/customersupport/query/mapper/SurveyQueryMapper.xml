@@ -9,6 +9,7 @@
     </resultMap>
     <resultMap id="allSurveyListResultMap" type="com.devoops.rentalbrain.customer.customersupport.query.dto.SurveyAndCategoryDTO">
         <id property="id" column="id"/>
+        <result property="surveyCode" column="survey_code"/>
         <result property="name" column="name"/>
         <result property="link" column="link"/>
         <result property="status" column="status"/>
@@ -29,6 +30,7 @@
     <select id="getAllSurveyList" resultMap="allSurveyListResultMap">
         SELECT
                a.id
+             , a.survey_code
              , a.name
              , a.link
              , a.status
