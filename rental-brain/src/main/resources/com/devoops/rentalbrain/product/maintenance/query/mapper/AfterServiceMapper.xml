@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.rentalbrain.product.maintenance.query.mapper.AfterServiceMapper">
+
+    <select id="findAll" resultType="com.rentalbrain.product.maintenance.query.dto.AfterServiceResponse">
+        SELECT
+            asv.id,
+            asv.engineer,
+            asv.type,
+            asv.due_date AS dueDate,
+            asv.status,
+            asv.contents,
+            c.name AS customerName,
+            i.name AS itemName
+        FROM after_service asv
+            JOIN customer c ON c.id = asv.cum_id
+            JOIN item i ON i.id = asv.item_id
+        ORDER BY asv.due_date DESC
+    </select>
+
+</mapper>

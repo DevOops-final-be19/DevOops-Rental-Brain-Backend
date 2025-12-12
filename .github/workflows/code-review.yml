@@ -4,11 +4,12 @@ name: Code Review
 permissions:
   contents: read
   pull-requests: write
+  actions: read
 
 # PR 이벤트 관련해서 워크플로우 실행
 on:
   pull_request:
-    types: [opened]
+    types: [opened, synchronize, reopened]
 
 # 워크플로우 실행 작업 정의
 jobs:
