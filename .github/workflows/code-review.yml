@@ -35,6 +35,7 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew clean build -x test
 #        run: ./gradlew clean build
+        working-directory: rental-brain
         shell: bash
 
       - name: Get current time
