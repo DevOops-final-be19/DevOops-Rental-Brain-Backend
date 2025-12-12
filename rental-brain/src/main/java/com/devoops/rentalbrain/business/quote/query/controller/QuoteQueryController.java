@@ -4,8 +4,8 @@ import com.devoops.rentalbrain.business.quote.query.dto.QuoteDetailQueryResponse
 import com.devoops.rentalbrain.business.quote.query.dto.QuoteKpiResponseDTO;
 import com.devoops.rentalbrain.business.quote.query.dto.QuoteQueryResponseDTO;
 import com.devoops.rentalbrain.business.quote.query.service.QuoteQueryService;
-import com.devoops.rentalbrain.common.Pagination.Criteria;
-import com.devoops.rentalbrain.common.Pagination.PageResponseDTO;
+import com.devoops.rentalbrain.common.pagination.Criteria;
+import com.devoops.rentalbrain.common.pagination.PageResponseDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

@@ -1,4 +1,4 @@
-package com.devoops.rentalbrain.common.Pagination;
+package com.devoops.rentalbrain.common.pagination;
 
 
 import lombok.AllArgsConstructor;

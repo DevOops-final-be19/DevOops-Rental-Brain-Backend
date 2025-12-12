@@ -1,4 +1,4 @@
-package com.devoops.rentalbrain.common.Pagination;
+package com.devoops.rentalbrain.common.pagination;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -34,7 +34,7 @@ public class Pagination {
     }
 
     // MyBatis용 (추가)
-    public static PagingButtonInfo getPagingButtonInfo(com.devoops.rentalbrain.common.Pagination.Criteria criteria,
+    public static PagingButtonInfo getPagingButtonInfo(com.devoops.rentalbrain.common.pagination.Criteria criteria,
                                                        long totalCount) {
 
         int currentPage = criteria.getPageNum();

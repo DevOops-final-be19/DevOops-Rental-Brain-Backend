@@ -3,8 +3,8 @@ package com.devoops.rentalbrain.business.quote.query.service;
 import com.devoops.rentalbrain.business.quote.query.dto.QuoteDetailQueryResponseDTO;
 import com.devoops.rentalbrain.business.quote.query.dto.QuoteKpiResponseDTO;
 import com.devoops.rentalbrain.business.quote.query.dto.QuoteQueryResponseDTO;
-import com.devoops.rentalbrain.common.Pagination.Criteria;
-import com.devoops.rentalbrain.common.Pagination.PageResponseDTO;
+import com.devoops.rentalbrain.common.pagination.Criteria;
+import com.devoops.rentalbrain.common.pagination.PageResponseDTO;
 
 import java.util.List;
 
