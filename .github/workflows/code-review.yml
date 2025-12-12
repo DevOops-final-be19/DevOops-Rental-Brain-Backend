@@ -26,6 +26,7 @@ jobs:
 
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
+        working-directory: rental-brain
         shell: bash
 
       ##############################################################
