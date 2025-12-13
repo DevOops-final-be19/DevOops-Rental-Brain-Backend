@@ -2,6 +2,7 @@ package com.devoops.rentalbrain.business.contract.query.service;
 
 import com.devoops.rentalbrain.business.contract.query.dto.AllContractDTO;
 import com.devoops.rentalbrain.business.contract.query.dto.ContractSearchDTO;
+import com.devoops.rentalbrain.business.contract.query.dto.ContractSummaryDTO;
 import com.devoops.rentalbrain.business.contract.query.mapper.ContractQueryMapper;
 import com.devoops.rentalbrain.common.pagination.PageResponseDTO;
 import com.devoops.rentalbrain.common.pagination.Pagination;
@@ -34,5 +35,31 @@ public class ContractQueryServiceImpl implements ContractQueryService {
         PagingButtonInfo paging = Pagination.getPagingButtonInfo(criteria, totalCount);
 
         return new PageResponseDTO<>(list, totalCount, paging);
+    }
+
+    @Override
+    public ContractSummaryDTO getContractSummary() {
+        long totalContracts =
+                contractQueryMapper.countAllContracts();
+
+        long progressContracts =
+                contractQueryMapper.countProgressContracts();
+
+        long expectedExpireContracts =
+                contractQueryMapper.countExpectedExpireContracts();
+
+        long imminentExpireContracts =
+                contractQueryMapper.countImminentExpireContracts();
+
+        long thisMonthContracts =
+                contractQueryMapper.countThisMonthContracts();
+
+        return new ContractSummaryDTO(
+                totalContracts,
+                progressContracts,
+                expectedExpireContracts,
+                imminentExpireContracts,
+                thisMonthContracts
+        );
     }
 }

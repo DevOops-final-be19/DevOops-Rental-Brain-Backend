@@ -9,6 +9,11 @@ import java.util.List;
 @Mapper
 public interface ContractQueryMapper {
     List<AllContractDTO> getContractList(ContractSearchDTO contractSearchDTO);
-
     long getCountContract(ContractSearchDTO contractSearchDTO);
+
+    long countAllContracts();
+    long countProgressContracts();
+    long countExpectedExpireContracts();
+    long countImminentExpireContracts();
+    long countThisMonthContracts();
 }

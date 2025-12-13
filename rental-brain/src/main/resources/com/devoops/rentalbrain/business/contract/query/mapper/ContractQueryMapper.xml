@@ -17,6 +17,9 @@
         FROM contract t LEFT JOIN customer c
             ON t.cum_id = c.id
         <where>
+            <if test="status != null and status != ''">
+                AND T.status = #{status}
+            </if>
             <if test="keyword != null and keyword != '' and type != null">
                 <foreach collection="type.split(',')" item="t" open="(" close=")" separator="OR">
                     <choose>
@@ -46,6 +49,9 @@
         FROM contract t JOIN customer c
         ON t.cum_id = c.id
         <where>
+            <if test="status != null and status != ''">
+                AND T.status = #{status}
+            </if>
             <if test="keyword != null and keyword != '' and type != null">
                 <foreach collection="type.split(',')" item="t" open="(" close=")" separator="OR">
                     <choose>
@@ -65,5 +71,44 @@
                 </foreach>
             </if>
         </where>
+    </select>
+
+    <!-- 전체 계약 수 (P, E, I, C) -->
+    <select id="countAllContracts" resultType="long">
+        SELECT COUNT(*)
+        FROM contract
+        WHERE STATUS IN ('P', 'E', 'I', 'C')
+    </select>
+
+    <!-- 진행중 계약 수 -->
+    <select id="countProgressContracts" resultType="long">
+        SELECT COUNT(*)
+        FROM contract
+        WHERE STATUS = 'P'
+    </select>
+
+    <!-- 만료예정 계약 수 -->
+    <select id="countExpectedExpireContracts" resultType="long">
+        SELECT COUNT(*)
+        FROM contract
+        WHERE STATUS = 'E'
+    </select>
+
+    <!-- 만료임박 계약 수 -->
+    <select id="countImminentExpireContracts" resultType="long">
+        SELECT COUNT(*)
+        FROM contract
+        WHERE STATUS = 'I'
+    </select>
+
+    <!-- 이번 달 신규 계약 수 (진행중) -->
+    <select id="countThisMonthContracts" resultType="long">
+        SELECT COUNT(*)
+        FROM contract
+    <![CDATA[
+        WHERE start_date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
+          AND start_date < DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL 1 MONTH)
+    ]]>
+    AND STATUS = 'P'
     </select>
 </mapper>

@@ -9,6 +9,7 @@ public class ContractSearchDTO extends Criteria {
     private String cusName;
     private String in_charge;
     private String conName;
+    private String status;
 
     public ContractSearchDTO(int page, int size) {
         super(page, size);
