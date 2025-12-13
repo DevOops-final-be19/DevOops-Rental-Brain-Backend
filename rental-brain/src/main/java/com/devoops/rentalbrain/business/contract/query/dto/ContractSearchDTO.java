@@ -1,6 +1,6 @@
 package com.devoops.rentalbrain.business.contract.query.dto;
 
-import com.devoops.rentalbrain.common.Pagination.Criteria;
+import com.devoops.rentalbrain.common.pagination.Criteria;
 import lombok.Data;
 
 @Data

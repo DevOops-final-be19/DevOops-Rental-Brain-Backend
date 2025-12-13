@@ -4,7 +4,7 @@ package com.devoops.rentalbrain.business.contract.query.controller;
 import com.devoops.rentalbrain.business.contract.query.dto.AllContractDTO;
 import com.devoops.rentalbrain.business.contract.query.dto.ContractSearchDTO;
 import com.devoops.rentalbrain.business.contract.query.service.ContractQueryService;
-import com.devoops.rentalbrain.common.Pagination.PageResponseDTO;
+import com.devoops.rentalbrain.common.pagination.PageResponseDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -29,17 +29,13 @@ public class ContractQueryController {
 
     @GetMapping("/list")
     public ResponseEntity<PageResponseDTO<AllContractDTO>> list(
-            @RequestParam(required = false) Long id,
-            @RequestParam(required = false) String cusName,
-            @RequestParam(required = false) String in_charge,
-            @RequestParam(required = false) String conName,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
         ContractSearchDTO criteria = new ContractSearchDTO(page, size);
-        criteria.setId(id);
-        criteria.setCusName(cusName);
-        criteria.setIn_charge(in_charge);
-        criteria.setConName(conName);
+        criteria.setType(type);
+        criteria.setKeyword(keyword);
 
         return ResponseEntity.ok(contractQueryService.getContractListWithPaging(criteria));
     }

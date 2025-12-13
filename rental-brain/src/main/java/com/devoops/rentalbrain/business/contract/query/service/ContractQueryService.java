@@ -2,7 +2,7 @@ package com.devoops.rentalbrain.business.contract.query.service;
 
 import com.devoops.rentalbrain.business.contract.query.dto.AllContractDTO;
 import com.devoops.rentalbrain.business.contract.query.dto.ContractSearchDTO;
-import com.devoops.rentalbrain.common.Pagination.PageResponseDTO;
+import com.devoops.rentalbrain.common.pagination.PageResponseDTO;
 
 import java.util.List;
 

@@ -3,9 +3,9 @@ package com.devoops.rentalbrain.business.contract.query.service;
 import com.devoops.rentalbrain.business.contract.query.dto.AllContractDTO;
 import com.devoops.rentalbrain.business.contract.query.dto.ContractSearchDTO;
 import com.devoops.rentalbrain.business.contract.query.mapper.ContractQueryMapper;
-import com.devoops.rentalbrain.common.Pagination.PageResponseDTO;
-import com.devoops.rentalbrain.common.Pagination.Pagination;
-import com.devoops.rentalbrain.common.Pagination.PagingButtonInfo;
+import com.devoops.rentalbrain.common.pagination.PageResponseDTO;
+import com.devoops.rentalbrain.common.pagination.Pagination;
+import com.devoops.rentalbrain.common.pagination.PagingButtonInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
