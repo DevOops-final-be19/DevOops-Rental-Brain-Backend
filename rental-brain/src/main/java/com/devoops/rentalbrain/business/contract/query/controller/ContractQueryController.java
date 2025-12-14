@@ -42,7 +42,7 @@ public class ContractQueryController {
         return ResponseEntity.ok(contractQueryService.getContractListWithPaging(criteria));
     }
 
-    @GetMapping("/summary")
+    @GetMapping("/status")
     public ResponseEntity<ContractSummaryDTO> summary(){
         return ResponseEntity.ok(contractQueryService.getContractSummary());
     }
