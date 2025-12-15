@@ -8,28 +8,66 @@ permissions:
 # PR 이벤트 관련해서 워크플로우 실행
 on:
   pull_request:
-    types: [opened]
+    types: [opened, reopened, synchronize]
 
 # 워크플로우 실행 작업 정의
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'corretto'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+        working-directory: rental-brain
+        shell: bash
+
+      ##############################################################
+      # 이후 이 부분은 envsubst가 추가될 예정
+      ##############################################################
+
+      - name: Build with Gradle
+        run: ./gradlew clean build -x test
+#        run: ./gradlew clean build
+        working-directory: rental-brain
+        shell: bash
+
+      - name: Get current time
+        uses: 1466587594/get-current-time@v2
+        id: current-time
+        with:
+          format: YYYY-MM-DDTHH-mm-ss
+          utcOffset: "+09:00"
+
+      - name: Show Current Time
+        run: echo "CurrentTime=${{steps.current-time.outputs.formattedTime}}"
+        shell: bash
+
       - name: ChatGPT codeReviewer
         uses: anc95/ChatGPT-CodeReview@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           # optional
-          MODEL: "gpt-4o"
+          MODEL: "gpt-4o-mini" # https://platform.openai.com/docs/models
           OPENAI_API_ENDPOINT: https://api.openai.com/v1
-          LANGUAGE: ko
+          LANGUAGE: Korean
           PROMPT: |
-            다음 PR을 Google/Meta 수준 코드 리뷰 기준으로 분석해주세요.
-
-            반드시 다음 규칙을 따르세요:
-            - 피드백 우선순위: P0(필수), P1(중요), P2(권장)
-            - 문제뿐 아니라 해결책 제시
-            - 구체 코드 예시 포함
-            - 트랜잭션 경계, 예외 일관성, N+1, 동시성, 책임 분리, 중복 코드, 네이밍, SRP 관점 분석
-            - 친절하고 협업 친화적 어조 + 이모지 필수
+            이 PR을 Google/Meta/Stripe 수준의 엄격한 코드 리뷰 관점으로 분석해주세요:
+            
+            피드백은:
+              - P0(반드시 수정)/P1(중요)/P2(권장) 우선순위로 분류
+              - 문제보다 해결책 중심으로 제시
+              - 구체적인 코드 예시 포함
+              - "왜" 변경이 필요한지 원칙과 함께 설명
+            
+            최고 수준의 코드만 승인하고, "잘 돌아가니까 괜찮아"는 수용하지 않음.
+            응답 코드는 pr 코드 리뷰에 반드시 이모지를 항상 활용할 것(특히 상대방이 기분나쁘지 않게)
+            

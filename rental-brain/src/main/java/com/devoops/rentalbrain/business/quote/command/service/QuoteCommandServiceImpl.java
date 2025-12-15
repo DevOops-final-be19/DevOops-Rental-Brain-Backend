@@ -4,6 +4,8 @@ import com.devoops.rentalbrain.business.quote.command.dto.QuoteCommandCreateDTO;
 import com.devoops.rentalbrain.business.quote.command.dto.QuoteCommandResponseDTO;
 import com.devoops.rentalbrain.business.quote.command.entity.QuoteCommandEntity;
 import com.devoops.rentalbrain.business.quote.command.repository.QuoteCommandRepository;
+import com.devoops.rentalbrain.common.codegenerator.CodeGenerator;
+import com.devoops.rentalbrain.common.codegenerator.CodeType;
 import com.devoops.rentalbrain.customer.customerlist.command.entity.CustomerlistCommandEntity;
 import com.devoops.rentalbrain.customer.customerlist.command.repository.CustomerlistCommandRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -19,6 +21,7 @@ public class QuoteCommandServiceImpl implements QuoteCommandService {
 
     private final QuoteCommandRepository quoteCommandRepository;
     private final CustomerlistCommandRepository customerlistCommandRepository;
+    private final CodeGenerator codeGenerator;
 
     @Override
     @Transactional
@@ -34,8 +37,13 @@ public class QuoteCommandServiceImpl implements QuoteCommandService {
             throw new IllegalArgumentException("삭제된 고객입니다. cum_id=" + quoteCommandCreateDTO.getQuoteCumId());
         }
 
+        // ✅ 변경: 테이블_code 생성
+        String quoteCode = codeGenerator.generate(CodeType.QUOTE); // 예: QUO-2025-001
+        quoteCommandCreateDTO.setQuoteCode(quoteCode);
+
         // quote 엔티티 저장할 정보 및 Body에 담을 것
         QuoteCommandEntity entity = new QuoteCommandEntity();
+        entity.setQuoteCode(quoteCode);  // 엔티티에 업무 코드 세팅
         entity.setQuoteCounselingDate(quoteCommandCreateDTO.getQuoteCounselingDate());
         entity.setQuoteCounselor(quoteCommandCreateDTO.getQuoteCounselor());
         entity.setQuoteSummary(quoteCommandCreateDTO.getQuoteSummary());

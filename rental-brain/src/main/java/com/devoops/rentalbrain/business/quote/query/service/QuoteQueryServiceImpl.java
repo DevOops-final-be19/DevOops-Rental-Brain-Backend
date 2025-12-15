@@ -4,10 +4,10 @@ import com.devoops.rentalbrain.business.quote.query.dto.QuoteDetailQueryResponse
 import com.devoops.rentalbrain.business.quote.query.dto.QuoteKpiResponseDTO;
 import com.devoops.rentalbrain.business.quote.query.dto.QuoteQueryResponseDTO;
 import com.devoops.rentalbrain.business.quote.query.mapper.QuoteQueryMapper;
-import com.devoops.rentalbrain.common.Pagination.Criteria;
-import com.devoops.rentalbrain.common.Pagination.PageResponseDTO;
-import com.devoops.rentalbrain.common.Pagination.Pagination;
-import com.devoops.rentalbrain.common.Pagination.PagingButtonInfo;
+import com.devoops.rentalbrain.common.pagination.Criteria;
+import com.devoops.rentalbrain.common.pagination.PageResponseDTO;
+import com.devoops.rentalbrain.common.pagination.Pagination;
+import com.devoops.rentalbrain.common.pagination.PagingButtonInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

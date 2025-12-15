@@ -7,6 +7,7 @@
 
         <!-- quote -->
         <id     property="quoteId"             column="quote_id"/>
+        <result property="quoteCode"            column="quoteCode"/>
         <result property="quoteCounselingDate" column="counseling_date"/>
         <result property="quoteCounselor"      column="counselor"/>
         <result property="quoteSummary"        column="summary"/>
@@ -26,6 +27,7 @@
     <sql id="quoteBaseSelect">
         SELECT
         A.id              AS quote_id,
+        A.quote_code      AS quoteCode,
         A.counseling_date AS counseling_date,
         A.counselor       AS counselor,
         A.summary         AS summary,
@@ -81,11 +83,10 @@
     </select>
 
     <!-- 견적/상담 id로 detail -->
-    <select id="getQuoteDetail"
-            parameterType="long"
-            resultType="com.devoops.rentalbrain.business.quote.query.dto.QuoteDetailQueryResponseDTO">
+    <select id="getQuoteDetail" resultType="com.devoops.rentalbrain.business.quote.query.dto.QuoteDetailQueryResponseDTO">
         SELECT
             A.id               AS quoteId,
+            A.quote_code       AS quoteCode,
             A.counseling_date  AS quoteCounselingDate,
             A.counselor        AS quoteCounselor,
             A.summary          AS quoteSummary,
@@ -149,5 +150,4 @@
                 END) AS avgProcessing7Days  -- 최근 7일 평균 처리시간(분)
         FROM quote A
     </select>
-
 </mapper>

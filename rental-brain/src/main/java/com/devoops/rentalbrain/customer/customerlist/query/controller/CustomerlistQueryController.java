@@ -1,6 +1,6 @@
 package com.devoops.rentalbrain.customer.customerlist.query.controller;
 
-import com.devoops.rentalbrain.common.Pagination.PageResponseDTO;
+import com.devoops.rentalbrain.common.pagination.PageResponseDTO;
 import com.devoops.rentalbrain.customer.common.CustomerDto;
 import com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerlistSearchDTO;
 import com.devoops.rentalbrain.customer.customerlist.query.service.CustomerlistQueryService;

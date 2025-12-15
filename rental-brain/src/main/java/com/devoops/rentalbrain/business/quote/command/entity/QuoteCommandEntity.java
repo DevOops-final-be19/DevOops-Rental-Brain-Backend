@@ -18,6 +18,10 @@ public class QuoteCommandEntity {
     @Column(name = "id")
     private Long quoteId;
 
+    // 추가
+    @Column(name = "quote_code", nullable = false, unique = true)
+    private String quoteCode;
+
     @Column(name = "counseling_date", nullable = false)
     private LocalDateTime quoteCounselingDate;
 

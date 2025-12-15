@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 public class QuoteCommandController {
     private final QuoteCommandService quoteCommandService;
 
-
     @Autowired
     public QuoteCommandController(QuoteCommandService quoteCommandService) {
         this.quoteCommandService = quoteCommandService;
