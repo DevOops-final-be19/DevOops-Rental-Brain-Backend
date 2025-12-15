@@ -19,7 +19,7 @@ public class QuoteCommandController {
         this.quoteCommandService = quoteCommandService;
     }
 
-    @PostMapping("/insertQuote")
+    @PostMapping("/insert")
     public ResponseEntity<QuoteCommandCreateDTO> insertQuote(
             @RequestBody QuoteCommandCreateDTO quoteCommandCreateDTO) {
 
@@ -36,7 +36,7 @@ public class QuoteCommandController {
         }
     }
 
-    @PutMapping("/updateQuote/{quoteId}")
+    @PutMapping("/update/{quoteId}")
     public ResponseEntity<QuoteCommandResponseDTO> updateQuote(
     // 회원 확인 할라면 PathVariable 사용 @PutMapping("/updateOoh/{quoteId}")
     @PathVariable Long quoteId,
@@ -61,7 +61,7 @@ public class QuoteCommandController {
 
     }
 
-    @DeleteMapping("/deleteQuote/{quoteId}")
+    @DeleteMapping("/delete/{quoteId}")
     public ResponseEntity<QuoteCommandResponseDTO> deleteQuote(@PathVariable Long quoteId) {
         quoteCommandService.deleteQuote(quoteId);
         log.info("견적상담 삭제 완료: id={}", quoteId);
