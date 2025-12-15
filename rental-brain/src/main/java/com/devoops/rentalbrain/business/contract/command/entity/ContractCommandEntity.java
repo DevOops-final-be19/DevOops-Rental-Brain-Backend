@@ -88,4 +88,5 @@ public class ContractCommandEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cum_id", nullable = false)
     private CustomerlistCommandEntity customer;
+
 }
