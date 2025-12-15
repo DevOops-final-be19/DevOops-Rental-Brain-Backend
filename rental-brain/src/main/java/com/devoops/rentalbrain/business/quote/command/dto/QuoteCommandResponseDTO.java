@@ -16,6 +16,10 @@ import java.time.LocalDateTime;
 public class QuoteCommandResponseDTO {
     // quote 테이블
     private Long quoteId;
+
+    // 채번 생성기
+    private String quoteCode;
+
     private LocalDateTime quoteCounselingDate;
     private String quoteCounselor;
     private String quoteSummary;
@@ -34,10 +38,5 @@ public class QuoteCommandResponseDTO {
 
     // channel join 할 부분
     private String channelName;
-
-    // customer 필요시 join
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cum_id", insertable = false, updatable = false)
-    private CustomerlistCommandEntity customer;
 
 }

@@ -1,7 +1,7 @@
 package com.devoops.rentalbrain.product.productlist.query.controller;
 
-import com.devoops.rentalbrain.common.Pagination.Criteria;
-import com.devoops.rentalbrain.common.Pagination.PageResponseDTO;
+import com.devoops.rentalbrain.common.pagination.Criteria;
+import com.devoops.rentalbrain.common.pagination.PageResponseDTO;
 import com.devoops.rentalbrain.product.productlist.query.dto.EachItemDTO;
 import com.devoops.rentalbrain.product.productlist.query.dto.ItemKpiDTO;
 import com.devoops.rentalbrain.product.productlist.query.dto.ItemNameDTO;

@@ -1,6 +1,5 @@
 package com.devoops.rentalbrain.product.productlist.query.mapper;
 
-import com.devoops.rentalbrain.common.Pagination.PageResponseDTO;
 import com.devoops.rentalbrain.product.productlist.query.dto.EachItemDTO;
 import com.devoops.rentalbrain.product.productlist.query.dto.ItemKpiDTO;
 import com.devoops.rentalbrain.product.productlist.query.dto.ItemNameDTO;

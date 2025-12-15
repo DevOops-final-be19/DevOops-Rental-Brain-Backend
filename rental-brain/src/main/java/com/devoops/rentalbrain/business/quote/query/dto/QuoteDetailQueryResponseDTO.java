@@ -12,6 +12,8 @@ import java.time.LocalDateTime;
 public class QuoteDetailQueryResponseDTO {
     // quote 테이블
     private Long quoteId;
+    // 채번 생성기
+    private String quoteCode;
 
     private LocalDateTime quoteCounselingDate;
 

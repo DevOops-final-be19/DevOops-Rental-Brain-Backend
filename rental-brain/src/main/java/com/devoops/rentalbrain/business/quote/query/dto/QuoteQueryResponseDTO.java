@@ -13,6 +13,10 @@ public class QuoteQueryResponseDTO {
 
     // quote 테이블
     private Long quoteId;
+
+    // 채번 생성기
+    private String quoteCode;
+
     private LocalDateTime quoteCounselingDate;
     private String quoteCounselor;
     private String quoteSummary;

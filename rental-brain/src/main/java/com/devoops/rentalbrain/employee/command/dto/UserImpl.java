@@ -12,6 +12,7 @@ import java.util.Collection;
 @ToString
 public class UserImpl extends User {
     private Long id;
+    private String employeeCode;
     private String empId;
     private String name;
     private String phone;
@@ -31,6 +32,7 @@ public class UserImpl extends User {
 
     public void setUserInfo(UserDetailInfoDTO userDetailInfoDTO) {
         this.id = userDetailInfoDTO.getId();
+        this.employeeCode = userDetailInfoDTO.getEmployeeCode();
         this.empId = userDetailInfoDTO.getEmpId();
         this.name = userDetailInfoDTO.getName();
         this.phone = userDetailInfoDTO.getPhone();

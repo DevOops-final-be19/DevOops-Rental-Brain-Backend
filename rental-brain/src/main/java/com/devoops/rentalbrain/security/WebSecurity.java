@@ -61,11 +61,11 @@ public class WebSecurity {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
 
-//        // authenticationFilter를 추가하는 과정
-//        http.addFilter(new AuthenticationFilter(authenticationManager(),env,employeeCommandService,redisTemplate));
-//
-//        // JwtFilter를 통한 토큰 검증 필터 추가
-//        http.addFilterBefore(new JwtFilter(jwtUtil,redisTemplate),UsernamePasswordAuthenticationFilter.class);
+        // authenticationFilter를 추가하는 과정
+        http.addFilter(new AuthenticationFilter(authenticationManager(),env,employeeCommandService,redisTemplate));
+
+        // JwtFilter를 통한 토큰 검증 필터 추가
+        http.addFilterBefore(new JwtFilter(jwtUtil,redisTemplate),UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

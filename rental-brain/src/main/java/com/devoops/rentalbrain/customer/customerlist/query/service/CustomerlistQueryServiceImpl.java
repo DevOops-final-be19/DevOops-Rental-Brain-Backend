@@ -1,8 +1,8 @@
 package com.devoops.rentalbrain.customer.customerlist.query.service;
 
-import com.devoops.rentalbrain.common.Pagination.PageResponseDTO;
-import com.devoops.rentalbrain.common.Pagination.Pagination;
-import com.devoops.rentalbrain.common.Pagination.PagingButtonInfo;
+import com.devoops.rentalbrain.common.pagination.PageResponseDTO;
+import com.devoops.rentalbrain.common.pagination.Pagination;
+import com.devoops.rentalbrain.common.pagination.PagingButtonInfo;
 import com.devoops.rentalbrain.customer.common.CustomerDto;
 import com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerlistSearchDTO;
 import com.devoops.rentalbrain.customer.customerlist.query.mapper.CustomerlistQueryMapper;
