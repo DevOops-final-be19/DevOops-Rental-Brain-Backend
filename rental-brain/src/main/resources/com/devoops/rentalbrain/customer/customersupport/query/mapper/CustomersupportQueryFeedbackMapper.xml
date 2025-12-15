@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.devoops.rentalbrain.customer.customersupport.query.mapper.CustomersupportQueryFeedbackMapper">
+
+    <resultMap id="FeedbackMap" type="com.devoops.rentalbrain.customer.customersupport.query.dto.FeedbackDTO">
+        <id property="id" column="ID"/>
+        <result property="feedbackCode" column="FEEDBACK_CODE"/>
+        <result property="title" column="TITLE"/>
+        <result property="content" column="CONTENT"/>
+        <result property="star" column="STAR"/>
+        <result property="createDate" column="CREATE_DATE"/>
+        <result property="action" column="ACTION"/>
+
+        <result property="customerName" column="CUSTOMER_NAME"/>
+        <result property="categoryName" column="CATEGORY_NAME"/>
+        <result property="empName" column="EMP_NAME"/>
+        <result property="channelName" column="CHANNEL_NAME"/>
+    </resultMap>
+
+    <select id="selectFeedbackList" resultMap="FeedbackMap"
+            parameterType="com.devoops.rentalbrain.customer.customersupport.query.dto.FeedbackSearchDTO">
+        SELECT
+               A.ID
+             , A.FEEDBACK_CODE
+             , A.TITLE
+             , A.CONTENT
+             , A.STAR
+             , A.CREATE_DATE
+             , A.ACTION
+             , B.NAME AS CUSTOMER_NAME
+             , C.NAME AS CATEGORY_NAME
+             , D.NAME AS EMP_NAME
+             , E.NAME AS CHANNEL_NAME
+          FROM feedback A
+          LEFT JOIN customer B ON A.CUM_ID = B.ID
+          LEFT JOIN support_category C ON A.CATEGORY_ID = C.ID
+          LEFT JOIN employee D ON A.EMP_ID = D.ID
+          LEFT JOIN channel E ON A.CHANNEL_ID = E.ID
+        <where>
+            <if test="title != null and title != ''">
+                AND A.TITLE LIKE CONCAT('%', #{title}, '%')
+            </if>
+        </where>
+        ORDER BY A.ID DESC
+        LIMIT #{amount} OFFSET #{offset}
+    </select>
+
+    <select id="selectFeedbackCount" resultType="long"
+            parameterType="com.devoops.rentalbrain.customer.customersupport.query.dto.FeedbackSearchDTO">
+        SELECT COUNT(*) FROM feedback A
+        <where>
+            <if test="title != null and title != ''">
+                AND A.TITLE LIKE CONCAT('%', #{title}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="selectFeedbackById" resultMap="FeedbackMap" parameterType="long">
+        SELECT
+               A.ID
+             , A.FEEDBACK_CODE
+             , A.TITLE
+             , A.CONTENT
+             , A.STAR
+             , A.CREATE_DATE
+             , A.ACTION
+             , B.NAME AS CUSTOMER_NAME
+             , C.NAME AS CATEGORY_NAME
+             , D.NAME AS EMP_NAME
+             , E.NAME AS CHANNEL_NAME
+          FROM feedback A
+          LEFT JOIN customer B ON A.CUM_ID = B.ID
+          LEFT JOIN support_category C ON A.CATEGORY_ID = C.ID
+          LEFT JOIN employee D ON A.EMP_ID = D.ID
+          LEFT JOIN channel E ON A.CHANNEL_ID = E.ID
+         WHERE A.ID = #{id}
+    </select>
+</mapper>

@@ -5,6 +5,7 @@
 <mapper namespace="com.devoops.rentalbrain.employee.query.mapper.EmployeeQueryMapper">
     <resultMap id="empInfoPageResultMap" type="com.devoops.rentalbrain.employee.query.dto.EmployeeInfoDTO">
         <id property="id" column="id"/>
+        <result property="employeeCode" column="employee_code"/>
         <result property="emp_id" column="emp_id"/>
         <result property="name" column="name"/>
         <result property="phone" column="phone"/>
@@ -24,6 +25,7 @@
 
     <resultMap id="empListResultMap" type="com.devoops.rentalbrain.employee.query.dto.EmployeeListDTO">
         <id property="id" column="id"/>
+        <result property="employeeCode" column="employee_code"/>
         <result property="emp_id" column="emp_id"/>
         <result property="name" column="name"/>
         <result property="phone" column="phone"/>
@@ -43,8 +45,10 @@
             <result property="auth_id" column="ea_auth_id"/>
             <result property="emp_id" column="ea_user_id"/>
         </collection>
-
     </resultMap>
+
+
+
     <select id="getUserAuth" resultType="string">
         SELECT
                c.auth
@@ -58,6 +62,7 @@
     <select id="getEmpInfoPage" resultMap="empInfoPageResultMap">
         SELECT
                a.id,
+               a.employee_code,
                a.emp_id,
                a.name,
                a.phone,
@@ -78,6 +83,7 @@
     <select id="getEmpList" resultMap="empListResultMap">
         SELECT
                a.id,
+               a.employee_code,
                a.emp_id,
                a.name,
                a.phone,
@@ -100,4 +106,6 @@
      LEFT JOIN employee_auth c
             ON a.id = c.emp_id
     </select>
+
+
 </mapper>

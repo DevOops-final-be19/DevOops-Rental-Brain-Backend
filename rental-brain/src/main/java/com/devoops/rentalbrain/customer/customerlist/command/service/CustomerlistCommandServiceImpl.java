@@ -1,5 +1,7 @@
 package com.devoops.rentalbrain.customer.customerlist.command.service;
 
+import com.devoops.rentalbrain.common.codegenerator.CodeGenerator;
+import com.devoops.rentalbrain.common.codegenerator.CodeType;
 import com.devoops.rentalbrain.customer.customerlist.command.dto.CustomerlistCommandDTO;
 import com.devoops.rentalbrain.customer.customerlist.command.entity.CustomerlistCommandEntity;
 import com.devoops.rentalbrain.customer.customerlist.command.repository.CustomerlistCommandRepository;
@@ -16,8 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class CustomerlistCommandServiceImpl implements CustomerlistCommandService {
 
-    private final CustomerlistCommandRepository CustomerlistCommandRepository;
+    private final CustomerlistCommandRepository customerlistCommandRepository;
     private final ModelMapper modelMapper;
+    private final CodeGenerator codeGenerator; // [추가] 채번기 주입
 
     // 등록
     @Override
@@ -25,42 +28,44 @@ public class CustomerlistCommandServiceImpl implements CustomerlistCommandServic
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
         CustomerlistCommandEntity customer = modelMapper.map(dto, CustomerlistCommandEntity.class);
 
-        // (isDeleted는 null로 들어가면 @DynamicInsert에 의해 DB Default 'N' 적용됨)
+        // [추가] 고객 코드 생성 (CUS-YYYY-NNN)
+        String customerCode = codeGenerator.generate(CodeType.CUSTOMER);
+        customer.setCustomerCode(customerCode);
 
-        return CustomerlistCommandRepository.save(customer).getId();
+        // (isDeleted는 @DynamicInsert로 처리)
+
+        return customerlistCommandRepository.save(customer).getId();
     }
 
-    // 수정 (ModelMapper 사용)
+    // 수정
     @Override
     public void updateCustomer(Long id, CustomerlistCommandDTO dto) {
-        CustomerlistCommandEntity customer = CustomerlistCommandRepository.findById(id)
+        CustomerlistCommandEntity customer = customerlistCommandRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("해당 고객이 없습니다. ID=" + id));
 
-        // null 값은 건너뛰고(Skip) 값이 있는 필드만 덮어쓰기
-        modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT)
-                                      .setSkipNullEnabled(true);
+        modelMapper.getConfiguration().setSkipNullEnabled(true);
         modelMapper.map(dto, customer);
 
-        // Transaction 종료 시 Dirty Checking으로 자동 Update 쿼리 실행
+        // 코드(customerCode)는 수정하지 않음 (한 번 생성되면 고정)
     }
 
     // 삭제 (Soft Delete)
     @Override
     public void deleteCustomer(Long id) {
-        CustomerlistCommandEntity customer = CustomerlistCommandRepository.findById(id)
+        CustomerlistCommandEntity customer = customerlistCommandRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("해당 고객이 없습니다. ID=" + id));
 
         customer.setIsDeleted("Y");
         log.info("고객 삭제(Soft Delete) 완료: ID={}", id);
     }
 
-    // [복구] Soft Delete 해제 (Y -> N)
+    // 복구
     @Override
     public void restoreCustomer(Long id) {
-        CustomerlistCommandEntity customer = CustomerlistCommandRepository.findById(id)
+        CustomerlistCommandEntity customer = customerlistCommandRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("해당 고객이 없습니다. ID=" + id));
 
-        customer.setIsDeleted("N"); // 상태를 다시 'N'으로 변경
+        customer.setIsDeleted("N");
         log.info("고객 복구(Restore) 완료: ID={}", id);
     }
 }
