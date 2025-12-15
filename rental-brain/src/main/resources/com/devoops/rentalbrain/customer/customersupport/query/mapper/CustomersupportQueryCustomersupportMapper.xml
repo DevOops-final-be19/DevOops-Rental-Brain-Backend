@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.devoops.rentalbrain.customer.customersupport.query.mapper.CustomersupportQueryCustomersupportMapper">
+
+    <resultMap id="SupportMap" type="com.devoops.rentalbrain.customer.customersupport.query.dto.CustomersupportDTO">
+        <id property="id" column="ID"/>
+        <result property="customerSupportCode" column="CUSTOMER_SUPPORT_CODE"/>
+        <result property="title" column="TITLE"/>
+        <result property="content" column="CONTENT"/>
+        <result property="status" column="STATUS"/>
+        <result property="createDate" column="CREATE_DATE"/>
+        <result property="action" column="ACTION"/>
+
+        <result property="customerName" column="CUSTOMER_NAME"/>
+        <result property="empName" column="EMP_NAME"/>
+        <result property="categoryName" column="CATEGORY_NAME"/>
+        <result property="channelName" column="CHANNEL_NAME"/>
+    </resultMap>
+
+    <select id="selectSupportList" resultMap="SupportMap"
+            parameterType="com.devoops.rentalbrain.customer.customersupport.query.dto.CustomersupportSearchDTO">
+        SELECT
+               A.ID
+             , A.CUSTOMER_SUPPORT_CODE
+             , A.TITLE
+             , A.CONTENT
+             , A.STATUS
+             , A.CREATE_DATE
+             , A.ACTION
+             , B.NAME AS CUSTOMER_NAME
+             , C.NAME AS EMP_NAME
+             , D.NAME AS CATEGORY_NAME
+             , E.NAME AS CHANNEL_NAME
+          FROM customer_support A
+          LEFT JOIN customer B ON A.CUM_ID = B.ID
+          LEFT JOIN employee C ON A.EMP_ID = C.ID
+          LEFT JOIN support_category D ON A.CATEGORY_ID = D.ID
+          LEFT JOIN channel E ON A.CHANNEL_ID = E.ID
+        <where>
+            <if test="title != null and title != ''">
+                AND A.TITLE LIKE CONCAT('%', #{title}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND A.STATUS = #{status}
+            </if>
+        </where>
+        ORDER BY A.ID DESC
+        LIMIT #{amount} OFFSET #{offset}
+    </select>
+
+    <select id="selectSupportCount" resultType="long"
+            parameterType="com.devoops.rentalbrain.customer.customersupport.query.dto.CustomersupportSearchDTO">
+        SELECT COUNT(*) FROM customer_support A
+        <where>
+            <if test="title != null and title != ''">
+                AND A.TITLE LIKE CONCAT('%', #{title}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND A.STATUS = #{status}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectSupportById" resultMap="SupportMap" parameterType="long">
+        SELECT
+               A.ID
+             , A.CUSTOMER_SUPPORT_CODE
+             , A.TITLE
+             , A.CONTENT
+             , A.STATUS
+             , A.CREATE_DATE
+             , A.ACTION
+             , B.NAME AS CUSTOMER_NAME
+             , C.NAME AS EMP_NAME
+             , D.NAME AS CATEGORY_NAME
+             , E.NAME AS CHANNEL_NAME
+          FROM customer_support A
+          LEFT JOIN customer B ON A.CUM_ID = B.ID
+          LEFT JOIN employee C ON A.EMP_ID = C.ID
+          LEFT JOIN support_category D ON A.CATEGORY_ID = D.ID
+          LEFT JOIN channel E ON A.CHANNEL_ID = E.ID
+         WHERE A.ID = #{id}
+    </select>
+</mapper>

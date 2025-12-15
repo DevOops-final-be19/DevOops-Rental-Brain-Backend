@@ -13,13 +13,17 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @ToString
-@DynamicUpdate // 변경된 필드만 Update
-@DynamicInsert // null인 필드는 Insert 구문에서 제외 -> DB Default 값 적용됨
+@DynamicUpdate
+@DynamicInsert
 public class CustomerlistCommandEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    // [추가] 고객 코드
+    @Column(name = "customer_code", nullable = false, unique = true, length = 255)
+    private String customerCode;
 
     @Column(nullable = false)
     private String name;

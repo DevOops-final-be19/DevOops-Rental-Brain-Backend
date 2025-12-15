@@ -6,6 +6,7 @@
 
     <resultMap id="CustomerMap" type="com.devoops.rentalbrain.customer.common.CustomerDto">
         <id property="id" column="ID"/>
+        <result property="customerCode" column="CUSTOMER_CODE"/>
         <result property="name" column="NAME"/>
         <result property="inCharge" column="IN_CHARGE"/>
         <result property="dept" column="DEPT"/>
@@ -29,6 +30,7 @@
             parameterType="com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerlistSearchDTO">
         SELECT
                A.ID
+             , A.CUSTOMER_CODE
              , A.NAME
              , A.IN_CHARGE
              , A.DEPT
@@ -76,6 +78,7 @@
     <select id="selectCustomerById" resultMap="CustomerMap" parameterType="long">
         SELECT
                A.ID
+             , A.CUSTOMER_CODE
              , A.NAME
              , A.IN_CHARGE
              , A.DEPT

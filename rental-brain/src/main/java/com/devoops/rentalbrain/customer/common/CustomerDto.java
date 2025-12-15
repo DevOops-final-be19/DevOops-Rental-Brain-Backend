@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @ToString
 public class CustomerDto {
     private Long id;
+    private String customerCode;
     private String name;
     private String inCharge;
     private String dept;
