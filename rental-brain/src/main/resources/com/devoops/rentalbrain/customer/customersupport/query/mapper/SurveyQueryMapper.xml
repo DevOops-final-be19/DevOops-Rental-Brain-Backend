@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.devoops.rentalbrain.customer.customersupport.query.mapper.SurveyQueryMapper">
+    <resultMap id="surveyCategoryResultMap" type="com.devoops.rentalbrain.customer.common.SurveyCategoryDTO">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+    </resultMap>
+    <resultMap id="allSurveyListResultMap" type="com.devoops.rentalbrain.customer.customersupport.query.dto.SurveyAndCategoryDTO">
+        <id property="id" column="id"/>
+        <result property="surveyCode" column="survey_code"/>
+        <result property="name" column="name"/>
+        <result property="link" column="link"/>
+        <result property="status" column="status"/>
+        <result property="startDate" column="start_date"/>
+        <result property="endDate" column="end_date"/>
+        <association property="surveyCategoryDTO" javaType="com.devoops.rentalbrain.customer.common.SurveyCategoryDTO">
+            <id property="id" column="category_id"/>
+            <result property="name" column="category_name"/>
+        </association>
+    </resultMap>
+
+    <resultMap id="surveyResultMap" type="com.devoops.rentalbrain.customer.customersupport.query.dto.SurveyResultDTO">
+        <id property="id" column="id"/>
+        <result property="aiResponse" column="ai_response"/>
+    </resultMap>
+
+    <select id="getSurveyCategory" resultMap="surveyCategoryResultMap">
+        SELECT
+               a.id
+             , a.name
+          FROM survey a
+    </select>
+    <select id="getAllSurveyList" resultMap="allSurveyListResultMap">
+        SELECT
+               a.id
+             , a.survey_code
+             , a.name
+             , a.link
+             , a.status
+             , a.start_date
+             , a.end_date
+             , a.category_id
+             , b.name as category_name
+          FROM survey a JOIN survey_category b
+           ON a.category_id = b.id
+    </select>
+
+    <select id="getSurveyResult" resultMap="surveyResultMap">
+        SELECT
+            a.id
+             , a.ai_response
+        FROM survey a
+        WHERE a.id=#{id}
+    </select>
+
+</mapper>
