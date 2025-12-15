@@ -1,7 +1,9 @@
 package com.devoops.rentalbrain.business.contract.command.service;
 
+import com.devoops.rentalbrain.business.contract.command.dto.ContractCreateDTO;
 import com.devoops.rentalbrain.business.contract.command.repository.ContractCommandRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -14,10 +16,12 @@ import java.time.LocalDateTime;
 public class ContractCommandServiceImpl implements ContractCommandService {
 
     private final ContractCommandRepository contractCommandRepository;
-
+    private final ModelMapper modelMapper;
     @Autowired
-    public ContractCommandServiceImpl(ContractCommandRepository contractCommandRepository) {
+    public ContractCommandServiceImpl(ContractCommandRepository contractCommandRepository,
+                                      ModelMapper modelMapper) {
         this.contractCommandRepository = contractCommandRepository;
+        this.modelMapper = modelMapper;
     }
 
     @Override
@@ -47,4 +51,11 @@ public class ContractCommandServiceImpl implements ContractCommandService {
                 expected, imminent, closed
         );
     }
+
+    @Override
+    public void createContract(ContractCreateDTO contractCreateDTO) {
+
+    }
+
+
 }
