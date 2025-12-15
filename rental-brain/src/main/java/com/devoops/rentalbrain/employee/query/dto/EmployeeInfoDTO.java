@@ -9,6 +9,7 @@ import lombok.*;
 @ToString
 public class EmployeeInfoDTO {
     private Long id;
+    private String employeeCode;
     private String emp_id;
     private String name;
     private String phone;

@@ -1,6 +1,5 @@
 package com.devoops.rentalbrain.employee.command.dto;
 
-import com.devoops.rentalbrain.employee.query.dto.PositionDTO;
 import lombok.*;
 
 @NoArgsConstructor
@@ -10,6 +9,7 @@ import lombok.*;
 @ToString
 public class UserDetailInfoDTO {
     private Long id;
+    private String employeeCode;
     private String empId;
     private String name;
     private String phone;
