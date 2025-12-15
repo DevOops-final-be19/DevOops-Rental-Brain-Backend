@@ -125,6 +125,7 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
         Map<String, Object> responseBody = new LinkedHashMap<>();
         responseBody.put("success", "로그인 성공");
         responseBody.put("id", user.getId());
+        responseBody.put("employeeCode", user.getEmployeeCode());
         responseBody.put("empId", user.getEmpId());
         responseBody.put("name", user.getName());
         responseBody.put("phone", user.getPhone());

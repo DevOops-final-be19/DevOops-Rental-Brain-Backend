@@ -77,6 +77,8 @@ public class RefreshAuthController {
         String newRefreshToken = jwtUtil.getNewRefreshToken(sub);
 
         try{
+            // BL지정
+            redisTemplate.opsForValue().set("BL:" + accessToken, sub, Long.parseLong(env.getProperty("token.access_expiration_time")), TimeUnit.MILLISECONDS);
             // redis 저장
             redisTemplate.opsForHash().putAll("RT:" + sub, Map.of(
                     "Refresh-Token", newRefreshToken,

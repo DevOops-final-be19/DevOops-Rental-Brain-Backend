@@ -1,5 +1,7 @@
 package com.devoops.rentalbrain.employee.command.service;
 
+import com.devoops.rentalbrain.common.codegenerator.CodeGenerator;
+import com.devoops.rentalbrain.common.codegenerator.CodeType;
 import com.devoops.rentalbrain.employee.command.dto.*;
 import com.devoops.rentalbrain.employee.command.entity.Employee;
 import com.devoops.rentalbrain.employee.command.entity.EmployeeAuth;
@@ -39,12 +41,15 @@ public class EmployeeCommandServiceImpl implements EmployeeCommandService {
     private final Environment env;
     private final EmployeeAuthCommandRepository employeeAuthCommandRepository;
     private final LoginHistoryCommandRepository loginHistoryCommandRepository;
+    private final CodeGenerator codeGenerator;
 
     public EmployeeCommandServiceImpl(EmployeeCommandRepository employeeCommandRepository,
                                       EmployeeQueryServiceImpl employeeQueryServiceImpl,
                                       RedisTemplate<String, String> redisTemplate,
                                       Environment env,
-                                      EmployeeAuthCommandRepository employeeAuthCommandRepository, LoginHistoryCommandRepository loginHistoryCommandRepository) {
+                                      EmployeeAuthCommandRepository employeeAuthCommandRepository,
+                                      LoginHistoryCommandRepository loginHistoryCommandRepository,
+                                      CodeGenerator codeGenerator) {
         this.employeeCommandRepository = employeeCommandRepository;
         this.bCryptPasswordEncoder = new BCryptPasswordEncoder();
         this.employeeQueryService = employeeQueryServiceImpl;
@@ -52,6 +57,7 @@ public class EmployeeCommandServiceImpl implements EmployeeCommandService {
         this.env = env;
         this.loginHistoryCommandRepository = loginHistoryCommandRepository;
         this.employeeAuthCommandRepository = employeeAuthCommandRepository;
+        this.codeGenerator = codeGenerator;
     }
 
     @Override
@@ -75,6 +81,7 @@ public class EmployeeCommandServiceImpl implements EmployeeCommandService {
         UserImpl userImpl = new UserImpl(employee.getEmpId(), employee.getPwd(), grantedAuthorities);
         userImpl.setUserInfo(new UserDetailInfoDTO(
                         employee.getId(),
+                        employee.getEmployeeCode(),
                         employee.getEmpId(),
                         employee.getName(),
                         employee.getPhone(),
@@ -102,6 +109,7 @@ public class EmployeeCommandServiceImpl implements EmployeeCommandService {
             throw new RuntimeException("이미 존재하는 아이디 혹은 이메일 번호 입니다.");
         }
         Employee employee = new Employee();
+        employee.setEmployeeCode(codeGenerator.generate(CodeType.EMPLOYEE));
         employee.setEmpId(signUpDTO.getEmpId());
         employee.setPwd(bCryptPasswordEncoder.encode(signUpDTO.getPwd()));
         employee.setName(signUpDTO.getName());
@@ -128,7 +136,7 @@ public class EmployeeCommandServiceImpl implements EmployeeCommandService {
             redisTemplate.delete("RT:" + logoutDTO.getEmpId());
             log.info("redis 저장완료");
         } catch (Exception e) {
-            log.info("redis 오류!");
+            log.info("오류 - {}",e.getMessage());
         }
     }
 
@@ -189,7 +197,9 @@ public class EmployeeCommandServiceImpl implements EmployeeCommandService {
         Employee employee = employeeCommandRepository.findByEmpId(employeeInfoModifyDTO.getEmpId());
 
         if(employeeCommandRepository.existsByEmail(employeeInfoModifyDTO.getEmail())) {
-            throw new RuntimeException("이미 존재하는 이메일입니다.");
+            if(!employee.getEmpId().equals(employeeInfoModifyDTO.getEmpId())) {
+                throw new RuntimeException("이미 존재하는 이메일입니다.");
+            }
         }
         modifyInfo(employee,employeeInfoModifyDTO);
     }
