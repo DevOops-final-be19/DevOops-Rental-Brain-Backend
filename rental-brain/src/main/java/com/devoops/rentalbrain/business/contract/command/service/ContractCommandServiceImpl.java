@@ -17,26 +17,29 @@ public class ContractCommandServiceImpl implements ContractCommandService {
 
     private final ContractCommandRepository contractCommandRepository;
     private final ModelMapper modelMapper;
+
     @Autowired
-    public ContractCommandServiceImpl(ContractCommandRepository contractCommandRepository,
-                                      ModelMapper modelMapper) {
+    public ContractCommandServiceImpl(
+            ContractCommandRepository contractCommandRepository,
+            ModelMapper modelMapper
+    ) {
         this.contractCommandRepository = contractCommandRepository;
         this.modelMapper = modelMapper;
     }
 
+    /**
+     * 계약 상태 자동 변경 스케줄러
+     *
+     * 상태 흐름:
+     * P(진행중) → I(만료임박, 1개월 전) → C(계약만료)
+     */
     @Override
-    @Scheduled(cron = "0 0 1 * * *")
+    @Scheduled(cron = "0 0 1 * * *") // 매일 새벽 1시
     @Transactional
     public void updateContractStatus() {
 
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime oneMonthLater = now.plusMonths(1);
-        LocalDateTime twoMonthsLater = now.plusMonths(2);
-
-        int expected =
-                contractCommandRepository.updateToExpireExpected(
-                        oneMonthLater, twoMonthsLater
-                );
 
         int imminent =
                 contractCommandRepository.updateToExpireImminent(
@@ -47,15 +50,16 @@ public class ContractCommandServiceImpl implements ContractCommandService {
                 contractCommandRepository.updateToClosed(now);
 
         log.info(
-                "[계약 상태 스케줄러] 만료예정(E): {}, 만료임박(I): {}, 계약만료(C): {}",
-                expected, imminent, closed
+                "[계약 상태 스케줄러] 만료임박(I): {}, 계약만료(C): {}",
+                imminent, closed
         );
     }
 
     @Override
     public void createContract(ContractCreateDTO contractCreateDTO) {
-
+        // TODO: 계약 생성 로직
+        // 1. DTO → Entity 매핑
+        // 2. 초기 상태 P 설정
+        // 3. 저장
     }
-
-
 }
