@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 )
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/feedbacks")
+@RequestMapping("/feedbacks")
 public class CustomersupportQueryFeedbackController {
 
     private final CustomersupportQueryFeedbackService queryService;

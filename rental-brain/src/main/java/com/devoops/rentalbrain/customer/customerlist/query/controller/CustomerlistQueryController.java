@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 )
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/customers")
+@RequestMapping("/customers")
 @Slf4j
 public class CustomerlistQueryController {
 
