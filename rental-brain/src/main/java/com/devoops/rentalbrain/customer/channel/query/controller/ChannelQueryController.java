@@ -25,12 +25,12 @@ public class ChannelQueryController {
 
     @GetMapping("/health")
     public String health() {
-        return "OK";
+        return "Channel OK";
     }
 
     // 채널 전체 조회
     @GetMapping("/list")
-    public ResponseEntity<List<ChannelQueryDTO>> getChannelList(
+    public ResponseEntity<List<ChannelQueryDTO>> selectChannelList(
                                                                 @RequestParam(required = false) String channelName
     ) {
         List<ChannelQueryDTO> list = channelQueryService.selectChannelList(channelName);
@@ -39,7 +39,7 @@ public class ChannelQueryController {
 
     // kpi에 집어 넣을 만한, 각 채널에 대한 count
     @GetMapping("/kpi")
-    public ResponseEntity<List<ChannelKpiQueryDTO>> getChannelKpi(
+    public ResponseEntity<List<ChannelKpiQueryDTO>> selectChannelKpi(
                                                                   @RequestParam(required = false) String channelName
     ) {
         List<ChannelKpiQueryDTO> list = channelQueryService.selectChannelKpi(channelName);

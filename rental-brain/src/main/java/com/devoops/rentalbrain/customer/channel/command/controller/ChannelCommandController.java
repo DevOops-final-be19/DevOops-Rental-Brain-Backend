@@ -41,12 +41,12 @@ public class ChannelCommandController {
     @PutMapping("/update/{channelId}")
     public ResponseEntity<Void> updateChannel(
             @PathVariable Long channelId,
-            @RequestBody ChannelCommandResponseDTO dto) {
+            @RequestBody ChannelCommandResponseDTO channelCommandResponseDTO) {
 
         log.info("채널 수정 요청 channelId={}, newName={}",
-                channelId, dto.getChannelName());
+                channelId, channelCommandResponseDTO.getChannelName());
 
-        channelCommandService.updateChannel(channelId, dto);
+        channelCommandService.updateChannel(channelId, channelCommandResponseDTO);
 
         log.info("[채널 수정 완료] channelId={}", channelId);
 

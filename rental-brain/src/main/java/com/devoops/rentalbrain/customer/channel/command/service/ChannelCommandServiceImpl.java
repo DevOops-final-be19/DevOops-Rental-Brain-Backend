@@ -4,7 +4,7 @@ import com.devoops.rentalbrain.customer.channel.command.dto.ChannelCommandCreate
 import com.devoops.rentalbrain.customer.channel.command.dto.ChannelCommandResponseDTO;
 import com.devoops.rentalbrain.customer.channel.command.entity.ChannelCommandEntity;
 import com.devoops.rentalbrain.customer.channel.command.repository.ChannelRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

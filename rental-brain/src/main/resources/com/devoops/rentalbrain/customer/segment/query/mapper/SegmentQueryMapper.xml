@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.devoops.rentalbrain.customer.segment.query.mapper.SegmentQueryMapper">
+
+    <!-- 세그먼트 목록 조회 -->
+    <resultMap id="SegmentQueryListMap" type="com.devoops.rentalbrain.customer.segment.query.dto.SegmentQueryListDTO">
+        <id property="segmentId" column="SEGMENT_ID"/>
+        <result property="segmentName" column="SEGMENT_NAME"/>
+        <result property="segmentContent" column="SEGMENT_CONTENT"/>
+    </resultMap>
+    <select id="selectSegmentList" resultMap="SegmentQueryListMap">
+        SELECT
+               A.ID   AS SEGMENT_ID
+             , A.NAME AS SEGMENT_NAME
+             , A.CONTENT AS SEGMENT_CONTENT
+         FROM SEGMENT A
+         WHERE (#{segmentName} IS NULL OR A.NAME LIKE CONCAT('%', #{segmentName}, '%'))
+    </select>
+
+
+
+    <!--  세그먼트 단건(detail) 조회  -->
+    <resultMap id="SegmentQueryDetailMap" type="com.devoops.rentalbrain.customer.segment.query.dto.SegmentQueryDetailDTO">
+        <id property="segmentId" column="SEGMENT_ID"/>
+        <result property="segmentName" column="SEGMENT_NAME"/>
+        <result property="segmentContent" column="SEGMENT_CONTENT"/>
+        <result property="segmentTotalCharge" column="SEGMENT_TOTAL_CHARGE"/>
+        <result property="segmentPeriod" column="SEGMENT_PERIOD"/>
+        <result property="segmentIsContracted" column="SEGMENT_IS_CONTRACTED"/>
+        <result property="segmentOverdued" column="SEGMENT_OVERDUED"/>
+    </resultMap>
+    <select id="selectSegmentDetail" resultMap="SegmentQueryDetailMap">
+        SELECT
+               A.ID   AS SEGMENT_ID
+             , A.NAME AS SEGMENT_NAME
+             , A.CONTENT AS SEGMENT_CONTENT
+             , A.TOTAL_CHARGE AS SEGMENT_TOTAL_CHARGE
+             , A.SEGMENT_PERIOD AS SEGMENT_PERIOD
+             , A.IS_CONTRACTED AS SEGMENT_IS_CONTRACTED
+             , A.OVERDUED AS SEGMENT_OVERDUED
+        FROM SEGMENT A
+        WHERE A.ID = #{segmentId}
+    </select>
+
+</mapper>
