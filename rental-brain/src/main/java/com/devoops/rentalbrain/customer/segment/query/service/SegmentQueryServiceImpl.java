@@ -20,6 +20,7 @@ public class SegmentQueryServiceImpl implements SegmentQueryService{
         this.segmentQueryMapper = segmentQueryMapper;
     }
 
+    //세그먼트 목록 조회
     @Override
     public List<SegmentQueryListDTO> selectSegmentList(String segmentName) {
         List<SegmentQueryListDTO> list = segmentQueryMapper.selectSegmentList(segmentName);
@@ -28,14 +29,16 @@ public class SegmentQueryServiceImpl implements SegmentQueryService{
         return list;
     }
 
+    //세그먼트 상세 조회
     @Override
     public SegmentQueryDetailDTO selectSegmentDetail(Long segmentId) {
         SegmentQueryDetailDTO detail = segmentQueryMapper.selectSegmentDetail(segmentId);
 
-        log.info
-                ("세그먼트 상세 조회 - segmentName: {}, segmentId: {}, customerlistCommandEntity: {} ",
-                detail.getSegmentName(), detail.getSegmentId(), detail.getCustomerlistCommandEntity()
-                );
+        log.info("세그먼트 상세 조회 - segmentName: {}, segmentId: {}, customers: {}개의 회사",
+                 detail.getSegmentName(),
+                 detail.getSegmentId(),
+                (detail.getCustomers() == null ? 0 : detail.getCustomers().size())
+        );
         return detail;
     }
 }
