@@ -41,7 +41,8 @@
              , A.IS_CONTRACTED AS SEGMENT_IS_CONTRACTED
              , A.OVERDUED AS SEGMENT_OVERDUED
         FROM SEGMENT A
+        join CUSTOMER B ON A.id = B.SEGMENT_ID;
         WHERE A.ID = #{segmentId}
-    </select>
 
+    </select>
 </mapper>

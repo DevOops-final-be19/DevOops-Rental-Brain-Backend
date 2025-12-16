@@ -1,6 +1,9 @@
 package com.devoops.rentalbrain.customer.segment.query.dto;
 
+import com.devoops.rentalbrain.customer.customerlist.command.entity.CustomerlistCommandEntity;
 import lombok.*;
+
+import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,4 +21,5 @@ public class SegmentQueryDetailDTO {
     private boolean segmentIsContracted;
     private Integer segmentOverdued;
 
+    private List<CustomerlistCommandEntity> CustomerlistCommandEntity;
 }

@@ -33,8 +33,8 @@ public class SegmentQueryServiceImpl implements SegmentQueryService{
         SegmentQueryDetailDTO detail = segmentQueryMapper.selectSegmentDetail(segmentId);
 
         log.info
-                ("세그먼트 상세 조회 - segmentName: {}, segmentId: {}",
-                detail.getSegmentName(), detail.getSegmentId()
+                ("세그먼트 상세 조회 - segmentName: {}, segmentId: {}, customerlistCommandEntity: {} ",
+                detail.getSegmentName(), detail.getSegmentId(), detail.getCustomerlistCommandEntity()
                 );
         return detail;
     }
