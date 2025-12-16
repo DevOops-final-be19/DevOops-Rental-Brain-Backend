@@ -4,7 +4,7 @@
 
 <mapper namespace="com.devoops.rentalbrain.customer.customerlist.query.mapper.CustomerlistQueryMapper">
 
-    <resultMap id="CustomerMap" type="com.devoops.rentalbrain.customer.common.CustomerDto">
+    <resultMap id="CustomerMap" type="com.devoops.rentalbrain.customer.common.CustomerDTO">
         <id property="id" column="ID"/>
         <result property="customerCode" column="CUSTOMER_CODE"/>
         <result property="name" column="NAME"/>
@@ -19,9 +19,7 @@
         <result property="firstContractDate" column="FIRST_CONTRACT_DATE"/>
         <result property="memo" column="MEMO"/>
         <result property="star" column="STAR"/>
-
         <result property="isDeleted" column="IS_DELETED"/>
-
         <result property="channelName" column="CHANNEL_NAME"/>
         <result property="segmentName" column="SEGMENT_NAME"/>
     </resultMap>
@@ -61,10 +59,8 @@
         LIMIT #{amount} OFFSET #{offset}
     </select>
 
-    <select id="selectCustomerCount" resultType="long"
-            parameterType="com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerlistSearchDTO">
-        SELECT COUNT(*)
-        FROM customer A
+    <select id="selectCustomerCount" resultType="long">
+        SELECT COUNT(*) FROM customer A
         <where>
             <if test="name != null and name != ''">
                 AND A.NAME LIKE CONCAT('%', #{name}, '%')
@@ -75,7 +71,7 @@
         </where>
     </select>
 
-    <select id="selectCustomerById" resultMap="CustomerMap" parameterType="long">
+    <select id="selectCustomerById" resultMap="CustomerMap">
         SELECT
                A.ID
              , A.CUSTOMER_CODE
@@ -98,6 +94,117 @@
           LEFT JOIN channel B ON A.CHANNEL_ID = B.ID
           LEFT JOIN segment C ON A.SEGMENT_ID = C.ID
          WHERE A.ID = #{id}
+    </select>
+
+    <select id="selectSupportsByCustomerId" resultType="com.devoops.rentalbrain.customer.customersupport.query.dto.CustomersupportDTO">
+        SELECT
+               A.ID
+             , A.CUSTOMER_SUPPORT_CODE AS customerSupportCode
+             , A.TITLE
+             , A.CONTENT
+             , A.STATUS
+             , A.CREATE_DATE AS createDate
+             , A.ACTION
+             , B.NAME AS customerName
+             , C.NAME AS empName
+             , D.NAME AS categoryName
+             , E.NAME AS channelName
+          FROM customer_support A
+          LEFT JOIN customer B ON A.CUM_ID = B.ID
+          LEFT JOIN employee C ON A.EMP_ID = C.ID
+          LEFT JOIN support_category D ON A.CATEGORY_ID = D.ID
+          LEFT JOIN channel E ON A.CHANNEL_ID = E.ID
+         WHERE A.CUM_ID = #{customerId}
+         ORDER BY A.CREATE_DATE DESC
+    </select>
+
+    <select id="selectFeedbacksByCustomerId" resultType="com.devoops.rentalbrain.customer.customersupport.query.dto.FeedbackDTO">
+        SELECT
+               A.ID
+             , A.FEEDBACK_CODE AS feedbackCode
+             , A.TITLE
+             , A.CONTENT
+             , A.STAR
+             , A.CREATE_DATE AS createDate
+             , A.ACTION
+             , B.NAME AS customerName
+             , C.NAME AS categoryName
+             , D.NAME AS empName
+             , E.NAME AS channelName
+          FROM feedback A
+          LEFT JOIN customer B ON A.CUM_ID = B.ID
+          LEFT JOIN support_category C ON A.CATEGORY_ID = C.ID
+          LEFT JOIN employee D ON A.EMP_ID = D.ID
+          LEFT JOIN channel E ON A.CHANNEL_ID = E.ID
+         WHERE A.CUM_ID = #{customerId}
+         ORDER BY A.CREATE_DATE DESC
+    </select>
+
+    <select id="selectQuotesByCustomerId" resultType="com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerDetailResponseDTO$CustomerQuoteDTO">
+        SELECT
+               A.ID
+             , A.QUOTE_CODE AS quoteCode
+             , A.COUNSELING_DATE AS counselingDate
+             , A.COUNSELOR
+             , A.SUMMARY
+             , B.NAME AS channelName
+          FROM quote A
+          LEFT JOIN channel B ON A.CHANNEL_ID = B.ID
+         WHERE A.CUM_ID = #{customerId}
+         ORDER BY A.COUNSELING_DATE DESC
+    </select>
+
+    <select id="selectContractsByCustomerId" resultType="com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerDetailResponseDTO$CustomerContractDTO">
+        SELECT
+               ID
+             , CONTRACT_CODE AS contractCode
+             , NAME
+             , STATUS
+             , TOTAL_AMOUNT AS totalAmount
+             , START_DATE AS startDate
+          FROM contract
+         WHERE CUM_ID = #{customerId}
+         ORDER BY START_DATE DESC
+    </select>
+
+    <select id="selectAsByCustomerId" resultType="com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerDetailResponseDTO$CustomerAsDTO">
+        SELECT
+               A.ID
+             , A.AFTER_SERVICE_CODE AS afterServiceCode
+             , A.TYPE
+             , A.STATUS
+             , A.DUE_DATE AS dueDate
+             , A.ENGINEER
+             , B.NAME AS itemName
+          FROM after_service A
+          LEFT JOIN item B ON A.ITEM_ID = B.ID
+         WHERE A.CUM_ID = #{customerId}
+         ORDER BY A.DUE_DATE DESC
+    </select>
+
+    <select id="selectCouponsByCustomerId" resultType="com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerDetailResponseDTO$CustomerCouponDTO">
+        SELECT
+               A.ID
+             , B.NAME AS couponName
+             , A.IS_USED AS isUsed
+             , A.ISSUED_DATE AS issuedDate
+             , A.END_DATE AS endDate
+          FROM issued_coupon A
+          JOIN coupon B ON A.COUPON_ID = B.ID
+         WHERE A.CUM_ID = #{customerId}
+         ORDER BY A.ISSUED_DATE DESC
+    </select>
+
+    <select id="selectPromotionsByCustomerId" resultType="com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerDetailResponseDTO$CustomerPromotionDTO">
+        SELECT
+               A.ID
+             , B.NAME AS promotionName
+             , A.PARTICIPATION_DATE AS participationDate
+             , B.STATUS
+          FROM promotion_log A
+          JOIN promotion B ON A.PROMOTION_ID = B.ID
+         WHERE A.CUM_ID = #{customerId}
+         ORDER BY A.PARTICIPATION_DATE DESC
     </select>
 
 </mapper>
