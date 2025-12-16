@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 )
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/customersupports")
+@RequestMapping("/customersupports")
 @Slf4j
 public class CustomersupportCommandCustomersupportController {
 

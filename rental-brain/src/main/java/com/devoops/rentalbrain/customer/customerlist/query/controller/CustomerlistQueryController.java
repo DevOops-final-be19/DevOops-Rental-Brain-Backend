@@ -1,7 +1,8 @@
 package com.devoops.rentalbrain.customer.customerlist.query.controller;
 
 import com.devoops.rentalbrain.common.pagination.PageResponseDTO;
-import com.devoops.rentalbrain.customer.common.CustomerDto;
+import com.devoops.rentalbrain.customer.common.CustomerDTO;
+import com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerDetailResponseDTO;
 import com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerlistSearchDTO;
 import com.devoops.rentalbrain.customer.customerlist.query.service.CustomerlistQueryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 )
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/customers")
+@RequestMapping("/customers")
 @Slf4j
 public class CustomerlistQueryController {
 
@@ -31,7 +32,7 @@ public class CustomerlistQueryController {
             @ApiResponse(responseCode = "500", description = "서버 내부 오류")
     })
     @GetMapping("/all")
-    public ResponseEntity<PageResponseDTO<CustomerDto>> list(
+    public ResponseEntity<PageResponseDTO<CustomerDTO>> list(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String email,
             @RequestParam(defaultValue = "1") int page,
@@ -44,14 +45,14 @@ public class CustomerlistQueryController {
         return ResponseEntity.ok(queryService.getCustomerListWithPaging(criteria));
     }
 
-    @Operation(summary = "고객 상세 조회", description = "특정 고객 ID에 대한 상세 정보를 조회합니다.")
+    @Operation(summary = "고객 상세 조회", description = "고객 정보 및 관련 내역(문의, 견적, 계약, AS 등)을 모두 조회합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "조회 성공"),
             @ApiResponse(responseCode = "404", description = "존재하지 않는 고객"),
             @ApiResponse(responseCode = "500", description = "서버 내부 오류")
     })
     @GetMapping("/{id}")
-    public ResponseEntity<CustomerDto> detail(@PathVariable Long id) {
+    public ResponseEntity<CustomerDetailResponseDTO> detail(@PathVariable Long id) { // 반환 타입 변경
         return ResponseEntity.ok(queryService.getCustomerDetail(id));
     }
 }

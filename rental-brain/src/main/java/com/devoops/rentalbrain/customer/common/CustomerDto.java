@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @ToString
-public class CustomerDto {
+public class CustomerDTO {
     private Long id;
     private String customerCode;
     private String name;
