@@ -48,7 +48,9 @@ public class WebSecurity {
     @Bean
     protected SecurityFilterChain configure(HttpSecurity http) throws Exception {
         /* 설명. Spring Security 모듈 추가 후 default 로그인 페이지 제거 및 인가 설정 */
-        http.cors(withDefaults()).csrf(csrf -> csrf.disable());
+        http
+                .cors(withDefaults())   // CORS 처리
+                .csrf(csrf -> csrf.disable());
 
         http.authorizeHttpRequests(authz ->
                                    authz

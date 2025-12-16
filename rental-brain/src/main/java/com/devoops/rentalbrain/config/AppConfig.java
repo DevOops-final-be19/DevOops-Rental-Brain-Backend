@@ -25,6 +25,7 @@ public class AppConfig {
         return new ModelMapper();
     }
 
+    // CORS 처리
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
