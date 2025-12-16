@@ -10,11 +10,14 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.util.Collections;
+
+import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 public class WebSecurity {
@@ -45,7 +48,9 @@ public class WebSecurity {
     @Bean
     protected SecurityFilterChain configure(HttpSecurity http) throws Exception {
         /* 설명. Spring Security 모듈 추가 후 default 로그인 페이지 제거 및 인가 설정 */
-        http.csrf(csrf -> csrf.disable());
+        http
+                .cors(withDefaults())   // CORS 처리
+                .csrf(csrf -> csrf.disable());
 
         http.authorizeHttpRequests(authz ->
                                    authz

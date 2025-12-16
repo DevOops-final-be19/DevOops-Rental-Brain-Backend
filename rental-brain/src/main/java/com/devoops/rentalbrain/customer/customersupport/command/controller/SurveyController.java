@@ -1,6 +1,8 @@
 package com.devoops.rentalbrain.customer.customersupport.command.controller;
 
 import com.devoops.rentalbrain.customer.common.SurveyDTO;
+import com.devoops.rentalbrain.customer.customersupport.command.dto.SurveyDeleteDTO;
+import com.devoops.rentalbrain.customer.customersupport.command.dto.SurveyModifyDTO;
 import com.devoops.rentalbrain.customer.customersupport.command.service.SurveyCommandService;
 import com.openai.models.responses.Response;
 import com.openai.models.responses.ResponseOutputText;
@@ -40,6 +42,18 @@ public class SurveyController {
     @PostMapping("/start")
     public ResponseEntity<?> startSurvey(@RequestBody SurveyDTO surveyDTO) {
         surveyCommandService.startSurvey(surveyDTO);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/update")
+    public ResponseEntity<?> updateSurvey(@RequestBody SurveyModifyDTO surveyModifyDTO) {
+        surveyCommandService.updateSurvey(surveyModifyDTO);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<?> deleteSurvey(@RequestBody SurveyDeleteDTO surveyDeleteDTO) {
+        surveyCommandService.deleteSurvey(surveyDeleteDTO);
         return ResponseEntity.ok().build();
     }
 }
