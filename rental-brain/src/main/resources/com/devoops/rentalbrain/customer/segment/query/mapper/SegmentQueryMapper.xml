@@ -30,7 +30,16 @@
         <result property="segmentPeriod" column="SEGMENT_PERIOD"/>
         <result property="segmentIsContracted" column="SEGMENT_IS_CONTRACTED"/>
         <result property="segmentOverdued" column="SEGMENT_OVERDUED"/>
+
+        <!-- 고객 리스트 -->
+        <collection property="customers"
+                    ofType="com.devoops.rentalbrain.customer.segment.query.dto.SegmentQueryDetailDTO$SegmentCustomerDTO"
+                    column="SEGMENT_ID"
+                    select="selectCustomersBySegmentId"/>
+
     </resultMap>
+
+    <!-- 세그먼트 단건 조회(세그먼트만 상세 조회) -->
     <select id="selectSegmentDetail" resultMap="SegmentQueryDetailMap">
         SELECT
                A.ID   AS SEGMENT_ID
@@ -41,8 +50,26 @@
              , A.IS_CONTRACTED AS SEGMENT_IS_CONTRACTED
              , A.OVERDUED AS SEGMENT_OVERDUED
         FROM SEGMENT A
-        join CUSTOMER B ON A.id = B.SEGMENT_ID;
         WHERE A.ID = #{segmentId}
-
     </select>
+
+    <!-- ✅ 세그먼트에 속한 고객 목록 -->
+    <select id="selectCustomersBySegmentId"
+            resultType="com.devoops.rentalbrain.customer.segment.query.dto.SegmentQueryDetailDTO$SegmentCustomerDTO">
+        SELECT
+               A.ID            AS customerId
+             , A.CUSTOMER_CODE AS customerCode
+             , A.NAME          AS customerName
+             , A.IN_CHARGE     AS inCharge
+             , A.DEPT          AS dept
+             , A.CALL_NUM      AS callNum
+             , A.STAR          AS star
+             , A.IS_DELETED    AS isDeleted
+        FROM CUSTOMER A
+        WHERE A.SEGMENT_ID = #{segmentId}
+          AND A.IS_DELETED = 'N'
+        ORDER BY A.ID DESC
+    </select>
+
+
 </mapper>
