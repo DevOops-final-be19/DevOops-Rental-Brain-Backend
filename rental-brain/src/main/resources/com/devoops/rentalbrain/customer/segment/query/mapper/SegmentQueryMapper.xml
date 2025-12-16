@@ -65,6 +65,7 @@
              , A.CALL_NUM      AS callNum
              , A.STAR          AS star
              , A.IS_DELETED    AS isDeleted
+             , B.
         FROM CUSTOMER A
         WHERE A.SEGMENT_ID = #{segmentId}
           AND A.IS_DELETED = 'N'
