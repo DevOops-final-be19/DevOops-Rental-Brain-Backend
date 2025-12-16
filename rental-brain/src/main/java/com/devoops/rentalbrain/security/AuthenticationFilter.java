@@ -9,6 +9,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -39,12 +40,12 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
     private final Environment env;
     private final EmployeeCommandService employeeCommandService;
-    private final RedisTemplate<String,String> redisTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
 
     public AuthenticationFilter(AuthenticationManager authenticationManager,
                                 Environment env,
                                 EmployeeCommandService employeeCommandService,
-                                RedisTemplate<String,String> redisTemplate) {
+                                RedisTemplate<String, String> redisTemplate) {
         // authenticationManager를 인지시킴
         super(authenticationManager);
         this.env = env;
@@ -93,8 +94,8 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
                 .compact();
 
 //        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        log.info("Access-Token : {}", accessToken);
-        response.addHeader("Access-Token", accessToken);
+        log.info("accessToken : {}", accessToken);
+//        response.addHeader("access-token", accessToken);
 
 
         // 리프레쉬 토큰
@@ -103,21 +104,28 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
                 .setExpiration(new java.util.Date(System.currentTimeMillis() + Long.parseLong(env.getProperty(("token.refresh_expiration_time")))))
                 .signWith(SignatureAlgorithm.HS512, env.getProperty("token.refresh_secret"))
                 .compact();
-        try{
+        try {
+            // HttpOnly 헤더
+            Cookie cookie = new Cookie("refreshToken", refreshToken);
+            cookie.setHttpOnly(true);
+//            cookie.setSecure(true);   // https 일때만 전송
+            cookie.setPath("/");
+            cookie.setMaxAge(60 * 60 * 24);
+
+            response.addCookie(cookie);
+
             // redis 저장
             redisTemplate.opsForHash().putAll("RT:" + id, Map.of(
                     "Refresh-Token", refreshToken,
-                    "Access-Token",accessToken));
+                    "Access-Token", accessToken));
             redisTemplate.expire("RT:" + id, Long.parseLong(env.getProperty("token.refresh_expiration_time")), TimeUnit.MILLISECONDS);
-            response.addHeader("Refresh-Token", refreshToken);
 
             log.info("redis 저장 완료");
-        }catch (Exception e){
-            log.info("redis 오류!");
+        } catch (Exception e) {
+            log.info("오류 - {}", e.getMessage());
         }
 
-        log.info("Refresh-Token : {}", refreshToken);
-
+        log.info("refreshToken : {}", refreshToken);
 
 
         // 성공 객체 반환
@@ -138,6 +146,7 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
         responseBody.put("resignDate", user.getResignDate());
         responseBody.put("positionId", user.getPositionId());
         responseBody.put("roles", roles);
+        responseBody.put("accessToken", accessToken);
 
         // Jackson으로 JSON 변환
         ObjectMapper mapper = new ObjectMapper();
@@ -167,8 +176,7 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
             Long id = Long.parseLong(failed.getMessage().split(",")[1]);
             String ipAddress = getClientIp(request);
             employeeCommandService.saveLoginHistory(id, ipAddress, 'N');      // 실패했을때 비밀번호 불일치 Exception 일 시 실패한 id 값을 이력에 저장
-        }
-        else{
+        } else {
             response.getWriter().write("{\"error\": \"" + failed.getMessage() + "\"}");
         }
 //        super.unsuccessfulAuthentication(request, response, failed);

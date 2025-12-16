@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.devoops.rentalbrain.product.maintenance.query.mapper.AfterServiceMapper">
+
+    <!-- ===================== -->
+    <!-- 공통 검색 조건 -->
+    <!-- ===================== -->
+    <sql id="searchCondition">
+        <if test="type != null and type != ''">
+            AND a.type = #{type}
+        </if>
+        <if test="status != null and status != ''">
+            AND a.status = #{status}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (
+            c.name LIKE CONCAT('%', #{keyword}, '%')
+            OR i.name LIKE CONCAT('%', #{keyword}, '%')
+            OR a.engineer LIKE CONCAT('%', #{keyword}, '%')
+            )
+        </if>
+    </sql>
+
+    <!-- ===================== -->
+    <!-- 목록 (기존 전체 조회) -->
+    <!-- ===================== -->
+    <select id="findAll"
+            resultType="com.devoops.rentalbrain.product.maintenance.query.dto.AfterServiceDTO">
+        SELECT
+            a.id,
+            a.after_service_code,
+            c.name AS customerName,
+            c.in_charge AS customerManager,
+            i.name AS itemName,
+            a.type,
+            a.due_date AS dueDate,
+            a.engineer,
+            a.status
+        FROM after_service a
+                 JOIN customer c ON c.id = a.cum_id
+                 JOIN item i ON i.id = a.item_id
+        ORDER BY a.due_date DESC
+    </select>
+
+    <!-- ===================== -->
+    <!-- 목록 + 페이징 + 검색 -->
+    <!-- ===================== -->
+    <select id="findAllWithPaging"
+            resultType="com.devoops.rentalbrain.product.maintenance.query.dto.AfterServiceDTO">
+
+        SELECT
+        a.id,
+        a.after_service_code,
+        c.name AS customerName,
+        c.in_charge AS customerManager,
+        i.name AS itemName,
+        a.type,
+        a.due_date AS dueDate,
+        a.engineer,
+        a.status
+        FROM after_service a
+        JOIN customer c ON c.id = a.cum_id
+        JOIN item i ON i.id = a.item_id
+        WHERE 1 = 1
+        <include refid="searchCondition"/>
+        ORDER BY a.due_date DESC
+        LIMIT #{size} OFFSET #{offset}
+
+    </select>
+
+    <!-- ===================== -->
+    <!-- 전체 건수 (pagination 필수) -->
+    <!-- ===================== -->
+    <select id="countAll" resultType="long">
+        SELECT COUNT(*)
+        FROM after_service a
+        JOIN customer c ON c.id = a.cum_id
+        JOIN item i ON i.id = a.item_id
+        WHERE 1 = 1
+        <include refid="searchCondition"/>
+    </select>
+
+    <!-- ===================== -->
+    <!-- 목록 상세 조회 -->
+    <!-- ===================== -->
+    <select id="findById"
+            parameterType="long"
+            resultType="com.devoops.rentalbrain.product.maintenance.query.dto.AfterServiceDetailDTO">
+
+        SELECT
+            a.id,
+            a.after_service_code,
+            c.name AS customerName,
+            c.in_charge AS customerManager,
+            i.name AS itemName,
+            a.engineer,
+            a.type,
+            a.due_date AS dueDate,
+            a.status,
+            a.contents,
+            i.last_inspect_date AS lastInspectDate,
+        <![CDATA[
+            CASE
+                WHEN a.type = 'A' THEN '-'
+                WHEN i.last_inspect_date IS NULL THEN '-'
+                ELSE CAST(DATEDIFF(a.due_date, i.last_inspect_date) AS CHAR)
+                END AS inspectCycleDays,
+            CASE
+                WHEN a.type = 'A' THEN 'AS'
+                WHEN i.last_inspect_date IS NULL THEN '-'
+                WHEN DATEDIFF(a.due_date, i.last_inspect_date) < 7
+                    THEN CONCAT(DATEDIFF(a.due_date, i.last_inspect_date), '일')
+                WHEN DATEDIFF(a.due_date, i.last_inspect_date) < 30
+                    THEN CONCAT(FLOOR(DATEDIFF(a.due_date, i.last_inspect_date) / 7), '주')
+                ELSE CONCAT(FLOOR(DATEDIFF(a.due_date, i.last_inspect_date) / 30), '개월')
+                END AS inspectCycleLabel
+        ]]>
+        FROM after_service a
+                 JOIN customer c ON c.id = a.cum_id
+                 JOIN item i ON i.id = a.item_id
+        WHERE a.id = #{asId}
+    </select>
+
+    <!-- ===================== -->
+    <!-- 이번 달 예정 -->
+    <!-- ===================== -->
+    <select id="countThisMonthSchedule" resultType="int">
+        SELECT COUNT(*) FROM after_service
+        WHERE <![CDATA[
+            due_date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
+          AND due_date < DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL 1 MONTH)
+        ]]>
+    </select>
+
+    <!-- 72시간 이내 -->
+    <select id="countImminent72h" resultType="int">
+        SELECT COUNT(*) FROM after_service
+        WHERE <![CDATA[
+            due_date >= NOW()
+          AND due_date < DATE_ADD(NOW(), INTERVAL 72 HOUR)
+        ]]>
+    </select>
+
+    <!-- 이번 달 완료 -->
+    <select id="countThisMonthCompleted" resultType="int">
+        SELECT COUNT(*) FROM after_service
+        WHERE <![CDATA[
+            status = 'DONE'
+          AND due_date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
+          AND due_date < DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL 1 MONTH)
+        ]]>
+    </select>
+
+    <!-- 오늘 진행중 -->
+    <select id="countTodayInProgress" resultType="int">
+        SELECT COUNT(*) FROM after_service
+        WHERE <![CDATA[
+            due_date >= CURDATE()
+          AND due_date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+          AND status IN ('READY', 'IN_PROGRESS')
+        ]]>
+    </select>
+
+    <!-- 다음 주 총합 -->
+    <select id="countNextWeekSchedule" resultType="int">
+        SELECT COUNT(*) FROM after_service
+        WHERE <![CDATA[
+            status = 'P'
+          AND due_date >= DATE_ADD(DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY), INTERVAL 7 DAY)
+          AND due_date <  DATE_ADD(DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY), INTERVAL 14 DAY)
+        ]]>
+    </select>
+
+    <!-- 다음 주 리스트 -->
+    <select id="findNextWeekScheduleList"
+            resultType="com.devoops.rentalbrain.product.maintenance.query.dto.NextWeekScheduleDTO">
+        SELECT
+            t.scheduleDate,
+            CASE DAYOFWEEK(t.scheduleDate)
+                WHEN 1 THEN '일'
+                WHEN 2 THEN '월'
+                WHEN 3 THEN '화'
+                WHEN 4 THEN '수'
+                WHEN 5 THEN '목'
+                WHEN 6 THEN '금'
+                WHEN 7 THEN '토'
+                END AS dayOfWeek,
+            SUM(t.cnt) AS totalCount,
+            GROUP_CONCAT(CONCAT(t.itemName, ' ', t.cnt, '건') SEPARATOR ', ') AS summary
+        FROM (
+                 SELECT
+                     DATE(a.due_date) AS scheduleDate,
+             i.name AS itemName,
+             COUNT(*) AS cnt
+            FROM after_service a
+            JOIN item i ON i.id = a.item_id
+        WHERE <![CDATA[
+                a.status = 'P'
+          AND a.due_date >= DATE_ADD(DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY), INTERVAL 7 DAY)
+          AND a.due_date <  DATE_ADD(DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY), INTERVAL 14 DAY)
+            ]]>
+            GROUP BY DATE(a.due_date), i.name
+            ) t
+        GROUP BY t.scheduleDate
+        ORDER BY t.scheduleDate
+    </select>
+
+</mapper>

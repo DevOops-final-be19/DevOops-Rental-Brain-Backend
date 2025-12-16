@@ -134,7 +134,7 @@ public class EmployeeCommandServiceImpl implements EmployeeCommandService {
         try {
             redisTemplate.opsForValue().set("BL:" + token, logoutDTO.getEmpId(), Long.parseLong(env.getProperty("token.access_expiration_time")), TimeUnit.MILLISECONDS);
             redisTemplate.delete("RT:" + logoutDTO.getEmpId());
-            log.info("redis 저장완료");
+            log.info("redis 저장,로그아웃 완료");
         } catch (Exception e) {
             log.info("오류 - {}",e.getMessage());
         }

@@ -4,6 +4,7 @@ name: Code Review
 permissions:
   contents: read
   pull-requests: write
+  actions: read
 
 # PR 이벤트 관련해서 워크플로우 실행
 on:
@@ -37,6 +38,8 @@ jobs:
         run: ./gradlew clean build -x test
 #        run: ./gradlew clean build
         working-directory: rental-brain
+        ## 빌드 실패해도 리뷰는 실행되게 하기
+        continue-on-error: true
         shell: bash
 
       - name: Get current time
@@ -56,7 +59,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           # optional
-          MODEL: "gpt-4o-mini" # https://platform.openai.com/docs/models
+          MODEL: gpt-4o-mini # https://platform.openai.com/docs/models
           OPENAI_API_ENDPOINT: https://api.openai.com/v1
           LANGUAGE: Korean
           PROMPT: |
