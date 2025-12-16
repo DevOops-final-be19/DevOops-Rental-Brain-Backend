@@ -9,9 +9,10 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @ToString
-public class AfterServiceDetailResponse {
+public class AfterServiceDetailDTO {
 
     private Long id;
+    private String after_service_code;
     private String customerName;
     private String customerManager;
     private String itemName;

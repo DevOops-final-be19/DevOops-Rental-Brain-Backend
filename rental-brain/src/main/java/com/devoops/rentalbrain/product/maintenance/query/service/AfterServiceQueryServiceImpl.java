@@ -1,12 +1,10 @@
 package com.devoops.rentalbrain.product.maintenance.query.service;
 
-import com.devoops.rentalbrain.product.maintenance.query.dto.AfterServiceDetailResponse;
-import com.devoops.rentalbrain.product.maintenance.query.dto.AfterServiceResponse;
-import com.devoops.rentalbrain.product.maintenance.query.dto.AfterServiceSummaryResponse;
-import com.devoops.rentalbrain.product.maintenance.query.dto.NextWeekScheduleResponse;
+import com.devoops.rentalbrain.product.maintenance.query.dto.*;
 import com.devoops.rentalbrain.product.maintenance.query.mapper.AfterServiceMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -16,19 +14,45 @@ public class AfterServiceQueryServiceImpl implements AfterServiceQueryService {
 
     private final AfterServiceMapper mapper;
 
+    @Transactional(readOnly = true)
     @Override
-    public List<AfterServiceResponse> findAll() {
+    public List<AfterServiceDTO> findAll() {
         return mapper.findAll();
     }
 
+    @Transactional(readOnly = true)
     @Override
-    public AfterServiceDetailResponse findById(Long id) {
+    public AfterServiceSearchDTO findAll(int page, int size, String type, String status, String keyword) {
+
+        int offset = (page - 1) * size;
+
+        List<AfterServiceDTO> list =
+                mapper.findAllWithPaging(offset, size, type, status, keyword);
+
+        long totalCount =
+                mapper.countAll(type, status, keyword);
+
+        int totalPages = (int) Math.ceil((double) totalCount / size);
+
+        return new AfterServiceSearchDTO(
+                list,
+                page,
+                size,
+                totalCount,
+                totalPages
+        );
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public AfterServiceDetailDTO findById(Long id) {
         return mapper.findById(id);
     }
 
+    @Transactional(readOnly = true)
     @Override
-    public AfterServiceSummaryResponse getSummary() {
-        return new AfterServiceSummaryResponse(
+    public AfterServiceSummaryDTO getSummary() {
+        return new AfterServiceSummaryDTO(
                 mapper.countThisMonthSchedule(),
                 mapper.countImminent72h(),
                 mapper.countThisMonthCompleted(),
@@ -36,13 +60,15 @@ public class AfterServiceQueryServiceImpl implements AfterServiceQueryService {
         );
     }
 
+    @Transactional(readOnly = true)
     @Override
     public int countNextWeek() {
         return mapper.countNextWeekSchedule();
     }
 
+    @Transactional(readOnly = true)
     @Override
-    public List<NextWeekScheduleResponse> findNextWeekList() {
+    public List<NextWeekScheduleDTO> findNextWeekList() {
         return mapper.findNextWeekScheduleList();
     }
 }

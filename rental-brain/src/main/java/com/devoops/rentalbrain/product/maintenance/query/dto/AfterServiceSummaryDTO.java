@@ -7,7 +7,7 @@ import lombok.*;
 @Getter
 @Setter
 @ToString
-public class AfterServiceSummaryResponse {
+public class AfterServiceSummaryDTO {
     private int thisMonthScheduleCount;
     private int imminent72hCount;
     private int thisMonthCompletedCount;

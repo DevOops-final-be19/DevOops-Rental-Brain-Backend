@@ -18,7 +18,7 @@ public class AfterService {
     private Long id;
 
     @Column(name = "after_service_code", nullable = false, unique = true)
-    private String afterserviceCode;
+    private String after_service_code;
 
     @Column
     private String engineer;

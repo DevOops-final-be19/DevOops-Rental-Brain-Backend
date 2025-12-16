@@ -5,7 +5,8 @@ import com.devoops.rentalbrain.product.maintenance.command.dto.AfterServiceUpdat
 
 public interface AfterServiceCommandService {
 
-    Long create(AfterServiceCreateRequest req);
+    void create(AfterServiceCreateRequest request);
+    void update(Long asId, AfterServiceUpdateRequest request);
 
-    void update(Long id, AfterServiceUpdateRequest req);
+    void autoCompleteAndCreateNext();
 }

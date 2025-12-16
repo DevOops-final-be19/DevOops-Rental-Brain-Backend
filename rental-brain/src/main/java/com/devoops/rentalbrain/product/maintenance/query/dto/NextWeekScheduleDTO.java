@@ -9,7 +9,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @ToString
-public class NextWeekScheduleResponse {
+public class NextWeekScheduleDTO {
 
     private LocalDate scheduleDate;
     private String dayOfWeek;
