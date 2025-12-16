@@ -19,6 +19,9 @@ public class Coupon {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "coupon_code", nullable = false, unique = true)
+    private String couponCode;
+
     @Column(name = "name")
     private String name;
 
@@ -36,6 +39,9 @@ public class Coupon {
 
     @Column(name = "end_date")
     private LocalDateTime endDate;
+
+    @Column(name = "status")
+    private String status;
 
     @Column(name = "date_period")
     private Integer datePeriod;

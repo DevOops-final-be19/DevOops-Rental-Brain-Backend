@@ -3,5 +3,37 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.devoops.rentalbrain.business.campaign.query.mapper.CouponMapper">
-    
+    <resultMap id="getCouponMap" type="com.devoops.rentalbrain.business.campaign.query.dto.CouponDTO">
+        <id property="couponCode" column="COUPON_CODE"/>
+        <result property="name" column="NAME"/>
+        <result property="rate" column="RATE"/>
+        <result property="type" column="TYPE"/>
+        <result property="minFee" column="MIN_FEE"/>
+        <result property="segmentName" column="SEGMENT_NAME"/>
+        <result property="status" column="STATUS"/>
+        <result property="startDate" column="START_DATE"/>
+        <result property="endDate" column="END_DATE"/>
+        <result property="content" column="CONTENT"/>
+        <result property="issued" column="ISSUED"/>
+        <result property="used" column="USED"/>
+        <result property="usedRate" column="USED_RATE"/>
+    </resultMap>
+    <select id="selectCoupon" resultMap="getCouponMap">
+        SELECT
+               A.COUPON_CODE,
+               A.NAME,
+               A.RATE,
+               A.MIN_FEE,
+               B.NAME AS SEGMENT_NAME,
+               A.STATUS,
+               A.START_DATE,
+               A.END_DATE,
+               A.CONTENT,
+               COUNT(C) AS ISSUED,
+               COUNT(CASE WHEN C.IS_USED = 'Y' THEN 1 END) AS USED,
+               (USED/ISSUED)*100 AS USED_RATE
+          FROM coupon A
+          LEFT JOIN segment B
+          LEFT JOIN issued_coupon C
+    </select>
 </mapper>

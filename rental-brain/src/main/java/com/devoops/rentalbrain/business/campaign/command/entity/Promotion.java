@@ -19,6 +19,9 @@ public class Promotion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "promotion_code", nullable = false, unique = true)
+    private String promotionCode;
+
     @Column(name = "name")
     private String name;
 
