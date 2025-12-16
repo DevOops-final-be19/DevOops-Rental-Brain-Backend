@@ -1,7 +1,87 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.devoops.rentalbrain.business.approval.query.mapper.ApprovalQueryMapper">
+<mapper namespace="com.devoops.rentalbrain.approval.query.mapper.ApprovalQueryMapper">
+    <select id="getApprovalStatus"
+            parameterType="long"
+            resultType="com.devoops.rentalbrain.approval.query.dto.ApprovalStatusDTO">
+        SELECT
+            -- 개인 승인 상태
+            SUM(CASE WHEN emp_id = #{empId} AND is_approved = 'Y' THEN 1 ELSE 0 END) AS my_approved,
+            SUM(CASE WHEN emp_id = #{empId} AND is_approved = 'N' THEN 1 ELSE 0 END) AS my_rejected,
+            SUM(CASE WHEN emp_id = #{empId} AND is_approved = 'U' THEN 1 ELSE 0 END) AS my_pending,
 
+            -- 전체 승인 상태
+            SUM(CASE
+                    WHEN approval_id IN (
+                        SELECT approval_id
+                        FROM approval_mapping
+                        GROUP BY approval_id
+                        HAVING SUM(CASE WHEN is_approved != 'Y' THEN 1 ELSE 0 END) = 0
+                    )
+                        THEN 1 ELSE 0
+                END) AS fully_approved_count,
 
+            SUM(CASE
+                    WHEN approval_id IN (
+                        SELECT approval_id
+                        FROM approval_mapping
+                        GROUP BY approval_id
+                        HAVING SUM(CASE WHEN is_approved != 'Y' THEN 1 ELSE 0 END) > 0
+                    )
+                        THEN 1 ELSE 0
+                END) AS not_fully_approved_count
+        FROM approval_mapping
+        WHERE emp_id = #{empId}
+    </select>
+
+    <select id="selectPendingApprovalsByEmpIdWithPaging"
+            parameterType="map"
+            resultType="com.devoops.rentalbrain.approval.query.dto.PendingApprovalDTO">
+
+        SELECT
+        approval_mapping_id   AS approvalMappingId,
+        approval_emp_id       AS approvalEmpId,
+        approval_step         AS approvalStep,
+        is_approved           AS isApproved,
+        approval_code         AS approvalCode,
+        approval_title        AS approvalTitle,
+        request_date          AS requestDate,
+        request_emp_id        AS requestEmpId,
+        employee_code         AS employeeCode,
+        employee_name         AS employeeName,
+        position_name         AS positionName
+        FROM v_approval_payment_manage
+        WHERE approval_emp_id = #{empId}
+        AND is_approved = 'U'
+
+        <if test="criteria.keyword != null and criteria.keyword != ''">
+            AND (
+            approval_code LIKE CONCAT('%', #{criteria.keyword}, '%')
+            OR approval_title LIKE CONCAT('%', #{criteria.keyword}, '%')
+            )
+        </if>
+
+        ORDER BY request_date DESC
+        LIMIT #{criteria.amount}
+        OFFSET #{criteria.offset}
+
+    </select>
+    <select id="countPendingApprovalsByEmpId"
+            parameterType="map"
+            resultType="long">
+
+        SELECT COUNT(*)
+        FROM v_approval_payment_manage
+        WHERE approval_emp_id = #{empId}
+        AND is_approved = 'U'
+
+        <if test="criteria.keyword != null and criteria.keyword != ''">
+            AND (
+            approval_code LIKE CONCAT('%', #{criteria.keyword}, '%')
+            OR approval_title LIKE CONCAT('%', #{criteria.keyword}, '%')
+            )
+        </if>
+
+    </select>
 </mapper>

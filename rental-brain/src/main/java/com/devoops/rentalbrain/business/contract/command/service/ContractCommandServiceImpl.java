@@ -5,13 +5,17 @@ import com.devoops.rentalbrain.approval.command.Repository.ApprovalMappingComman
 import com.devoops.rentalbrain.approval.command.entity.ApprovalCommandEntity;
 import com.devoops.rentalbrain.approval.command.entity.ApprovalMappingCommandEntity;
 import com.devoops.rentalbrain.business.contract.command.dto.ContractCreateDTO;
+import com.devoops.rentalbrain.business.contract.command.dto.ContractItemDTO;
 import com.devoops.rentalbrain.business.contract.command.dto.ContractUpdateDTO;
 import com.devoops.rentalbrain.business.contract.command.entity.ContractCommandEntity;
+import com.devoops.rentalbrain.business.contract.command.entity.ContractItemCommandEntity;
 import com.devoops.rentalbrain.business.contract.command.repository.ContractCommandRepository;
+import com.devoops.rentalbrain.business.contract.command.repository.ContractItemCommandRepository;
 import com.devoops.rentalbrain.common.codegenerator.CodeGenerator;
 import com.devoops.rentalbrain.common.codegenerator.CodeType;
 import com.devoops.rentalbrain.customer.customerlist.command.entity.CustomerlistCommandEntity;
 import com.devoops.rentalbrain.employee.command.entity.Employee;
+import com.devoops.rentalbrain.product.productlist.command.repository.ItemRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +34,8 @@ public class ContractCommandServiceImpl implements ContractCommandService {
 
     private final ContractCommandRepository contractCommandRepository;
     private final ApprovalCommandRepository approvalCommandRepository;
+    private final ItemRepository itemRepository;
+    private final ContractItemCommandRepository contractItemCommandRepository;
     private final ApprovalMappingCommandRepository approvalMappingCommandRepository;
     private final ModelMapper modelMapper;
     private final CodeGenerator codeGenerator;
@@ -41,12 +47,16 @@ public class ContractCommandServiceImpl implements ContractCommandService {
     public ContractCommandServiceImpl(
             ContractCommandRepository contractCommandRepository,
             ApprovalCommandRepository approvalCommandRepository,
+            ItemRepository itemRepository,
+            ContractItemCommandRepository contractItemCommandRepository,
             ApprovalMappingCommandRepository approvalMappingCommandRepository,
             ModelMapper modelMapper,
             CodeGenerator codeGenerator
     ) {
         this.contractCommandRepository = contractCommandRepository;
         this.approvalCommandRepository = approvalCommandRepository;
+        this.itemRepository = itemRepository;
+        this.contractItemCommandRepository = contractItemCommandRepository;
         this.approvalMappingCommandRepository = approvalMappingCommandRepository;
         this.modelMapper = modelMapper;
         this.codeGenerator = codeGenerator;
@@ -141,6 +151,41 @@ public class ContractCommandServiceImpl implements ContractCommandService {
                 dto.getLeaderId(),
                 dto.getCeoId()
         );
+
+        /* =====================
+       3. 제품 상태 update + 계약-제품 매핑 insert
+       ===================== */
+        for (ContractItemDTO item : dto.getItems()) {
+
+            // 1) 대여 가능한 item id 조회
+            List<Long> itemIds =
+                    itemRepository.findRentableItemIdsByName(
+                            item.getItemName(),
+                            item.getQuantity()
+                    );
+
+            if (itemIds.size() < item.getQuantity()) {
+                throw new IllegalStateException(
+                        "대여 가능한 상품 수량이 부족합니다. itemName=" + item.getItemName()
+                );
+            }
+
+            // 2) item 상태 변경 (P → S)
+            itemRepository.updateItemStatusToRented(itemIds);
+
+            // 3) contract_with_item insert
+            List<ContractItemCommandEntity> mappings =
+                    itemIds.stream()
+                            .map(itemId -> {
+                                ContractItemCommandEntity e = new ContractItemCommandEntity();
+                                e.setContractId(savedContract.getId());
+                                e.setItemId(itemId);
+                                return e;
+                            })
+                            .toList();
+
+            contractItemCommandRepository.saveAll(mappings);
+        }
     }
 
 
@@ -156,6 +201,55 @@ public class ContractCommandServiceImpl implements ContractCommandService {
             Long leaderId,
             Long ceoId
     ) {
+        ContractCommandEntity contract = approval.getContract();
+
+        // case 1: CEO만 존재
+        if (memId == null && leaderId == null && ceoId != null) {
+
+            ApprovalMappingCommandEntity ceoStep =
+                    ApprovalMappingCommandEntity.builder()
+                            .approval(approval)
+                            .employee(entityManager.getReference(Employee.class, ceoId))
+                            .step(3)
+                            .isApproved("Y")
+                            .build();
+
+            approvalMappingCommandRepository.save(ceoStep);
+
+            contract.setCurrentStep(3);
+            contract.setStatus("P"); // 계약 진행
+            return;
+        }
+
+        // case 2: 리더 + CEO만 존재
+        if (memId == null && leaderId != null && ceoId != null) {
+
+            ApprovalMappingCommandEntity leaderStep =
+                    ApprovalMappingCommandEntity.builder()
+                            .approval(approval)
+                            .employee(entityManager.getReference(Employee.class, leaderId))
+                            .step(2)
+                            .isApproved("Y")
+                            .build();
+
+            ApprovalMappingCommandEntity ceoStep =
+                    ApprovalMappingCommandEntity.builder()
+                            .approval(approval)
+                            .employee(entityManager.getReference(Employee.class, ceoId))
+                            .step(3)
+                            .isApproved("U")
+                            .build();
+
+            approvalMappingCommandRepository.saveAll(
+                    List.of(leaderStep, ceoStep)
+            );
+
+            contract.setCurrentStep(2);
+            contract.setStatus("W");
+            return;
+        }
+
+        // case 3: mem + leader + ceo (기본)
         Employee memRef =
                 entityManager.getReference(Employee.class, memId);
         Employee leaderRef =
@@ -163,15 +257,15 @@ public class ContractCommandServiceImpl implements ContractCommandService {
         Employee ceoRef =
                 entityManager.getReference(Employee.class, ceoId);
 
-        ApprovalMappingCommandEntity step1 =
+        ApprovalMappingCommandEntity memStep =
                 ApprovalMappingCommandEntity.builder()
                         .approval(approval)
                         .employee(memRef)
                         .step(1)
-                        .isApproved("U")
+                        .isApproved("Y")
                         .build();
 
-        ApprovalMappingCommandEntity step2 =
+        ApprovalMappingCommandEntity leaderStep =
                 ApprovalMappingCommandEntity.builder()
                         .approval(approval)
                         .employee(leaderRef)
@@ -179,7 +273,7 @@ public class ContractCommandServiceImpl implements ContractCommandService {
                         .isApproved("U")
                         .build();
 
-        ApprovalMappingCommandEntity step3 =
+        ApprovalMappingCommandEntity ceoStep =
                 ApprovalMappingCommandEntity.builder()
                         .approval(approval)
                         .employee(ceoRef)
@@ -188,8 +282,11 @@ public class ContractCommandServiceImpl implements ContractCommandService {
                         .build();
 
         approvalMappingCommandRepository.saveAll(
-                List.of(step1, step2, step3)
+                List.of(memStep, leaderStep, ceoStep)
         );
+
+        contract.setCurrentStep(1);
+        contract.setStatus("W");
     }
 
 
