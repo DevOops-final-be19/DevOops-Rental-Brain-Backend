@@ -2,13 +2,13 @@ package com.devoops.rentalbrain.business.contract.command.dto;
 
 import lombok.Data;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
 public class ContractCreateDTO {
     private String contractName;
-    private LocalDate startDate;
+    private LocalDateTime startDate;
     private Integer contractPeriod;
     private Integer monthlyPayment;
     private Long totalAmount;
