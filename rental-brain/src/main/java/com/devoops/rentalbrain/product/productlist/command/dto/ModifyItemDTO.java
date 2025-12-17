@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 @ToString
 public class ModifyItemDTO {
     private String name;
-    private String serialNum;
     private Integer monthlyPrice;
     private String status;
     private LocalDateTime lastInspectDate;

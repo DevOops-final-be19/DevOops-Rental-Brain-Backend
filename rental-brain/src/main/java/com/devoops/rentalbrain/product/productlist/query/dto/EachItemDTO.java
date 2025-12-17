@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Setter
 @ToString
 public class EachItemDTO {
-    private Long id;
+    private String itemCode;
     private String status;
     private String firmName;
     private LocalDateTime startDate;

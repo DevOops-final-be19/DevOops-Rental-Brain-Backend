@@ -1,5 +1,7 @@
 package com.devoops.rentalbrain.product.productlist.command.service;
 
+import com.devoops.rentalbrain.common.codegenerator.CodeGenerator;
+import com.devoops.rentalbrain.common.codegenerator.CodeType;
 import com.devoops.rentalbrain.product.productlist.command.dto.ItemDTO;
 import com.devoops.rentalbrain.product.productlist.command.dto.ModifyItemDTO;
 import com.devoops.rentalbrain.product.productlist.command.entity.Item;
@@ -17,24 +19,30 @@ public class ItemCommandServiceImpl implements ItemCommandService {
     private final ModelMapper modelMapper;
     private final ItemRepository itemRepository;
     private final ItemCategoryRepository itemCategoryRepository;
+    private final CodeGenerator codeGenerator;
 
     @Autowired
     public ItemCommandServiceImpl(ModelMapper modelMapper,
                                   ItemRepository itemRepository,
-                                  ItemCategoryRepository itemCategoryRepository) {
+                                  ItemCategoryRepository itemCategoryRepository, CodeGenerator codeGenerator) {
         this.modelMapper = modelMapper;
         this.itemRepository = itemRepository;
         this.itemCategoryRepository = itemCategoryRepository;
+        this.codeGenerator = codeGenerator;
     }
 
     @Override
     @Transactional
     public void insertNewItem(ItemDTO itemDTO) {
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+
         String categoryName = itemDTO.getCategoryName();
         ItemCategory itemCategory = itemCategoryRepository.findAllByName(categoryName);
         Long categoryId = itemCategory.getId();
         Item item = modelMapper.map(itemDTO, Item.class);
+
+        String itemCode = codeGenerator.generate(CodeType.ITEM);
+        item.setItemCode(itemCode);
         item.setStatus("P");
         item.setSales(0);
         item.setRepairCost(0);
@@ -49,9 +57,6 @@ public class ItemCommandServiceImpl implements ItemCommandService {
         Item item = itemRepository.findById((long)itemId).get();
         if(itemDTO.getName() != null && !item.getName().equals(itemDTO.getName())) {
             item.setName(itemDTO.getName());
-        }
-        if(itemDTO.getSerialNum() != null && !item.getSerialNum().equals(itemDTO.getSerialNum())) {
-            item.setSerialNum(itemDTO.getSerialNum());
         }
         if(itemDTO.getMonthlyPrice() != null && !item.getMonthlyPrice().equals(itemDTO.getMonthlyPrice())) {
             item.setMonthlyPrice(itemDTO.getMonthlyPrice());

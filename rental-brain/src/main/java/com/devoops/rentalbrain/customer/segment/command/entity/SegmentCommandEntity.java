@@ -27,7 +27,7 @@ public class SegmentCommandEntity {
     private Long segmentTotalCharge;
 
     @Column(name = "segment_period")
-    private int segmentPeriod;
+    private Integer segmentPeriod;
 
     @Column(name = "is_contracted")
     private Boolean segmentIsContracted;

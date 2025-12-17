@@ -4,7 +4,7 @@
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.devoops.rentalbrain.product.productlist.query.mapper.ItemMapper">
     <resultMap id="getEachItemMap" type="com.devoops.rentalbrain.product.productlist.query.dto.EachItemDTO">
-        <id property="id" column="ID"/>
+        <id property="itemCode" column="ITEM_CODE"/>
         <result property="status" column="STATUS"/>
         <result property="firmName" column="FIRM_NAME"/>
         <result property="startDate" column="START_DATE"/>
@@ -12,7 +12,7 @@
     </resultMap>
     <select id="selectAllItems" resultMap="getEachItemMap" parameterType="string">
         SELECT
-               A.ID,
+               A.ITEM_CODE,
                A.STATUS,
                E.NAME AS FIRM_NAME,
                C.START_DATE,
