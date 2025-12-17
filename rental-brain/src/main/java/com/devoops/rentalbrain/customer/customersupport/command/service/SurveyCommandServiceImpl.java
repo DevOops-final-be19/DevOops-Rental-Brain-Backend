@@ -3,6 +3,8 @@ package com.devoops.rentalbrain.customer.customersupport.command.service;
 import com.devoops.rentalbrain.common.codegenerator.CodeGenerator;
 import com.devoops.rentalbrain.common.codegenerator.CodeType;
 import com.devoops.rentalbrain.customer.common.SurveyDTO;
+import com.devoops.rentalbrain.customer.customersupport.command.dto.SurveyDeleteDTO;
+import com.devoops.rentalbrain.customer.customersupport.command.dto.SurveyModifyDTO;
 import com.devoops.rentalbrain.customer.customersupport.command.entity.Survey;
 import com.devoops.rentalbrain.customer.customersupport.command.repository.SurveyCommandRepository;
 import com.openai.client.OpenAIClient;
@@ -69,5 +71,48 @@ public class SurveyCommandServiceImpl implements SurveyCommandService {
 
         log.info("survey : {}", survey);
         surveyCommandRepository.save(survey);
+    }
+
+    @Override
+    @Transactional
+    public void updateSurvey(SurveyModifyDTO surveyModifyDTO) {
+        try{
+        Survey survey = surveyCommandRepository.findById(surveyModifyDTO.getId()).get();
+        modifySurvey(surveyModifyDTO,survey);
+        } catch(Exception e){
+            throw new RuntimeException("설문 수정 실패"+e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void deleteSurvey(SurveyDeleteDTO surveyDeleteDTO) {
+        try{
+            Survey survey = surveyCommandRepository.findById(surveyDeleteDTO.getId()).get();
+            surveyCommandRepository.delete(survey);
+        } catch (Exception e) {
+            throw new RuntimeException("설문 삭제 실패"+e);
+        }
+    }
+
+    private void modifySurvey(SurveyModifyDTO surveyModifyDTO, Survey survey) {
+        if(!survey.getName().equals(surveyModifyDTO.getName())){
+            survey.setName(surveyModifyDTO.getName());
+        }
+        if(!survey.getLink().equals(surveyModifyDTO.getLink())){
+            survey.setLink(surveyModifyDTO.getLink());
+        }
+        if(!survey.getStatus().equals(surveyModifyDTO.getStatus())){
+            survey.setStatus(surveyModifyDTO.getStatus());
+        }
+        if(!survey.getStartDate().equals(surveyModifyDTO.getStartDate())){
+            survey.setStartDate(surveyModifyDTO.getStartDate());
+        }
+        if(!survey.getEndDate().equals(surveyModifyDTO.getEndDate())){
+            survey.setEndDate(surveyModifyDTO.getEndDate());
+        }
+        if(!survey.getCategoryId().equals(surveyModifyDTO.getCategoryId())){
+            survey.setCategoryId(surveyModifyDTO.getCategoryId());
+        }
     }
 }

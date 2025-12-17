@@ -17,8 +17,12 @@ public enum ErrorCode {
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "C006", "지원하지 않는 HTTP 메서드입니다."),
 
     /* Employee */
-    EMPLOYEE_NOT_FOUND(HttpStatus.NOT_FOUND, "M001", "직원을 찾을 수 없습니다.");
+    EMPLOYEE_NOT_FOUND(HttpStatus.NOT_FOUND, "M001", "직원을 찾을 수 없습니다."),
 
+    /* After Service */
+    AS_INVALID_REQUEST(HttpStatus.BAD_REQUEST, "AS001", "AS/정기점검 요청 값이 올바르지 않습니다."),
+    AS_DUPLICATE_SCHEDULE(HttpStatus.CONFLICT, "AS002", "이미 동일 자산·동일 예정일의 점검 일정이 존재합니다."),
+    AS_NOT_FOUND(HttpStatus.NOT_FOUND, "AS003", "AS/정기점검 정보를 찾을 수 없습니다.");
 
     private final HttpStatus status;
     private final String code;
