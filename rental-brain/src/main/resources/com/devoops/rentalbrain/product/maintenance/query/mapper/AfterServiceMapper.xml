@@ -5,16 +5,10 @@
 
 <mapper namespace="com.devoops.rentalbrain.product.maintenance.query.mapper.AfterServiceMapper">
 
-    <!-- ===================== -->
     <!-- 공통 검색 조건 -->
-    <!-- ===================== -->
     <sql id="searchCondition">
-        <if test="type != null and type != ''">
-            AND a.type = #{type}
-        </if>
-        <if test="status != null and status != ''">
-            AND a.status = #{status}
-        </if>
+        <if test="type != null and type != ''"> AND a.type = #{type} </if>
+        <if test="status != null and status != ''"> AND a.status = #{status} </if>
         <if test="keyword != null and keyword != ''">
             AND (
             c.name LIKE CONCAT('%', #{keyword}, '%')
@@ -24,11 +18,50 @@
         </if>
     </sql>
 
-    <!-- ===================== -->
+    <!-- SummaryCard 기준 조건 -->
+    <sql id="summaryCondition">
+        <choose>
+
+            <!-- 이번 달 예정 -->
+            <when test="summaryType == 'SCHEDULED'">
+                <![CDATA[
+                    AND a.status = 'P'
+                    AND a.due_date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
+                    AND a.due_date < DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL 1 MONTH)
+                ]]>
+            </when>
+
+            <!-- 72시간 이내 임박 -->
+            <when test="summaryType == 'IMMINENT'">
+                <![CDATA[
+                    AND a.status = 'P'
+                    AND a.due_date >= NOW()
+                    AND a.due_date < DATE_ADD(NOW(), INTERVAL 72 HOUR)
+                ]]>
+            </when>
+
+            <!-- 이번 달 완료 -->
+            <when test="summaryType == 'COMPLETED'">
+                <![CDATA[
+                    AND a.status = 'C'
+                    AND a.due_date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
+                    AND a.due_date < DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL 1 MONTH)
+                ]]>
+            </when>
+
+            <!-- AS 진행 중 (±2시간) -->
+            <when test="summaryType == 'IN_PROGRESS'">
+                AND a.status = 'P'
+                AND a.due_date BETWEEN
+                DATE_SUB(NOW(), INTERVAL 2 HOUR)
+                AND DATE_ADD(NOW(), INTERVAL 2 HOUR)
+            </when>
+
+        </choose>
+    </sql>
+
     <!-- 목록 (기존 전체 조회) -->
-    <!-- ===================== -->
-    <select id="findAll"
-            resultType="com.devoops.rentalbrain.product.maintenance.query.dto.AfterServiceDTO">
+    <select id="findAll" resultType="com.devoops.rentalbrain.product.maintenance.query.dto.AfterServiceDTO">
         SELECT
             a.id,
             a.after_service_code,
@@ -45,11 +78,8 @@
         ORDER BY a.due_date DESC
     </select>
 
-    <!-- ===================== -->
-    <!-- 목록 + 페이징 + 검색 -->
-    <!-- ===================== -->
-    <select id="findAllWithPaging"
-            resultType="com.devoops.rentalbrain.product.maintenance.query.dto.AfterServiceDTO">
+    <!-- 목록 + 페이징 + 검색 + Summary -->
+    <select id="findAllWithPaging" resultType="com.devoops.rentalbrain.product.maintenance.query.dto.AfterServiceDTO">
 
         SELECT
         a.id,
@@ -64,31 +94,25 @@
         FROM after_service a
         JOIN customer c ON c.id = a.cum_id
         JOIN item i ON i.id = a.item_id
-        WHERE 1 = 1
         <include refid="searchCondition"/>
+        <include refid="summaryCondition"/>
         ORDER BY a.due_date DESC
         LIMIT #{size} OFFSET #{offset}
 
     </select>
 
-    <!-- ===================== -->
-    <!-- 전체 건수 (pagination 필수) -->
-    <!-- ===================== -->
+    <!-- 전체 건수 -->
     <select id="countAll" resultType="long">
         SELECT COUNT(*)
         FROM after_service a
         JOIN customer c ON c.id = a.cum_id
         JOIN item i ON i.id = a.item_id
-        WHERE 1 = 1
         <include refid="searchCondition"/>
+        <include refid="summaryCondition"/>
     </select>
 
-    <!-- ===================== -->
     <!-- 목록 상세 조회 -->
-    <!-- ===================== -->
-    <select id="findById"
-            parameterType="long"
-            resultType="com.devoops.rentalbrain.product.maintenance.query.dto.AfterServiceDetailDTO">
+    <select id="findById" parameterType="long" resultType="com.devoops.rentalbrain.product.maintenance.query.dto.AfterServiceDetailDTO">
 
         SELECT
             a.id,
@@ -124,18 +148,18 @@
         WHERE a.id = #{asId}
     </select>
 
-    <!-- ===================== -->
-    <!-- 이번 달 예정 -->
-    <!-- ===================== -->
+
+    <!-- 이번 달 예정된 점검 -->
     <select id="countThisMonthSchedule" resultType="int">
         SELECT COUNT(*) FROM after_service
         WHERE <![CDATA[
-            due_date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
+            status = 'P'
+          AND due_date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
           AND due_date < DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL 1 MONTH)
         ]]>
     </select>
 
-    <!-- 72시간 이내 -->
+    <!-- 72시간 이내 점검임박 -->
     <select id="countImminent72h" resultType="int">
         SELECT COUNT(*) FROM after_service
         WHERE <![CDATA[
@@ -148,19 +172,21 @@
     <select id="countThisMonthCompleted" resultType="int">
         SELECT COUNT(*) FROM after_service
         WHERE <![CDATA[
-            status = 'DONE'
+            status = 'C'
           AND due_date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
           AND due_date < DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL 1 MONTH)
         ]]>
     </select>
 
-    <!-- 오늘 진행중 -->
+    <!-- 현재 AS 진행중 (예정시각 ±2시간) -->
     <select id="countTodayInProgress" resultType="int">
-        SELECT COUNT(*) FROM after_service
+        SELECT COUNT(*)
+        FROM after_service
         WHERE <![CDATA[
-            due_date >= CURDATE()
-          AND due_date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
-          AND status IN ('READY', 'IN_PROGRESS')
+        status = 'P'
+          AND due_date BETWEEN
+            DATE_SUB(NOW(), INTERVAL 2 HOUR)
+            AND DATE_ADD(NOW(), INTERVAL 2 HOUR)
         ]]>
     </select>
 
@@ -175,8 +201,7 @@
     </select>
 
     <!-- 다음 주 리스트 -->
-    <select id="findNextWeekScheduleList"
-            resultType="com.devoops.rentalbrain.product.maintenance.query.dto.NextWeekScheduleDTO">
+    <select id="findNextWeekScheduleList" resultType="com.devoops.rentalbrain.product.maintenance.query.dto.NextWeekScheduleDTO">
         SELECT
             t.scheduleDate,
             CASE DAYOFWEEK(t.scheduleDate)

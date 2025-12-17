@@ -12,19 +12,9 @@ public interface AfterServiceMapper {
     // 목록
     List<AfterServiceDTO> findAll();
 
-    List<AfterServiceDTO> findAllWithPaging(
-            int offset,
-            int size,
-            String type,
-            String status,
-            String keyword
-    );
+    List<AfterServiceDTO> findAllWithPaging( int offset, int size, String type, String status, String keyword, String summaryType );
 
-    long countAll(
-            String type,
-            String status,
-            String keyword
-    );
+    long countAll( String type, String status, String keyword, String summaryType );
 
     // 상세
     AfterServiceDetailDTO findById(Long id);

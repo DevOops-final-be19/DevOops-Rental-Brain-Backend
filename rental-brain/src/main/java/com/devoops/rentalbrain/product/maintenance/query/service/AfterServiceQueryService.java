@@ -8,13 +8,7 @@ public interface AfterServiceQueryService {
 
     List<AfterServiceDTO> findAll();
 
-    AfterServiceSearchDTO findAll(
-            int page,
-            int size,
-            String type,
-            String status,
-            String keyword
-    );
+    AfterServiceSearchDTO findAll( int page, int size, String type, String status, String keyword, String summaryType );
 
     AfterServiceDetailDTO findById(Long id);
 

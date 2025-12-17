@@ -40,9 +40,10 @@ public class AfterServiceQueryController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String status,
-            @RequestParam(required = false) String keyword
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String summaryType
     ) {
-        return afterServiceQueryService.findAll(page, size, type, status, keyword);
+        return afterServiceQueryService.findAll(page, size, type, status, keyword, summaryType);
     }
 
     @Operation(
