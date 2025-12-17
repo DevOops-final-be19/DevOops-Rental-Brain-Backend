@@ -5,6 +5,7 @@ import com.devoops.rentalbrain.common.pagination.PageResponseDTO;
 import com.devoops.rentalbrain.common.pagination.Pagination;
 import com.devoops.rentalbrain.common.pagination.PagingButtonInfo;
 import com.devoops.rentalbrain.product.productlist.query.dto.EachItemDTO;
+import com.devoops.rentalbrain.product.productlist.query.dto.ItemCategoryDTO;
 import com.devoops.rentalbrain.product.productlist.query.dto.ItemKpiDTO;
 import com.devoops.rentalbrain.product.productlist.query.dto.ItemNameDTO;
 import com.devoops.rentalbrain.product.productlist.query.mapper.ItemMapper;
@@ -81,5 +82,11 @@ public class ItemQueryServiceImpl implements ItemQueryService {
                 Pagination.getPagingButtonInfo(criteria, totalCount);
 
         return new PageResponseDTO<>(itemNameList, totalCount, paging);
+    }
+
+    @Override
+    public List<ItemCategoryDTO> readCategory() {
+        List<ItemCategoryDTO> categoryList = itemMapper.selectCategory();
+        return categoryList;
     }
 }
