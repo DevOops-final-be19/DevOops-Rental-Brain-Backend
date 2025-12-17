@@ -118,4 +118,14 @@
           LEFT JOIN item_category B ON A.CATEGORY_NAME = B.NAME
          WHERE B.NAME = #{categoryName}
     </select>
+    <resultMap id="getCategoryMap" type="com.devoops.rentalbrain.product.productlist.query.dto.ItemCategoryDTO">
+        <id property="id" column="ID"/>
+        <result property="name" column="NAME"/>
+    </resultMap>
+    <select id="selectCategory" resultMap="getCategoryMap">
+        SELECT
+               A.ID,
+               A.NAME
+          FROM item_category A
+    </select>
 </mapper>

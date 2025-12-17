@@ -3,6 +3,7 @@ package com.devoops.rentalbrain.product.productlist.query.service;
 import com.devoops.rentalbrain.common.pagination.Criteria;
 import com.devoops.rentalbrain.common.pagination.PageResponseDTO;
 import com.devoops.rentalbrain.product.productlist.query.dto.EachItemDTO;
+import com.devoops.rentalbrain.product.productlist.query.dto.ItemCategoryDTO;
 import com.devoops.rentalbrain.product.productlist.query.dto.ItemKpiDTO;
 import com.devoops.rentalbrain.product.productlist.query.dto.ItemNameDTO;
 
@@ -18,4 +19,6 @@ public interface ItemQueryService {
     ItemKpiDTO countItems();
 
     PageResponseDTO<ItemNameDTO> filteringItemsByCategory(String categoryName, Criteria criteria);
+
+    List<ItemCategoryDTO> readCategory();
 }
