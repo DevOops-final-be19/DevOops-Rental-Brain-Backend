@@ -3,7 +3,11 @@ package com.devoops.rentalbrain.business.campaign.command.service;
 import com.devoops.rentalbrain.business.campaign.command.dto.InsertCouponDTO;
 import com.devoops.rentalbrain.business.campaign.command.dto.ModifyCouponDTO;
 import com.devoops.rentalbrain.business.campaign.command.entity.Coupon;
+import com.devoops.rentalbrain.business.campaign.command.entity.IssuedCoupon;
 import com.devoops.rentalbrain.business.campaign.command.repository.CouponRepository;
+import com.devoops.rentalbrain.business.campaign.command.repository.IssuedCouponRepository;
+import com.devoops.rentalbrain.business.contract.command.entity.ContractCommandEntity;
+import com.devoops.rentalbrain.business.contract.command.repository.ContractCommandRepository;
 import com.devoops.rentalbrain.common.codegenerator.CodeGenerator;
 import com.devoops.rentalbrain.common.codegenerator.CodeType;
 import com.devoops.rentalbrain.customer.segment.command.entity.SegmentCommandEntity;
@@ -15,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 
 @Service
 @Slf4j
@@ -23,13 +29,22 @@ public class CouponCommandServiceImpl implements CouponCommandService {
     private final CouponRepository couponRepository;
     private final SegmentCommandRepository segmentCommandRepository;
     private final CodeGenerator codeGenerator;
+    private final ContractCommandRepository contractCommandRepository;
+    private final IssuedCouponRepository issuedCouponRepository;
 
     @Autowired
-    public CouponCommandServiceImpl(ModelMapper modelMapper, CouponRepository couponRepository, SegmentCommandRepository segmentCommandRepository, CodeGenerator codeGenerator) {
+    public CouponCommandServiceImpl(ModelMapper modelMapper,
+                                    CouponRepository couponRepository,
+                                    SegmentCommandRepository segmentCommandRepository,
+                                    CodeGenerator codeGenerator,
+                                    ContractCommandRepository contractCommandRepository,
+                                    IssuedCouponRepository issuedCouponRepository) {
         this.modelMapper = modelMapper;
         this.couponRepository = couponRepository;
         this.segmentCommandRepository = segmentCommandRepository;
         this.codeGenerator = codeGenerator;
+        this.contractCommandRepository = contractCommandRepository;
+        this.issuedCouponRepository = issuedCouponRepository;
     }
 
 
@@ -107,6 +122,34 @@ public class CouponCommandServiceImpl implements CouponCommandService {
     public String deleteCoupon(Long couponId) {
         couponRepository.deleteById(couponId);
         return "Coupon deleted successfully";
+    }
+
+    @Override
+    @Transactional
+    public String createIssuedCoupon(Long couponId, Long contractId) {
+        Coupon coupon = couponRepository.findById(couponId).get();
+        ContractCommandEntity contract = contractCommandRepository.findById(contractId).get();
+
+        LocalDateTime start = contract.getStartDate();
+        LocalDateTime end;
+        if (coupon.getEndDate() != null) {
+            end = coupon.getEndDate();
+        } else if (coupon.getDatePeriod() != null) {
+            end = start.plusDays(coupon.getDatePeriod());
+        } else {
+            end = null;
+        }
+
+        IssuedCoupon issued = new IssuedCoupon();
+        issued.setIssuedDate(start);
+        issued.setIsUsed("Y");
+        issued.setUsedDate(start);
+        issued.setEndDate(end);
+        issued.setCouponId(couponId);
+        issued.setCumId(contract.getCustomer().getId());
+
+        issuedCouponRepository.save(issued);
+        return "issued coupon created successfully";
     }
 
 }

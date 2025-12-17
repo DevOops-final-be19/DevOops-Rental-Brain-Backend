@@ -68,4 +68,21 @@ public class PromotionCommandController {
         String result = promotionCommandService.deletePromotion(promotionId);
         return result;
     }
+
+
+    @Operation(
+            summary = "프로모션 사용 이력",
+            description = "계약 시 선택된 프로모션으로 사용 이력을 남깁니다.",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "조회 성공"),
+                    @ApiResponse(responseCode = "400", description = "잘못된 요청")
+            }
+    )
+    @PostMapping("/log/{promotionId}/{contractId}")
+    public String createPromotionLog(@PathVariable("promotionId") Long promotionId,
+                               @PathVariable("contractId") Long contractId) {
+        String result = promotionCommandService.createPromotionLog(promotionId, contractId);
+        return result;
+    }
 }

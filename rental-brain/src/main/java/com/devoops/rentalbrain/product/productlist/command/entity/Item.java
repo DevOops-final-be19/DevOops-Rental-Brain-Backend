@@ -25,9 +25,6 @@ public class Item {
     @Column(name = "name")
     private String name;
 
-    @Column(name = "serial_num")
-    private String serialNum;
-
     @Column(name = "monthly_price")
     private Integer monthlyPrice;
 

@@ -58,9 +58,6 @@ public class ItemCommandServiceImpl implements ItemCommandService {
         if(itemDTO.getName() != null && !item.getName().equals(itemDTO.getName())) {
             item.setName(itemDTO.getName());
         }
-        if(itemDTO.getSerialNum() != null && !item.getSerialNum().equals(itemDTO.getSerialNum())) {
-            item.setSerialNum(itemDTO.getSerialNum());
-        }
         if(itemDTO.getMonthlyPrice() != null && !item.getMonthlyPrice().equals(itemDTO.getMonthlyPrice())) {
             item.setMonthlyPrice(itemDTO.getMonthlyPrice());
         }

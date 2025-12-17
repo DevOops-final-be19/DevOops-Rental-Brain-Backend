@@ -3,7 +3,11 @@ package com.devoops.rentalbrain.business.campaign.command.service;
 import com.devoops.rentalbrain.business.campaign.command.dto.InsertPromotionDTO;
 import com.devoops.rentalbrain.business.campaign.command.dto.ModifyPromotionDTO;
 import com.devoops.rentalbrain.business.campaign.command.entity.Promotion;
+import com.devoops.rentalbrain.business.campaign.command.entity.PromotionLog;
+import com.devoops.rentalbrain.business.campaign.command.repository.PromotionLogRepository;
 import com.devoops.rentalbrain.business.campaign.command.repository.PromotionRepository;
+import com.devoops.rentalbrain.business.contract.command.entity.ContractCommandEntity;
+import com.devoops.rentalbrain.business.contract.command.repository.ContractCommandRepository;
 import com.devoops.rentalbrain.common.codegenerator.CodeGenerator;
 import com.devoops.rentalbrain.common.codegenerator.CodeType;
 import com.devoops.rentalbrain.customer.segment.command.entity.SegmentCommandEntity;
@@ -14,19 +18,30 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Service
 public class PromotionCommandServiceImpl implements PromotionCommandService {
     private final ModelMapper modelMapper;
     private final PromotionRepository promotionRepository;
     private final CodeGenerator codeGenerator;
     private final SegmentCommandRepository segmentCommandRepository;
+    private final ContractCommandRepository contractCommandRepository;
+    private final PromotionLogRepository promotionLogRepository;
 
     @Autowired
-    public PromotionCommandServiceImpl(ModelMapper modelMapper, PromotionRepository promotionRepository, CodeGenerator codeGenerator, SegmentCommandRepository segmentCommandRepository) {
+    public PromotionCommandServiceImpl(ModelMapper modelMapper,
+                                       PromotionRepository promotionRepository,
+                                       CodeGenerator codeGenerator,
+                                       SegmentCommandRepository segmentCommandRepository,
+                                       ContractCommandRepository contractCommandRepository,
+                                       PromotionLogRepository promotionLogRepository) {
         this.modelMapper = modelMapper;
         this.promotionRepository = promotionRepository;
         this.codeGenerator = codeGenerator;
         this.segmentCommandRepository = segmentCommandRepository;
+        this.contractCommandRepository = contractCommandRepository;
+        this.promotionLogRepository = promotionLogRepository;
     }
 
     @Override
@@ -93,6 +108,22 @@ public class PromotionCommandServiceImpl implements PromotionCommandService {
         promotionRepository.deleteById(promotionId);
 
         return "promotion delete success";
+    }
+
+    @Override
+    @Transactional
+    public String createPromotionLog(Long promotionId, Long contractId) {
+        ContractCommandEntity contract = contractCommandRepository.findById(contractId).get();
+
+        LocalDateTime start = contract.getStartDate();
+
+        PromotionLog promotionLog = new PromotionLog();
+        promotionLog.setParticipationDate(start);
+        promotionLog.setCumId(contract.getCustomer().getId());
+        promotionLog.setPromotionId(promotionId);
+
+        promotionLogRepository.save(promotionLog);
+        return "promotion insert success";
     }
 
 

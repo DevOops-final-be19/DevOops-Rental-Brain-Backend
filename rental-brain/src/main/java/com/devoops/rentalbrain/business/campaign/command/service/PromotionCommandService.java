@@ -9,4 +9,6 @@ public interface PromotionCommandService {
     String updatePromotion(Long promotionId, ModifyPromotionDTO promotionDTO);
 
     String deletePromotion(Long promotionId);
+
+    String createPromotionLog(Long promotionId, Long contractId);
 }

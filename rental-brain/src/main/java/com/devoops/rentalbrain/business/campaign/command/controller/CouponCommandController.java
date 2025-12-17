@@ -70,4 +70,21 @@ public class CouponCommandController {
         String result = couponCommandService.deleteCoupon(couponId);
         return result;
     }
+
+
+    @Operation(
+            summary = "쿠폰 사용 이력",
+            description = "계약 시 선택된 쿠폰으로 사용 이력을 남깁니다.",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "조회 성공"),
+                    @ApiResponse(responseCode = "400", description = "잘못된 요청")
+            }
+    )
+    @PostMapping("/log/{couponId}/{contractId}")
+    public String createIssuedCoupon(@PathVariable("couponId") Long couponId,
+                               @PathVariable("contractId") Long contractId) {
+        String result = couponCommandService.createIssuedCoupon(couponId, contractId);
+        return result;
+    }
 }
