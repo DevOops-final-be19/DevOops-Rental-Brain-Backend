@@ -19,11 +19,11 @@ public class Item {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "item_code", nullable = false, unique = true)
+    private String itemCode;
+
     @Column(name = "name")
     private String name;
-
-    @Column(name = "serial_num")
-    private String serialNum;
 
     @Column(name = "monthly_price")
     private Integer monthlyPrice;

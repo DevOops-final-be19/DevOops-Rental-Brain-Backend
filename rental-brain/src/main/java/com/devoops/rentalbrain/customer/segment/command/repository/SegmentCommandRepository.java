@@ -4,4 +4,5 @@ import com.devoops.rentalbrain.customer.segment.command.entity.SegmentCommandEnt
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface SegmentCommandRepository extends JpaRepository<SegmentCommandEntity, Long> {
+    SegmentCommandEntity findAllBySegmentName(String segmentName);
 }

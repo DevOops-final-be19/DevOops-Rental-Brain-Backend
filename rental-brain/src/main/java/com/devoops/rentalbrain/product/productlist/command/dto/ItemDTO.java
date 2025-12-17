@@ -9,7 +9,6 @@ import lombok.*;
 @ToString
 public class ItemDTO {
     private String name;
-    private String serialNum;
     private int monthlyPrice;
     private String categoryName;
 }
