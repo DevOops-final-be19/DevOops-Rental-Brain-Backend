@@ -37,7 +37,7 @@ public class QuoteCommandServiceImpl implements QuoteCommandService {
             throw new IllegalArgumentException("삭제된 고객입니다. cum_id=" + quoteCommandCreateDTO.getQuoteCumId());
         }
 
-        // ✅ 변경: 테이블_code 생성
+        // 변경: 테이블_code 생성
         String quoteCode = codeGenerator.generate(CodeType.QUOTE); // 예: QUO-2025-001
         quoteCommandCreateDTO.setQuoteCode(quoteCode);
 
