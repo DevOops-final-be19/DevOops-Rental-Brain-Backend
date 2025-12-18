@@ -10,4 +10,6 @@ public interface NoticeQueryMapper {
     List<Long> getEmployeeIds(Long id);
 
     List<NoticeReceiveDTO> getNewNoticeList(Long empId);
+
+    List<NoticeReceiveDTO> getAllNoticeList(Long empId);
 }

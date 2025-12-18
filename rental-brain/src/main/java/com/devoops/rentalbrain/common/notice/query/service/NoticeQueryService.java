@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface NoticeQueryService {
     List<NoticeReceiveDTO> getNewNoticeList(Long empId);
+
+    List<NoticeReceiveDTO> getAllNoticeList(Long empId);
 }

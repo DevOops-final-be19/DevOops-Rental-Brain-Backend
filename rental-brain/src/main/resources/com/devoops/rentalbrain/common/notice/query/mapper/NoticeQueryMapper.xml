@@ -41,6 +41,24 @@
              , b.link_url
          FROM notification_receiver a JOIN notification b
            ON a.noti_id = b.id
-        WHERE emp_id = #{empId};
+        WHERE emp_id = #{empId}
+          AND a.is_read = 'N'
+    </select>
+
+    <select id="getAllNoticeList" resultMap="getNewNoticeListResultMap">
+        SELECT
+            a.id
+             , a.is_read
+             , a.created_at
+             , a.read_at
+             , a.emp_id
+             , b.id as notice_id
+             , b.type
+             , b.title
+             , b.message
+             , b.link_url
+        FROM notification_receiver a JOIN notification b
+                                          ON a.noti_id = b.id
+        WHERE emp_id = #{empId}
     </select>
 </mapper>

@@ -18,4 +18,9 @@ public class NoticeQueryServiceImpl implements NoticeQueryService {
     public List<NoticeReceiveDTO> getNewNoticeList(Long empId) {
         return noticeQueryMapper.getNewNoticeList(empId);
     }
+
+    @Override
+    public List<NoticeReceiveDTO> getAllNoticeList(Long empId) {
+        return noticeQueryMapper.getAllNoticeList(empId);
+    }
 }

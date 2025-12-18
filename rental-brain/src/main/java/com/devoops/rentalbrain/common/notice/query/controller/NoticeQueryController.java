@@ -19,9 +19,15 @@ public class NoticeQueryController {
         this.noticeQueryService = noticeQueryService;
     }
 
-    @GetMapping("/list/{empId}")
+    @GetMapping("/list/new/{empId}")
     public ResponseEntity<List<NoticeReceiveDTO>> getNewNoticeList(@PathVariable Long empId) {
         List<NoticeReceiveDTO> noticeReceiveDTO = noticeQueryService.getNewNoticeList(empId);
+        return ResponseEntity.ok().body(noticeReceiveDTO);
+    }
+
+    @GetMapping("/list/{empId}")
+    public ResponseEntity<List<NoticeReceiveDTO>> getAllNoticeList(@PathVariable Long empId) {
+        List<NoticeReceiveDTO> noticeReceiveDTO = noticeQueryService.getAllNoticeList(empId);
         return ResponseEntity.ok().body(noticeReceiveDTO);
     }
 }
