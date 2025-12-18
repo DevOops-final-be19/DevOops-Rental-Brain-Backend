@@ -19,12 +19,6 @@ public class SegmentQueryKPIDTO {
 
     // 2~3번 카드들은 공통으로 들어가는 부분들 묶음
 
-    // 이전 세그먼트 분포
-    private List<DistItem> prevSegmentDist;
-
-    // 이탈 원인 분포
-    private List<DistItem> riskReasonDist;
-
 
     @NoArgsConstructor
     @AllArgsConstructor
