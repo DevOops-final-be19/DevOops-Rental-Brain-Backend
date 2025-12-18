@@ -112,4 +112,6 @@
     ]]>
     AND STATUS = 'P'
     </select>
+
+
 </mapper>
