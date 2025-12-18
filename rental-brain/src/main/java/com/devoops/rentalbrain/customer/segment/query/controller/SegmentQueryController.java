@@ -1,7 +1,6 @@
 package com.devoops.rentalbrain.customer.segment.query.controller;
 
 import com.devoops.rentalbrain.customer.segment.query.dto.SegmentQueryDetailDTO;
-import com.devoops.rentalbrain.customer.segment.query.dto.SegmentQueryKPIDTO;
 import com.devoops.rentalbrain.customer.segment.query.dto.SegmentQueryListDTO;
 import com.devoops.rentalbrain.customer.segment.query.service.SegmentQueryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -69,23 +68,6 @@ public class SegmentQueryController {
         return ResponseEntity.ok(detail);
     }
 
-    @Operation(
-            summary = "세그먼트 분석 kpi",
-            description = "고객 세그먼트 분석에 들어가는 kpi 카드 입니다."
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "세그먼트 kpi 조회 성공"),
-            @ApiResponse(responseCode = "404", description = "세그먼트ㅣ kpi 정보 없음"),
-            @ApiResponse(responseCode = "500", description = "서버 오류")
-    })
-    // postman으로 테스트할때 2025-02 이런식으로 MM 두자리로 해야함
-    @GetMapping("/kpi")
-    public ResponseEntity<SegmentQueryKPIDTO> getSegmentKpi(
-            @RequestParam(required = false) String month        // 지금 세그먼트 kpi를 월별? 분기별? -> 일단은 월별
-    ){
-        SegmentQueryKPIDTO kpi = segmentQueryService.selectSegmentKpi(month);
 
-        return ResponseEntity.ok(kpi);
-    }
 
 }
