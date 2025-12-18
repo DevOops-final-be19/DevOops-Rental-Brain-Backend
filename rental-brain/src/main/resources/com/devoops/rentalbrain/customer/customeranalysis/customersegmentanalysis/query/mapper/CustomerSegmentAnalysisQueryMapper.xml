@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.mapper.CustomerSegmentAnalysisQueryMapper">
+<!--    <resultMap id="" type="">-->
+<!--        -->
+<!--    </resultMap>-->
+
+<select id="selectSegmentKpiBase"
+            resultType="com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.CustomerSegmentAnalysisQueryKPIDTO">
+
+            WITH
+            total AS (SELECT
+                           COUNT(*) AS totalCustomerCount
+                       FROM customer
+                       WHERE is_deleted = 'N'),
+
+            risk AS (SELECT COUNT(*) AS riskCustomerCount
+                      FROM customer c
+                               JOIN segment s ON s.id = c.segment_id
+                      WHERE c.is_deleted = 'N'
+                        AND s.name = #{riskSegmentName}),
+
+            avg_this AS (SELECT ROUND(AVG(f.star),
+                                      1) AS avgStarThis
+                          FROM feedback f
+                                   JOIN customer c ON c.id = f.cum_id
+                          WHERE c.is_deleted = 'N'
+                            AND f.create_date BETWEEN #{monthStart} AND #{monthEnd}),
+
+            avg_prev AS (SELECT
+                             ROUND(AVG(f.star),
+                                   1) AS avgStarPrev
+                          FROM feedback f
+                                   JOIN customer c ON c.id = f.cum_id
+                          WHERE c.is_deleted = 'N'
+                            AND f.create_date BETWEEN #{prevStart} AND #{prevEnd})
+
+        SELECT ROUND((risk.riskCustomerCount * 1.0 / total.totalCustomerCount) * 100, 1) AS riskCustomerRate,
+               risk.riskCustomerCount                                                    AS riskCustomerCount,
+               total.totalCustomerCount                                                  AS totalCustomerCount,
+               ROUND((avg_this.avgStarThis - avg_prev.avgStarPrev), 1)                   AS momChangeRate
+        FROM total
+                 CROSS JOIN risk
+                 CROSS JOIN avg_this
+                 CROSS JOIN avg_prev
+    </select>
+
+    <select id="selectRiskReasonDist"
+            resultType="com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.CustomerSegmentAnalysisQueryKPIDTO">
+
+        WITH risk_customers AS (
+        SELECT c.id
+        FROM customer c
+        JOIN segment s ON s.id = c.segment_id
+        WHERE c.is_deleted = 'N'
+        AND s.name = #{riskSegmentName}
+        ),
+        reason_rows AS (
+
+        -- 1) 계약 만료 임박형 (만료일 = start_date + contract_period)
+        SELECT '계약 만료 임박형' AS name, COUNT(DISTINCT rc.id) AS cnt
+        FROM risk_customers rc
+        JOIN contract ct ON ct.cum_id = rc.id
+        WHERE DATE_ADD(ct.start_date, INTERVAL ct.contract_period MONTH)
+        BETWEEN #{monthStart} AND DATE_ADD(#{monthEnd}, INTERVAL 3 MONTH)
+
+        UNION ALL
+
+        -- 2) 저만족(&lt;2.5)형 : 해당 월의 고객 평균 평점이 2.5 이하인 고객 수
+        SELECT '저만족(&lt;2.5)형' AS name, COUNT(*) AS cnt
+        FROM (
+        SELECT rc.id
+        FROM risk_customers rc
+        JOIN feedback f ON f.cum_id = rc.id
+        WHERE f.create_date BETWEEN #{monthStart} AND #{monthEnd}
+        GROUP BY rc.id
+        HAVING AVG(f.star) &lt;= 2.5
+        ) t
+
+        UNION ALL
+
+        -- 3) 연체형 : pay_overdue.overdue_period(연체기간) 기준
+        SELECT '연체형' AS name, COUNT(DISTINCT rc.id) AS cnt
+        FROM risk_customers rc
+        JOIN pay_overdue po ON po.cum_id = rc.id
+        WHERE po.overdue_period &gt;= 1
+
+        UNION ALL
+
+        -- 4) 만료+무재계약 : 만료일이 monthEnd 이전인 계약이 있는데,
+        --                  그 이후 start_date를 가진 계약이 없다면 "무재계약"
+        SELECT '만료+무재계약' AS name, COUNT(DISTINCT rc.id) AS cnt
+        FROM risk_customers rc
+        JOIN contract ct ON ct.cum_id = rc.id
+        WHERE DATE_ADD(ct.start_date, INTERVAL ct.contract_period MONTH) &lt; #{monthEnd}
+        AND NOT EXISTS (
+        SELECT 1
+        FROM contract ct2
+        WHERE ct2.cum_id = rc.id
+        AND ct2.start_date &gt; DATE_ADD(ct.start_date, INTERVAL ct.contract_period MONTH)
+        )
+        ),
+        total AS (
+        SELECT SUM(cnt) AS total_cnt FROM reason_rows
+        )
+        SELECT
+        r.name AS name,
+        r.cnt  AS count,
+        ROUND((r.cnt * 100.0 / NULLIF(t.total_cnt, 0)), 1) AS rate
+        FROM reason_rows r
+        CROSS JOIN total t
+        ORDER BY r.cnt DESC
+
+    </select>
+
+</mapper>
