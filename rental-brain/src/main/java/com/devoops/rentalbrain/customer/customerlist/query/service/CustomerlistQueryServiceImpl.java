@@ -3,12 +3,14 @@ package com.devoops.rentalbrain.customer.customerlist.query.service;
 import com.devoops.rentalbrain.common.pagination.PageResponseDTO;
 import com.devoops.rentalbrain.common.pagination.Pagination;
 import com.devoops.rentalbrain.common.pagination.PagingButtonInfo;
-import com.devoops.rentalbrain.customer.common.CustomerDTO;
+import com.devoops.rentalbrain.common.error.ErrorCode;
+import com.devoops.rentalbrain.common.error.exception.BusinessException;
+import com.devoops.rentalbrain.customer.common.CustomerDTO; // CustomerDTO 사용
 import com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerDetailResponseDTO;
+import com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerKpiDTO;
 import com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerlistSearchDTO;
 import com.devoops.rentalbrain.customer.customerlist.query.mapper.CustomerlistQueryMapper;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,38 +20,49 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CustomerlistQueryServiceImpl implements CustomerlistQueryService {
 
-    private final CustomerlistQueryMapper customerlistQueryMapper;
-    private final ModelMapper modelMapper; // 객체 복사를 위해 사용 (없으면 new DTO() 후 setter 사용)
+    private final CustomerlistQueryMapper mapper;
 
+    // 1. KPI 조회
     @Override
-    @Transactional(readOnly = true)
-    public PageResponseDTO<CustomerDTO> getCustomerListWithPaging(CustomerlistSearchDTO criteria) {
-        List<CustomerDTO> list = customerlistQueryMapper.selectCustomerList(criteria);
-        long totalCount = customerlistQueryMapper.selectCustomerCount(criteria);
-        PagingButtonInfo paging = Pagination.getPagingButtonInfo(criteria, totalCount);
-        return new PageResponseDTO<>(list, totalCount, paging);
+    public CustomerKpiDTO getCustomerKpi() {
+        return mapper.selectCustomerKpi();
     }
 
+    // 2. 페이징 목록 조회
+    @Override
+    public PageResponseDTO<CustomerDTO> getCustomerListWithPaging(CustomerlistSearchDTO criteria) {
+        // 전체 개수 조회
+        int totalCount = (int) mapper.selectCustomerCount(criteria);
+
+        // 페이징 정보 생성
+        PagingButtonInfo pagingInfo = Pagination.getPagingButtonInfo(criteria, totalCount);
+
+        // 목록 데이터 조회
+        List<CustomerDTO> customerList = mapper.selectCustomerList(criteria);
+
+        // ★ 수정: Builder 대신 생성자 사용 (PageResponseDTO에 @Builder가 없음)
+        // 생성자 순서: (List<T> contents, long totalCount, PagingButtonInfo paging)
+        return new PageResponseDTO<>(customerList, totalCount, pagingInfo);
+    }
+
+    // 3. 상세 조회
     @Override
     @Transactional(readOnly = true)
     public CustomerDetailResponseDTO getCustomerDetail(Long id) {
-        // 1. 기본 고객 정보 조회
-        CustomerDTO customer = customerlistQueryMapper.selectCustomerById(id);
-        if (customer == null) {
-            throw new IllegalArgumentException("해당 고객이 존재하지 않습니다. ID=" + id);
-        }
+        CustomerDetailResponseDTO detail = mapper.selectCustomerDetail(id);
+//        if (detail == null) {
+//            throw new BusinessException(ErrorCode.NOT_FOUND_CUSTOMER);
+//        }
 
-        // 2. 응답 DTO 생성 및 기본 정보 매핑
-        CustomerDetailResponseDTO detail = modelMapper.map(customer, CustomerDetailResponseDTO.class);
-
-        // 3. 연관 데이터 조회 (Join 대신 별도 Select 실행)
-        detail.setSupportList(customerlistQueryMapper.selectSupportsByCustomerId(id));
-        detail.setFeedbackList(customerlistQueryMapper.selectFeedbacksByCustomerId(id));
-        detail.setQuoteList(customerlistQueryMapper.selectQuotesByCustomerId(id));
-        detail.setContractList(customerlistQueryMapper.selectContractsByCustomerId(id));
-        detail.setAsList(customerlistQueryMapper.selectAsByCustomerId(id));
-        detail.setCouponList(customerlistQueryMapper.selectCouponsByCustomerId(id));
-        detail.setPromotionList(customerlistQueryMapper.selectPromotionsByCustomerId(id));
+        // 통합 히스토리 및 각 탭별 데이터 주입
+        detail.setHistoryList(mapper.selectCustomerHistory(id));
+        detail.setSupportList(mapper.selectSupportList(id));
+        detail.setFeedbackList(mapper.selectFeedbackList(id));
+        detail.setQuoteList(mapper.selectQuoteList(id));
+        detail.setContractList(mapper.selectContractList(id));
+        detail.setAsList(mapper.selectAsList(id));
+        detail.setCouponList(mapper.selectCouponList(id));
+        detail.setPromotionList(mapper.selectPromotionList(id));
 
         return detail;
     }
