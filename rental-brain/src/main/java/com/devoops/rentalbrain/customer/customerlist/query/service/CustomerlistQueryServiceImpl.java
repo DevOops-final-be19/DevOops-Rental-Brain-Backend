@@ -1,9 +1,11 @@
 package com.devoops.rentalbrain.customer.customerlist.query.service;
 
+import com.devoops.rentalbrain.common.pagination.Criteria;
 import com.devoops.rentalbrain.common.pagination.PageResponseDTO;
 import com.devoops.rentalbrain.common.pagination.Pagination;
 import com.devoops.rentalbrain.common.pagination.PagingButtonInfo;
 import com.devoops.rentalbrain.customer.common.CustomerDTO;
+import com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerContractDTO;
 import com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerDetailResponseDTO;
 import com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerlistSearchDTO;
 import com.devoops.rentalbrain.customer.customerlist.query.mapper.CustomerlistQueryMapper;
@@ -52,5 +54,23 @@ public class CustomerlistQueryServiceImpl implements CustomerlistQueryService {
         detail.setPromotionList(customerlistQueryMapper.selectPromotionsByCustomerId(id));
 
         return detail;
+    }
+
+    @Override
+    public PageResponseDTO<CustomerContractDTO> getCustomerContractListWithPaging(Criteria criteria) {
+        // 1. 목록조회
+        List<CustomerContractDTO> list =
+                customerlistQueryMapper.CustomerContractList(criteria);
+
+        // 2. 개수조회
+        long totalCount =
+                customerlistQueryMapper.CustomerContractListCount(criteria);
+
+        // 3. 페이지 버튼 정보 생성
+        PagingButtonInfo paging =
+                Pagination.getPagingButtonInfo(criteria, totalCount);
+
+        // 4. 응답 DTO 조립
+        return new PageResponseDTO<>(list, totalCount, paging);
     }
 }

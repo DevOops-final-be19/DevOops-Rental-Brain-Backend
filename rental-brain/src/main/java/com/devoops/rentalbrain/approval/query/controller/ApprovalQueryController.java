@@ -67,7 +67,7 @@ public class ApprovalQueryController {
     @GetMapping("/pending/{empId}")
     public PageResponseDTO<PendingApprovalDTO> getPendingApprovals(
             @PathVariable Long empId,
-            Criteria criteria
+            @ModelAttribute Criteria criteria
     ) {
         return approvalQueryService.getPendingApprovals(empId, criteria);
     }
@@ -89,7 +89,7 @@ public class ApprovalQueryController {
     @GetMapping("/progress/{empId}")
     public PageResponseDTO<ApprovalProgressDTO> getApprovalProgress(
             @PathVariable Long empId,
-            Criteria criteria
+            @ModelAttribute Criteria criteria
     ) {
         return approvalQueryService.getApprovalProgress(empId, criteria);
     }
@@ -111,7 +111,7 @@ public class ApprovalQueryController {
     @GetMapping("/completed/{empId}")
     public PageResponseDTO<ApprovalCompletedDTO> getApprovalCompleted(
             @PathVariable Long empId,
-            Criteria criteria
+            @ModelAttribute Criteria criteria
     ){
         return approvalQueryService.getApprovalCompleted(empId, criteria);
     }

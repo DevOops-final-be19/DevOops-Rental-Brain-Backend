@@ -1,7 +1,9 @@
 package com.devoops.rentalbrain.customer.customerlist.query.service;
 
+import com.devoops.rentalbrain.common.pagination.Criteria;
 import com.devoops.rentalbrain.common.pagination.PageResponseDTO;
 import com.devoops.rentalbrain.customer.common.CustomerDTO;
+import com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerContractDTO;
 import com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerDetailResponseDTO; // Import
 import com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerlistSearchDTO;
 
@@ -12,4 +14,7 @@ public interface CustomerlistQueryService {
 
     // 상세 조회 (반환 타입 변경: CustomerDTO -> CustomerDetailResponseDTO)
     CustomerDetailResponseDTO getCustomerDetail(Long id);
+
+    // 계약 생성 시 고객 조회
+    PageResponseDTO<CustomerContractDTO> getCustomerContractListWithPaging(Criteria criteria);
 }
