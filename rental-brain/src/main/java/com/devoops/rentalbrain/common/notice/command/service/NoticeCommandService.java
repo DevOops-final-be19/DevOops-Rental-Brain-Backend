@@ -14,5 +14,5 @@ public interface NoticeCommandService {
 
     void readNotice(NoticeReadDTO noticeReadDTO);
 
-    void deleteNotice(NoticeDeleteDTO noticeDeleteDTO);
+    void deleteNotice(List<NoticeDeleteDTO> noticeDeleteDTO);
 }
