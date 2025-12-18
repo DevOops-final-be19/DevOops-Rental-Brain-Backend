@@ -1,27 +1,31 @@
 package com.devoops.rentalbrain.customer.customerlist.query.mapper;
 
-import com.devoops.rentalbrain.business.contract.query.dto.ContractSummaryDTO;
 import com.devoops.rentalbrain.customer.common.CustomerDTO;
-import com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerDetailResponseDTO;
-import com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerKpiDTO;
+import com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerDetailResponseDTO; // Inner DTO 사용을 위해 import
 import com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerlistSearchDTO;
-import com.devoops.rentalbrain.customer.customersupport.command.dto.CustomersupportDTO;
-import com.devoops.rentalbrain.product.maintenance.query.dto.AfterServiceDTO;
+import com.devoops.rentalbrain.customer.customersupport.query.dto.CustomersupportDTO;
+import com.devoops.rentalbrain.customer.customersupport.query.dto.FeedbackDTO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
 import java.util.List;
 
 @Mapper
 public interface CustomerlistQueryMapper {
-    List<CustomerDTO> selectCustomerList(@Param("dto") CustomerlistSearchDTO dto);
-    int countCustomer(@Param("dto") CustomerlistSearchDTO dto);
-    CustomerKpiDTO selectKpi();
 
-    // ResultMap 사용 메서드
-    CustomerDetailResponseDTO selectCustomerDetail(Long id);
+    // 목록 조회
+    List<CustomerDTO> selectCustomerList(CustomerlistSearchDTO criteria);
+    long selectCustomerCount(CustomerlistSearchDTO criteria);
 
-    // Collection 매핑용 서브 메서드들
-    List<CustomersupportDTO> selectSupportsByCustomerId(Long id);
-    List<ContractSummaryDTO> selectContractsByCustomerId(Long id);
-    List<AfterServiceDTO> selectAsByCustomerId(Long id);
+    // 기본 상세 조회 (CustomerDto 반환) -> Service에서 호출 후 DetailDTO로 변환
+    CustomerDTO selectCustomerById(@Param("id") Long id);
+
+    // 상세 내역 조회용 메서드들
+    List<CustomersupportDTO> selectSupportsByCustomerId(@Param("customerId") Long customerId);
+    List<FeedbackDTO> selectFeedbacksByCustomerId(@Param("customerId") Long customerId);
+    List<CustomerDetailResponseDTO.CustomerQuoteDTO> selectQuotesByCustomerId(@Param("customerId") Long customerId);
+    List<CustomerDetailResponseDTO.CustomerContractDTO> selectContractsByCustomerId(@Param("customerId") Long customerId);
+    List<CustomerDetailResponseDTO.CustomerAsDTO> selectAsByCustomerId(@Param("customerId") Long customerId);
+    List<CustomerDetailResponseDTO.CustomerCouponDTO> selectCouponsByCustomerId(@Param("customerId") Long customerId);
+    List<CustomerDetailResponseDTO.CustomerPromotionDTO> selectPromotionsByCustomerId(@Param("customerId") Long customerId);
 }
