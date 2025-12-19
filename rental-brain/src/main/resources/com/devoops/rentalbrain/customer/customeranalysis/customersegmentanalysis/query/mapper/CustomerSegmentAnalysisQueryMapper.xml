@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.mapper.CustomerSegmentAnalysisQueryMapper">
+
+    <!-- KPI 1번: 현재 이탈 위험 고객 비중/수 + 전월 대비(%p) -->
+
+    <!-- 전체 고객 수 -->
+    <select id="countTotalCustomers" resultType="int">
+        SELECT COUNT(*)
+        FROM customer
+    </select>
+
+    <!-- 현재 이탈 위험 고객 수 (현재 상태 기준: customer.segment_id = 4) -->
+    <select id="countCurrentRiskCustomers" resultType="int">
+        SELECT COUNT(*)
+        FROM customer
+        WHERE segment_id = #{riskSegmentId}
+    </select>
+
+    <!-- 스냅샷 기준 월별 이탈 위험 고객 수 (전월 대비 계산용) -->
+    <select id="countSnapshotRiskCustomers" resultType="int">
+        SELECT COUNT(DISTINCT customer_id)
+        FROM customer_churn_snapshot
+        WHERE snapshot_month = #{snapshotMonth}
+        AND is_churn_risk = 'Y'
+    </select>
+
+
+    <!-- KPI 2번: 이탈 위험 사유 분포 (전체 기준) -->
+    <select id="countRiskReasons" resultType="map">
+        SELECT
+        reason_code AS reasonCode,
+        COUNT(*)    AS cnt
+        FROM customer_risk_transition_history
+        WHERE to_segment_id = #{riskSegmentId}
+        GROUP BY reason_code
+        ORDER BY cnt DESC
+    </select>
+
+
+    <!--  KPI 2번: 이탈 위험 사유 분포 (월 기준 필터) ✅ 사용
+         - 범위: [from, to)
+         - from 예: 2025-08-01T00:00
+         - to   예: 2025-09-01T00:00 -->
+    <select id="countRiskReasonsByMonth" resultType="map">
+        SELECT
+        reason_code AS reasonCode,
+        COUNT(*)    AS cnt
+        FROM customer_risk_transition_history
+        WHERE to_segment_id = #{riskSegmentId}
+        AND changed_at <![CDATA[>=]]> #{from}
+        AND changed_at <![CDATA[<]]> #{to}
+        GROUP BY reason_code
+        ORDER BY cnt DESC
+    </select>
+
+</mapper>

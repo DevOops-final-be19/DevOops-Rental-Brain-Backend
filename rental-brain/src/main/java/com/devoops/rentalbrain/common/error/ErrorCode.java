@@ -22,7 +22,10 @@ public enum ErrorCode {
     /* After Service */
     AS_INVALID_REQUEST(HttpStatus.BAD_REQUEST, "AS001", "AS/정기점검 요청 값이 올바르지 않습니다."),
     AS_DUPLICATE_SCHEDULE(HttpStatus.CONFLICT, "AS002", "이미 동일 자산·동일 예정일의 점검 일정이 존재합니다."),
-    AS_NOT_FOUND(HttpStatus.NOT_FOUND, "AS003", "AS/정기점검 정보를 찾을 수 없습니다.");
+    AS_NOT_FOUND(HttpStatus.NOT_FOUND, "AS003", "AS/정기점검 정보를 찾을 수 없습니다."),
+
+    /* Contract */
+    CONTRACT_ITEM_STOCK_NOT_ENOUGH(HttpStatus.BAD_REQUEST,"CON001","대여 가능한 상품 수량이 부족합니다.");
 
     private final HttpStatus status;
     private final String code;

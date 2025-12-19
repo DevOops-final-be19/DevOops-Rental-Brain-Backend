@@ -112,4 +112,23 @@
     ]]>
     AND STATUS = 'P'
     </select>
+    <!-- 렌탈 중인 상품 리스트 조회 -->
+    <select id="selectRentalProductList"
+    parameterType="long"
+    resultType="com.devoops.rentalbrain.business.contract.query.dto.RentalProductInfoDTO">
+        SELECT
+            A.ID                AS itemId,
+            A.name              AS itemName,
+            A.STATUS            AS itemStatus,
+            A.LAST_INSPECT_DATE AS lastInspectDate,
+            C.cum_id            AS customerId
+        FROM item A
+                 JOIN contract_with_item B ON A.ID = B.ITEM_ID
+                 JOIN contract C ON B.CONTRACT_ID = C.ID
+                 JOIN approval D ON C.id = D.contract_id
+        WHERE D.approval_date IS NOT NULL
+          AND A.status = 'S'
+          AND C.ID = #{contractId}
+        ORDER BY A.id DESC;
+    </select>
 </mapper>

@@ -1,7 +1,9 @@
 package com.devoops.rentalbrain.customer.customerlist.query.controller;
 
+import com.devoops.rentalbrain.common.pagination.Criteria;
 import com.devoops.rentalbrain.common.pagination.PageResponseDTO;
 import com.devoops.rentalbrain.customer.common.CustomerDTO;
+import com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerContractDTO;
 import com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerDetailResponseDTO;
 import com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerKpiDTO; // ▼ Import 추가
 import com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerlistSearchDTO;
@@ -68,5 +70,18 @@ public class CustomerlistQueryController {
     @GetMapping("/{id}")
     public ResponseEntity<CustomerDetailResponseDTO> detail(@PathVariable Long id) {
         return ResponseEntity.ok(queryService.getCustomerDetail(id));
+    }
+
+    @Operation(summary = "계약 대상 고객 조회", description = "계약 생성을 위한 고객을 조회합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 고객"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+    @GetMapping("/contract")
+    public ResponseEntity<PageResponseDTO<CustomerContractDTO>> list(
+            @ModelAttribute Criteria criteria
+            ){
+        return ResponseEntity.ok(queryService.getCustomerContractListWithPaging(criteria));
     }
 }

@@ -1,8 +1,7 @@
 package com.devoops.rentalbrain.business.contract.query.service;
 
-import com.devoops.rentalbrain.business.contract.query.dto.AllContractDTO;
-import com.devoops.rentalbrain.business.contract.query.dto.ContractSearchDTO;
-import com.devoops.rentalbrain.business.contract.query.dto.ContractSummaryDTO;
+import com.devoops.rentalbrain.business.contract.query.dto.*;
+import com.devoops.rentalbrain.business.contract.query.mapper.ContractDetailQueryMapper;
 import com.devoops.rentalbrain.business.contract.query.mapper.ContractQueryMapper;
 import com.devoops.rentalbrain.common.pagination.PageResponseDTO;
 import com.devoops.rentalbrain.common.pagination.Pagination;
@@ -16,10 +15,13 @@ import java.util.List;
 public class ContractQueryServiceImpl implements ContractQueryService {
 
     private final ContractQueryMapper contractQueryMapper;
+    private final ContractDetailQueryMapper contractDetailQueryMapper;
 
     @Autowired
-    public ContractQueryServiceImpl(ContractQueryMapper contractQueryMapper) {
+    public ContractQueryServiceImpl(ContractQueryMapper contractQueryMapper,
+                                    ContractDetailQueryMapper contractDetailQueryMapper) {
         this.contractQueryMapper = contractQueryMapper;
+        this.contractDetailQueryMapper = contractDetailQueryMapper;
     }
 
     @Override
@@ -62,4 +64,36 @@ public class ContractQueryServiceImpl implements ContractQueryService {
                 thisMonthContracts
         );
     }
+
+    @Override
+    public ContractBasicInfoDTO getContractBasicInfo(Long contractId) {
+        ContractBasicInfoDTO dto = new ContractBasicInfoDTO();
+        dto.setOverview(contractDetailQueryMapper.selectContractOverview(contractId));
+        dto.setProgress(contractDetailQueryMapper.selectContractProgress(contractId));
+        dto.setOverdueCount(contractDetailQueryMapper.countOverduePayments(contractId));
+        dto.setProductCount(contractDetailQueryMapper.countContractProducts(contractId));
+
+        return dto;
+    }
+
+    @Override
+    public ContractItemInfoDTO getContractItemInfo(Long contractId) {
+        ContractItemInfoDTO dto = new ContractItemInfoDTO();
+
+        dto.setContractItemSummary(contractDetailQueryMapper.selectContractItemSummary(contractId));
+        dto.setContractItemDetail(contractDetailQueryMapper.selectContractItemDetails(contractId));
+
+        return dto;
+    }
+
+    @Override
+    public List<ContractPaymentDTO> getContractPayments(Long contractId) {
+        return contractDetailQueryMapper.selectContractPaymentDetail(contractId);
+    }
+
+    @Override
+    public List<RentalProductInfoDTO> getRentalProductList(Long contractId) {
+        return contractQueryMapper.selectRentalProductList(contractId);
+    }
+
 }

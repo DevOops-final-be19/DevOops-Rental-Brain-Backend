@@ -2,7 +2,9 @@ package com.devoops.rentalbrain.business.contract.query.mapper;
 
 import com.devoops.rentalbrain.business.contract.query.dto.AllContractDTO;
 import com.devoops.rentalbrain.business.contract.query.dto.ContractSearchDTO;
+import com.devoops.rentalbrain.business.contract.query.dto.RentalProductInfoDTO;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -16,4 +18,5 @@ public interface ContractQueryMapper {
     long countExpectedExpireContracts();
     long countImminentExpireContracts();
     long countThisMonthContracts();
+    List<RentalProductInfoDTO> selectRentalProductList(@Param("contractId") long contractId);
 }

@@ -1,0 +1,13 @@
+package com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.service;
+
+
+import com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.CustomerSegmentAnalysisRiskKPIDTO;
+import com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.CustomerSegmentAnalysisRiskReaseonKPIDTO;
+
+import java.util.List;
+
+public interface CustomerSegmentAnalysisQueryService {
+    CustomerSegmentAnalysisRiskKPIDTO getRiskKpi(String month);
+
+    List<CustomerSegmentAnalysisRiskReaseonKPIDTO> getRiskReasonKpi(String month);
+}
