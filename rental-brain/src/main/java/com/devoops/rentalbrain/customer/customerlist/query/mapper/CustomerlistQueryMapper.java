@@ -7,6 +7,7 @@ import com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerKpiDTO;
 import com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerlistSearchDTO;
 
 // 타 도메인 DTO Import (Inner Class 대체)
+import com.devoops.rentalbrain.customer.customersegmenthistory.query.dto.HistoryQueryDTO;
 import com.devoops.rentalbrain.customer.customersupport.query.dto.CustomersupportDTO;
 import com.devoops.rentalbrain.customer.customersupport.query.dto.FeedbackDTO;
 import com.devoops.rentalbrain.business.quote.query.dto.QuoteQueryResponseDTO;
@@ -61,4 +62,8 @@ public interface CustomerlistQueryMapper {
 
     // 프로모션 내역 (Inner Class -> PromotionDTO)
     List<PromotionDTO> selectPromotionList(@Param("customerId") Long customerId);
+
+    // 세그먼트 변경 내역
+    List<HistoryQueryDTO> selectSegmentHistory(Long customerId);
+
 }

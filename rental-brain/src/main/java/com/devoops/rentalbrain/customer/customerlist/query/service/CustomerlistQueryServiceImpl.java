@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class CustomerlistQueryServiceImpl implements CustomerlistQueryService {
 
@@ -47,22 +48,25 @@ public class CustomerlistQueryServiceImpl implements CustomerlistQueryService {
 
     // 3. 상세 조회
     @Override
-    @Transactional(readOnly = true)
     public CustomerDetailResponseDTO getCustomerDetail(Long id) {
+        // 1. 기본 정보 조회
         CustomerDetailResponseDTO detail = mapper.selectCustomerDetail(id);
-//        if (detail == null) {
-//            throw new BusinessException(ErrorCode.NOT_FOUND_CUSTOMER);
-//        }
+        if (detail == null) {
+            throw new RuntimeException("해당 고객을 찾을 수 없습니다.");
+        }
 
-        // 통합 히스토리 및 각 탭별 데이터 주입
+        // 2. [종합 정보] 탭용 통합 히스토리
         detail.setHistoryList(mapper.selectCustomerHistory(id));
+
+        // 3. 탭별 데이터 조회 및 설정
         detail.setSupportList(mapper.selectSupportList(id));
-        detail.setFeedbackList(mapper.selectFeedbackList(id));
         detail.setQuoteList(mapper.selectQuoteList(id));
         detail.setContractList(mapper.selectContractList(id));
         detail.setAsList(mapper.selectAsList(id));
+        detail.setFeedbackList(mapper.selectFeedbackList(id));
         detail.setCouponList(mapper.selectCouponList(id));
         detail.setPromotionList(mapper.selectPromotionList(id));
+        detail.setSegmentHistoryList(mapper.selectSegmentHistory(id));
 
         return detail;
     }

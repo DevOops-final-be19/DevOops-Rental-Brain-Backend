@@ -2,6 +2,7 @@ package com.devoops.rentalbrain.customer.customerlist.query.dto;
 
 import com.devoops.rentalbrain.customer.common.CustomerDTO;
 // 타 도메인 DTO Import
+import com.devoops.rentalbrain.customer.customersegmenthistory.query.dto.HistoryQueryDTO;
 import com.devoops.rentalbrain.customer.customersupport.query.dto.CustomersupportDTO;
 import com.devoops.rentalbrain.customer.customersupport.query.dto.FeedbackDTO;
 import com.devoops.rentalbrain.business.quote.query.dto.QuoteQueryResponseDTO;
@@ -18,15 +19,18 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 public class CustomerDetailResponseDTO extends CustomerDTO {
 
-    // 통합 히스토리 (상세 화면 전용)
+    // 1. [종합 정보] 탭용: 통합 히스토리 (문의+견적+계약+AS+피드백 합본)
     private List<CustomerHistoryDTO> historyList;
 
-    // 탭별 데이터 리스트 (기존 DTO 활용)
+    // 2. [세그먼트 변경 이력] 탭용: 세그먼트 변경 전용 로그
+    private List<HistoryQueryDTO> segmentHistoryList;
+
+    // 3. 각 탭별 상세 리스트
     private List<CustomersupportDTO> supportList;       // 문의
-    private List<FeedbackDTO> feedbackList;             // 피드백
     private List<QuoteQueryResponseDTO> quoteList;      // 견적
     private List<ContractSummaryDTO> contractList;      // 계약
     private List<AfterServiceSummaryDTO> asList;        // AS
+    private List<FeedbackDTO> feedbackList;             // 피드백
     private List<CouponDTO> couponList;                 // 쿠폰
     private List<PromotionDTO> promotionList;           // 프로모션
 }

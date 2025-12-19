@@ -99,7 +99,11 @@
             A.business_num AS businessNum,
             A.addr,
             A.memo,
-            C.name AS segmentName
+            A.is_deleted AS isDeleted,
+            C.name AS segmentName,
+            (SELECT MIN(start_date) FROM contract WHERE cum_id = A.id) AS firstContractDate,
+            COALESCE((SELECT SUM(total_amount) FROM contract WHERE cum_id = A.id), 0) AS totalTransactionAmount,
+            (SELECT COUNT(*) FROM contract WHERE cum_id = A.id) AS contractCount
         FROM customer A
                  LEFT JOIN segment C ON A.segment_id = C.id
         WHERE A.id = #{id}
@@ -122,25 +126,95 @@
     </select>
 
     <select id="selectSupportList" resultType="com.devoops.rentalbrain.customer.customersupport.query.dto.CustomersupportDTO">
-        SELECT title, content, status, create_date AS createDate FROM customer_support WHERE cum_id = #{customerId} ORDER BY create_date DESC
+        SELECT
+            customer_support_code AS customerSupportCode,
+            title,
+            content,
+            status,
+            create_date AS createDate
+        FROM customer_support
+        WHERE cum_id = #{customerId}
+        ORDER BY create_date DESC
     </select>
+
     <select id="selectQuoteList" resultType="com.devoops.rentalbrain.business.quote.query.dto.QuoteQueryResponseDTO">
-        SELECT quote_code AS quoteCode, counseling_date AS counselingDate, counselor, summary FROM quote WHERE cum_id = #{customerId} ORDER BY counseling_date DESC
+        SELECT
+            quote_code AS quoteCode,
+            counseling_date AS counselingDate,
+            counselor,
+            summary
+        FROM quote
+        WHERE cum_id = #{customerId}
+        ORDER BY counseling_date DESC
     </select>
+
     <select id="selectContractList" resultType="com.devoops.rentalbrain.business.contract.query.dto.ContractSummaryDTO">
-        SELECT contract_code AS contractCode, name AS contractName, status, total_amount AS totalAmount, start_date AS startDate FROM contract WHERE cum_id = #{customerId} ORDER BY start_date DESC
+        SELECT
+            contract_code AS contractCode,
+            name AS contractName,
+            status,
+            total_amount AS totalAmount,
+            start_date AS startDate
+        FROM contract
+        WHERE cum_id = #{customerId}
+        ORDER BY start_date DESC
     </select>
+
     <select id="selectAsList" resultType="com.devoops.rentalbrain.product.maintenance.query.dto.AfterServiceSummaryDTO">
-        SELECT after_service_code AS asCode, type, status, due_date AS scheduleDate, engineer AS engineerName, contents FROM after_service WHERE cum_id = #{customerId} ORDER BY due_date DESC
+        SELECT
+            after_service_code AS asCode,
+            type,
+            status,
+            due_date AS scheduleDate,
+            engineer AS engineerName,
+            contents
+        FROM after_service
+        WHERE cum_id = #{customerId}
+        ORDER BY due_date DESC
     </select>
+
     <select id="selectFeedbackList" resultType="com.devoops.rentalbrain.customer.customersupport.query.dto.FeedbackDTO">
-        SELECT title, star, create_date AS createDate FROM feedback WHERE cum_id = #{customerId} ORDER BY create_date DESC
+        SELECT
+            title,
+            star,
+            create_date AS createDate
+        FROM feedback
+        WHERE cum_id = #{customerId}
+        ORDER BY create_date DESC
     </select>
+
     <select id="selectCouponList" resultType="com.devoops.rentalbrain.business.campaign.query.dto.CouponDTO">
-        SELECT C.name, C.status, C.rate FROM issued_coupon IC JOIN coupon C ON IC.coupon_id = C.id WHERE IC.cum_id = #{customerId}
+        SELECT
+            C.name,
+            IC.is_used AS status, -- 사용 여부를 status로 매핑
+            C.rate
+        FROM issued_coupon IC
+                 JOIN coupon C ON IC.coupon_id = C.id
+        WHERE IC.cum_id = #{customerId}
     </select>
+
     <select id="selectPromotionList" resultType="com.devoops.rentalbrain.business.campaign.query.dto.PromotionDTO">
-        SELECT P.name, P.status FROM promotion_log PL JOIN promotion P ON PL.promotion_id = P.id WHERE PL.cum_id = #{customerId}
+        SELECT
+            P.name,
+            P.status
+        FROM promotion_log PL
+                 JOIN promotion P ON PL.promotion_id = P.id
+        WHERE PL.cum_id = #{customerId}
+    </select>
+
+    <select id="selectSegmentHistory" resultType="com.devoops.rentalbrain.customer.customersegmenthistory.query.dto.HistoryQueryDTO">
+        SELECT
+            H.id,
+            PS.name AS previousSegmentName,  -- 이전 세그먼트명
+            CS.name AS currentSegmentName,   -- 현재 세그먼트명
+            H.reason,                        -- 변경 사유
+            H.trigger_type AS triggerType,   -- AUTO / MANUAL
+            H.changed_at AS changedAt        -- 변경 일시
+        FROM customer_segment_history H
+                 LEFT JOIN segment PS ON H.previous_segment_id = PS.id
+                 JOIN segment CS ON H.current_segment_id = CS.id
+        WHERE H.customer_id = #{customerId}
+        ORDER BY H.changed_at DESC
     </select>
 
 </mapper>
