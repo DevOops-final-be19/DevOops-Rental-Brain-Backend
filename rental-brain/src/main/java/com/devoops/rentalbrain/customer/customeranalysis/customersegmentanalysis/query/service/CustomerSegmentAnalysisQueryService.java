@@ -1,12 +1,13 @@
 package com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.service;
 
-import com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.CustomerSegmentAnalysisQueryKPI1DTO;
-import com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.CustomerSegmentAnalysisQueryKPI2DTO;
+
+import com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.CustomerSegmentAnalysisRiskKPIDTO;
+import com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.CustomerSegmentAnalysisRiskReaseonKPIDTO;
+
+import java.util.List;
 
 public interface CustomerSegmentAnalysisQueryService {
-    // 세그먼트 kpi 조회
-    CustomerSegmentAnalysisQueryKPI1DTO selectCustomerSegmentAnalysisKpi1(String month);
+    CustomerSegmentAnalysisRiskKPIDTO getRiskKpi(String month);
 
-    CustomerSegmentAnalysisQueryKPI2DTO selectCustomerSegmentAnalysisKpi2(String month);
-
+    List<CustomerSegmentAnalysisRiskReaseonKPIDTO> getRiskReasonKpi(String month);
 }

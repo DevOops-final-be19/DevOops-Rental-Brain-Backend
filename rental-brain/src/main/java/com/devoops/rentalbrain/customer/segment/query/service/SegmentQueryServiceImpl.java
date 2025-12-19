@@ -1,7 +1,6 @@
 package com.devoops.rentalbrain.customer.segment.query.service;
 
 import com.devoops.rentalbrain.customer.segment.query.dto.SegmentQueryDetailDTO;
-import com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.CustomerSegmentAnalysisQueryKPIDTO;
 import com.devoops.rentalbrain.customer.segment.query.dto.SegmentQueryListDTO;
 import com.devoops.rentalbrain.customer.segment.query.mapper.SegmentQueryMapper;
 import lombok.extern.slf4j.Slf4j;
