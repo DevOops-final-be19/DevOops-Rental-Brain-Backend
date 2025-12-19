@@ -5,7 +5,7 @@
 
 <mapper namespace="com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.mapper.CustomerSegmentAnalysisQueryMapper">
 
-    <!-- KPI 1번: 현재 이탈 위험 고객 비중/수 + 전월 대비(%p) -->
+    <!-- KPI 1번 현재 이탈 위험 고객 비중/수 + 전월 대비(%p) -->
 
     <!-- 전체 고객 수 -->
     <select id="countTotalCustomers" resultType="int">
@@ -29,7 +29,7 @@
     </select>
 
 
-    <!-- KPI 2번: 이탈 위험 사유 분포 (전체 기준) -->
+    <!-- KPI 2번 이탈 위험 사유 분포 (전체 기준) -->
     <select id="countRiskReasons" resultType="map">
         SELECT
         reason_code AS reasonCode,
@@ -41,10 +41,7 @@
     </select>
 
 
-    <!--  KPI 2번: 이탈 위험 사유 분포 (월 기준 필터) ✅ 사용
-         - 범위: [from, to)
-         - from 예: 2025-08-01T00:00
-         - to   예: 2025-09-01T00:00 -->
+    <!--  KPI 2번: 이탈 위험 사유 분포 (월 기준 필터) -->
     <select id="countRiskReasonsByMonth" resultType="map">
         SELECT
         reason_code AS reasonCode,
@@ -55,6 +52,107 @@
         AND changed_at <![CDATA[<]]> #{to}
         GROUP BY reason_code
         ORDER BY cnt DESC
+    </select>
+
+
+    <!-- 고객 세그먼트 차트 -->
+    <select id="getSegmentTradeChart"
+            resultType="com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.CustomerSegmentTradeChartDTO">
+
+        SELECT
+        A.id   AS segmentId,
+        A.name AS segmentName,
+
+        COUNT(DISTINCT B.id) AS customerCount,
+
+        COALESCE(SUM(C.total_amount), 0) AS totalTradeAmount,
+
+        CASE
+            WHEN COUNT(DISTINCT B.id) = 0 THEN 0
+            ELSE ROUND(COALESCE(SUM(C.total_amount), 0) / COUNT(DISTINCT B.id), 1)
+        END AS avgTradeAmount
+
+        FROM segment A
+        LEFT JOIN customer B
+        ON B.segment_id = A.id
+
+        LEFT JOIN contract C
+        ON C.cum_id = B.id
+
+        GROUP BY A.id, A.name
+        ORDER BY A.id ASC
+    </select>
+
+
+    <!-- 세그먼트별 분석 카드 -->
+    <select id="getSegmentDetailBase"
+            resultType="com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.CustomerSegmentDetailCardDTO">
+        SELECT
+              A.ID AS segmentId,
+              A.NAME AS segmentName,
+              coalesce(count(DISTINCT B.id), 0) AS customerCount,
+              coalesce(SUM(C.total_amount), 0) AS totalTradeAmount,
+              coalesce(ROUND(C.total_amount),0)/ count(DISTINCT B.id) AS avgTradeAmount
+         FROM segment A
+         LEFT JOIN customer B ON B.segment_id = A.id
+         LEFT JOIN contract C ON C.cum_id = B.id
+        WHERE A.id = #{segmentId}
+        GROUP BY A.id, A.name
+
+    </select>
+
+    <!-- 세그먼트별 피드백 만족도 평균 -->
+    <select id="getSegmentAvgStar" resultType="double">
+        SELECT
+            A.id AS segmentId,
+            A.name AS segmentName,
+            count(DISTINCT B.id) AS customerCount,
+            coalesce(round(avg(C.star),1),0)
+            FROM segment A
+        LEFT JOIN customer B ON A.id = B.segment_id
+        LEFT JOIN feedback C ON B.id = C.cum_id
+        WHERE A.id = #{segmentId}
+    </select>
+
+    <!-- 세그먼트별 인기 품목 -->
+    <select id="getTopItemName" resultType="string">
+        SELECT
+            D.name
+        FROM customer A
+        JOIN contract B ON B.cum_id = A.id
+        JOIN contract_with_item C ON C.contract_id = B.id
+        JOIN item D ON D.id = C.item_id
+        WHERE A.segment_id = #{segmentId}
+        GROUP BY D.id, D.name
+        ORDER BY COUNT(*) DESC
+        LIMIT 1
+    </select>
+
+    <!-- 세그먼트별 인기 문의사항 -->
+    <select id="getTopSupport" resultType="string">
+        SELECT
+            COALESCE(B.name, '-') AS topSupport
+        FROM customer_support A
+        JOIN support_category B ON B.id = A.category_id
+        JOIN customer C          ON C.id  = A.cum_id
+        WHERE C.segment_id = #{segmentId}
+        GROUP BY B.id, B.name
+        ORDER BY COUNT(*) DESC, B.id ASC
+        LIMIT 1
+    </select>
+
+    <!-- 세그먼트별 인기 피드백 -->
+    <select id="getTopFeedback" resultType="String">
+        SELECT
+            C.name
+        FROM customer A
+        JOIN feedback B ON A.id = B.cum_id
+        JOIN support_category C ON B.category_id = C.id
+        WHERE A.segment_id = #{segmentId}
+        AND B.category_id IS NOT NULL
+        GROUP BY C.id, C.name
+        ORDER BY COUNT(*) DESC
+        LIMIT 1
     </select>
 
 </mapper>

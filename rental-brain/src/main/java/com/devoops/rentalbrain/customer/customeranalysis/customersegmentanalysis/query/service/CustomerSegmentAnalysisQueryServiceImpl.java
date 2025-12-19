@@ -2,6 +2,8 @@ package com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysi
 
 import com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.CustomerSegmentAnalysisRiskKPIDTO;
 import com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.CustomerSegmentAnalysisRiskReaseonKPIDTO;
+import com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.CustomerSegmentDetailCardDTO;
+import com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.CustomerSegmentTradeChartDTO;
 import com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.mapper.CustomerSegmentAnalysisQueryMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -117,6 +119,56 @@ public class CustomerSegmentAnalysisQueryServiceImpl implements CustomerSegmentA
 
     private double round1(double round) {
         return Math.round(round * 10.0) / 10.0;
+    }
+
+
+    @Override
+    public List<CustomerSegmentTradeChartDTO> getSegmentTradeChart(String month) {
+
+        if(month == null || month.isBlank()) {
+            throw new IllegalArgumentException("month 파라미터는 필수 입니다. 예: YYYY-MM");
+        }
+
+        YearMonth yearMonth = YearMonth.parse(month);
+        String from = yearMonth.atDay(1).atStartOfDay().toString();
+        String to = yearMonth.plusMonths(1).atDay(1).atStartOfDay().toString();
+
+
+        return customerSegmentAnalysisQueryMapper.getSegmentTradeChart(from, to);
+    }
+
+
+    @Override
+    public CustomerSegmentDetailCardDTO getSegmentDetailCard(long segmentId) {
+
+        CustomerSegmentDetailCardDTO card =
+                customerSegmentAnalysisQueryMapper.getSegmentDetailBase(segmentId);
+
+        if (card == null) {
+            return CustomerSegmentDetailCardDTO.builder()
+                    .segmentId(segmentId)
+                    .segmentName("-")
+                    .customerCount(0)
+                    .totalTradeAmount(0)
+                    .avgTradeAmount(0)
+                    .avgSatisfaction(0)
+                    .topItemName("-")
+                    .topSupport("-")
+                    .topFeedback("-")
+                    .build();
+        }
+
+        Double avgStar = customerSegmentAnalysisQueryMapper.getSegmentAvgStar(segmentId);
+        String topItem = customerSegmentAnalysisQueryMapper.getTopItemName(segmentId);
+        String topSupport = customerSegmentAnalysisQueryMapper.getTopSupport(segmentId);
+        String topFeedback = customerSegmentAnalysisQueryMapper.getTopFeedback(segmentId);
+
+        card.setAvgSatisfaction(avgStar == null ? 0.0 : avgStar);
+        card.setTopItemName((topItem == null || topItem.isBlank()) ? "-" : topItem);
+        card.setTopSupport((topSupport == null || topSupport.isBlank()) ? "-" : topSupport);
+        card.setTopFeedback((topFeedback == null || topFeedback.isBlank()) ? "-" : topFeedback);
+
+        return card;
     }
 
 }
