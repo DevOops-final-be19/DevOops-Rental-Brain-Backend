@@ -44,7 +44,7 @@ public class NoticeCommandController {
             }
     )
     @DeleteMapping("/delete")
-    public ResponseEntity<?> deleteNotice(@RequestBody List<NoticeDeleteDTO> noticeDeleteDTO){
+    public ResponseEntity<?> deleteNotice(@RequestBody NoticeDeleteDTO noticeDeleteDTO){
         noticeCommandService.deleteNotice(noticeDeleteDTO);
         return ResponseEntity.ok().build();
     }
