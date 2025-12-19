@@ -207,4 +207,47 @@
          ORDER BY A.PARTICIPATION_DATE DESC
     </select>
 
+    <select id="CustomerContractList"
+            parameterType="map"
+            resultType="com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerContractDTO">
+
+        SELECT
+        c.id             AS customerId,
+        c.customer_code  AS customerCode,
+        c.name           AS customerName,
+        c.in_charge      AS inCharge,
+        s.name           AS segmentName
+        FROM customer c
+        LEFT JOIN segment s ON c.segment_id = s.id
+        WHERE c.is_deleted = 'N'
+        AND <![CDATA[ c.segment_id <> 6 ]]>
+
+        <if test="criteria.keyword != null and criteria.keyword != ''">
+            AND (
+            c.customer_code LIKE CONCAT('%',#{criteria.keyword},'%')
+            OR c.name LIKE CONCAT('%', #{criteria.keyword}, '%')
+            OR c.in_charge LIKE CONCAT('%', #{criteria.keyword}, '%')
+            )
+        </if>
+
+        ORDER BY c.id DESC
+        LIMIT #{criteria.amount}
+        OFFSET #{criteria.offset}
+    </select>
+    <select id="CustomerContractListCount"
+            parameterType="map"
+            resultType="long">
+
+        SELECT COUNT(*)
+        FROM customer c
+        WHERE c.is_deleted = 'N'
+        AND <![CDATA[ c.segment_id <> 6 ]]>
+
+        <if test="criteria.keyword != null and criteria.keyword != ''">
+            AND (
+            c.name LIKE CONCAT('%', #{criteria.keyword}, '%')
+            OR c.in_charge LIKE CONCAT('%', #{criteria.keyword}, '%')
+            )
+        </if>
+    </select>
 </mapper>

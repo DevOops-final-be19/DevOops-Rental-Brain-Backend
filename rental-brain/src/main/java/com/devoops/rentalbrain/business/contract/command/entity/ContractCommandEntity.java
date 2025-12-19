@@ -4,14 +4,17 @@ import com.devoops.rentalbrain.customer.customerlist.command.entity.Customerlist
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import java.time.LocalDateTime;
 
+
 @Entity
 @Table(name = "contract")
+@Setter
 @Getter
 @NoArgsConstructor
 @ToString

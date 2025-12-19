@@ -1,6 +1,8 @@
 package com.devoops.rentalbrain.customer.customerlist.query.mapper;
 
+import com.devoops.rentalbrain.common.pagination.Criteria;
 import com.devoops.rentalbrain.customer.common.CustomerDTO;
+import com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerContractDTO;
 import com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerDetailResponseDTO; // Inner DTO 사용을 위해 import
 import com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerlistSearchDTO;
 import com.devoops.rentalbrain.customer.customersupport.query.dto.CustomersupportDTO;
@@ -28,4 +30,7 @@ public interface CustomerlistQueryMapper {
     List<CustomerDetailResponseDTO.CustomerAsDTO> selectAsByCustomerId(@Param("customerId") Long customerId);
     List<CustomerDetailResponseDTO.CustomerCouponDTO> selectCouponsByCustomerId(@Param("customerId") Long customerId);
     List<CustomerDetailResponseDTO.CustomerPromotionDTO> selectPromotionsByCustomerId(@Param("customerId") Long customerId);
+
+    List<CustomerContractDTO> CustomerContractList(@Param("criteria") Criteria criteria);
+    long CustomerContractListCount(@Param("criteria") Criteria criteria);
 }
