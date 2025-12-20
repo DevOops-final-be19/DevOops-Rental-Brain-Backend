@@ -65,6 +65,7 @@ public class SegmentCommandServiceImpl implements SegmentCommandService {
         );
     }
 
+    // 세그먼트 상태 업데이트시 알림 필요(신규, 일반, VIP, 확장의사 -> 이탈 위험 고객, 블랙리스트
     @Override
     @Transactional
     public SegmentCommandResponseDTO updateSegment(Long segmentId, SegmentCommandResponseDTO dto) {

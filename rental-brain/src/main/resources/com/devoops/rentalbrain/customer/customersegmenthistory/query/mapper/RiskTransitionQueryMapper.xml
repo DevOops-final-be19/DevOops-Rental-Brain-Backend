@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.devoops.rentalbrain.customer.customersegmenthistory.query.mapper.RiskTransitionQueryMapper">
+
+    <resultMap id="RiskTransitionMap" type="com.devoops.rentalbrain.customer.customersegmenthistory.query.dto.RiskTransitionHistoryDTO">
+        <id property="id" column="id"/>
+        <result property="customerId" column="customer_id"/>
+
+        <result property="fromSegmentId" column="from_segment_id"/>
+        <result property="fromSegmentName" column="from_segment_name"/>
+
+        <result property="toSegmentId" column="to_segment_id"/>
+        <result property="toSegmentName" column="to_segment_name"/>
+
+        <result property="reasonCode" column="reason_code"/>
+        <result property="reason" column="reason"/>
+
+        <result property="triggerType" column="trigger_type"/>
+        <result property="referenceType" column="reference_type"/>
+        <result property="referenceId" column="reference_id"/>
+
+        <result property="changedAt" column="changed_at"/>
+        <result property="customerName" column="customer_Name"/>
+    </resultMap>
+
+    <!-- segment_id 이탈 위험(4) 전환 이력 -->
+    <select id="findChurnRiskTransitions" resultMap="RiskTransitionMap">
+        SELECT
+                A.*,
+                D.name AS customer_Name,
+                B.name AS from_segment_name,
+                C.name AS to_segment_name
+        FROM customer_risk_transition_history A
+        LEFT JOIN CUSTOMER D ON D.id = A.customer_id
+        LEFT JOIN segment B ON B.id = A.from_segment_id
+        LEFT JOIN segment C ON C.id = A.to_segment_id
+        WHERE A.customer_id = #{customerId}
+        AND A.to_segment_id = 4
+        ORDER BY A.changed_at DESC, A.id DESC
+    </select>
+
+    <!-- segment_id 블랙리스트(6) 전환 이력 -->
+    <select id="findBlacklistTransitions" resultMap="RiskTransitionMap">
+        SELECT
+                A.*,
+                D.name AS customer_Name,
+                B.name AS from_segment_name,
+                C.name AS to_segment_name
+        FROM customer_risk_transition_history A
+        LEFT JOIN CUSTOMER D ON D.id = A.customer_id
+        LEFT JOIN segment B ON B.id = A.from_segment_id
+        LEFT JOIN segment C ON C.id = A.to_segment_id
+        WHERE A.customer_id = #{customerId}
+        AND A.to_segment_id = 6
+        ORDER BY A.changed_at DESC, A.id DESC
+    </select>
+
+    <!-- segment_id 이탈 위험(4) 전환 횟수 -->
+    <select id="countChurnRiskTransitions" resultType="int">
+        SELECT
+               COUNT(*)
+          FROM customer_risk_transition_history
+         WHERE customer_id = #{customerId}
+           AND to_segment_id = 4
+    </select>
+
+    <!-- segment_id 블랙리스트(6) 전환 횟수 -->
+    <select id="countBlacklistTransitions" resultType="int">
+        SELECT
+               COUNT(*)
+          FROM customer_risk_transition_history
+         WHERE customer_id = #{customerId}
+           AND to_segment_id = 6
+    </select>
+
+
+    <!-- customerName 가져오기 -->
+    <select id="findCustomerName" resultType="string">
+        SELECT
+               name
+         FROM customer
+        WHERE id = #{customerId}
+    </select>
+</mapper>
