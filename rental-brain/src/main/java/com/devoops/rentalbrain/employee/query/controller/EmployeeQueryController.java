@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,7 +38,7 @@ public class EmployeeQueryController {
         EmployeeInfoDTO employeeInfoDTO = employeeQueryService.getEmpInfoPage();
 //        log.info(employeeInfoDTO.toString());
         if(employeeInfoDTO == null){
-            return ResponseEntity.ok().body("잘못된 접근입니다.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("잘못된 접근입니다.");
         }
         return ResponseEntity.ok().body(employeeInfoDTO);
     }
