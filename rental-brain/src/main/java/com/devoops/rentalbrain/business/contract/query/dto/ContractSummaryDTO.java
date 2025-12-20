@@ -14,9 +14,6 @@ public class ContractSummaryDTO {
     // 진행중
     private long progressContracts;
 
-    // 만료예정
-    private long expectedExpireContracts;
-
     // 만료임박
     private long imminentExpireContracts;
 

@@ -30,7 +30,8 @@ public enum ErrorCode {
     INVALID_CONTRACT_PERIOD(HttpStatus.BAD_REQUEST,"CON003","계약 시작일 또는 계약 기간(개월 수)이 유효하지 않습니다." ),
 
     /* Approval */
-    APPROVAL_MAPPING_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR,"APR001","승인 매핑 정보를 찾을 수 없습니다."),;
+    APPROVAL_MAPPING_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR,"APR001","승인 매핑 정보를 찾을 수 없습니다."),
+    APPROVAL_ALREADY_PROCESSED(HttpStatus.CONFLICT, "APR002", "이미 처리된 승인 요청입니다.");
 
     private final HttpStatus status;
     private final String code;

@@ -47,9 +47,6 @@ public class ContractQueryServiceImpl implements ContractQueryService {
         long progressContracts =
                 contractQueryMapper.countProgressContracts();
 
-        long expectedExpireContracts =
-                contractQueryMapper.countExpectedExpireContracts();
-
         long imminentExpireContracts =
                 contractQueryMapper.countImminentExpireContracts();
 
@@ -59,7 +56,6 @@ public class ContractQueryServiceImpl implements ContractQueryService {
         return new ContractSummaryDTO(
                 totalContracts,
                 progressContracts,
-                expectedExpireContracts,
                 imminentExpireContracts,
                 thisMonthContracts
         );

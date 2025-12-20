@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 public class ContractSearchDTO extends Criteria {
-    private Long id;
+    private String contract_code;
     private String cusName;
     private String in_charge;
     private String conName;

@@ -58,13 +58,13 @@ public class ApprovalCommandServiceImpl implements ApprovalCommandService {
                 approvalMappingCommandRepository.existsByApproval_IdAndIsApprovedNot(approvalId, "Y");
 
         if (!hasNotApproved) {
-            // ✅ 전부 Y면: Approval 완료 처리 + Contract 활성화 + PaymentDetails 생성
+            // 전부 Y면: Approval 완료 처리 + Contract 활성화 + PaymentDetails 생성
             approval.setApprovalDate(LocalDateTime.now());
             approval.setStatus("A");
             contract.setStatus("P");
             insertPaymentDetailsForContract(contract);
         } else {
-            // ✅ 아직 전부 Y가 아니면: current_step 업데이트
+            // 아직 전부 Y가 아니면: current_step 업데이트
             contract.setCurrentStep(approvedStep);
         }
     }
@@ -72,10 +72,24 @@ public class ApprovalCommandServiceImpl implements ApprovalCommandService {
 
     @Override
     public void reject(Long approvalMappingId, String rejectReason) {
+        // 1. 승인 매핑 조회
         ApprovalMappingCommandEntity mapping = getApprovalMapping(approvalMappingId);
+
+        // 이미 반려/승인된 건 방어
+        if (!"U".equals(mapping.getIsApproved())) {
+            throw new BusinessException(ErrorCode.APPROVAL_ALREADY_PROCESSED);
+        }
+
+        // 2. 매핑 반려 처리
         mapping.setIsApproved("N");
         mapping.setRejectReason(rejectReason);
 
+        // 3. Approval / Contract 상태 전파
+        ApprovalCommandEntity approval = mapping.getApproval();
+        ContractCommandEntity contract = approval.getContract();
+
+        approval.setStatus("R");
+        contract.setStatus("R");
     }
     /**
      * 공통 조회 메서드
