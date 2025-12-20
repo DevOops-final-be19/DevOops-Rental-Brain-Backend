@@ -1,5 +1,6 @@
 package com.devoops.rentalbrain.employee.query.controller;
 
+import com.devoops.rentalbrain.employee.query.dto.EmpAuthListDTO;
 import com.devoops.rentalbrain.employee.query.dto.EmployeeInfoDTO;
 import com.devoops.rentalbrain.employee.query.service.EmployeeQueryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -56,6 +57,12 @@ public class EmployeeQueryController {
     public ResponseEntity<List<EmployeeInfoDTO>> getEmpList(){
         List<EmployeeInfoDTO> employeeInfoDTO = employeeQueryService.getEmpList();
         return ResponseEntity.ok().body(employeeInfoDTO);
+    }
+
+    @GetMapping("/admin/empauthlist")
+    public ResponseEntity<List<EmpAuthListDTO>> getEmpAuthList(){
+        List<EmpAuthListDTO> empAuthListDTO = employeeQueryService.getEmpAuthList();
+        return ResponseEntity.ok().body(empAuthListDTO);
     }
 
 }
