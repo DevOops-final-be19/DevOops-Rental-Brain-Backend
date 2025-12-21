@@ -18,6 +18,7 @@ import com.devoops.rentalbrain.common.error.exception.BusinessException;
 import com.devoops.rentalbrain.customer.customerlist.command.entity.CustomerlistCommandEntity;
 import com.devoops.rentalbrain.employee.command.entity.Employee;
 import com.devoops.rentalbrain.product.productlist.command.repository.ItemRepository;
+import com.devoops.rentalbrain.security.SecurityUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.extern.slf4j.Slf4j;
@@ -99,7 +100,75 @@ public class ContractCommandServiceImpl implements ContractCommandService {
         /* =====================
        0. 로그인 사용자 검증
        ===================== */
-        // 계약생성
+
+        Long loginEmpId = SecurityUtil.getCurrentEmpId();
+        Employee loginEmp = entityManager.find(Employee.class, loginEmpId);
+
+        if (loginEmp == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
+        }
+
+        long positionId = loginEmp.getPositionId();
+
+         /* =====================
+       1. 요청 기반 역할 판단
+       ===================== */
+
+        Long leaderId = dto.getLeaderId();
+        Long ceoId = dto.getCeoId();
+
+        // 대표
+        boolean isCeoRequest = leaderId == null && ceoId == null;
+
+        // 팀장
+        boolean isLeaderRequest = leaderId == null && ceoId != null;
+
+        // 팀원
+        boolean isMemberRequest = leaderId != null && ceoId != null;
+
+        /* =====================
+       2. 역할 + 직급 검증
+       ===================== */
+
+        // 대표
+        if (isCeoRequest) {
+            if (positionId != 1) {
+                throw new BusinessException(
+                        ErrorCode.FORBIDDEN,
+                        "대표만 결재선 없이 계약을 생성할 수 있습니다."
+                );
+            }
+        }
+
+        // 팀장
+        else if (isLeaderRequest) {
+            if (!List.of(2, 3, 4).contains(positionId)) {
+                throw new BusinessException(
+                        ErrorCode.FORBIDDEN,
+                        "팀장만 CEO 결재 계약을 생성할 수 있습니다."
+                );
+            }
+        }
+
+        // 팀원
+        else if (isMemberRequest) {
+            if (!List.of(5, 6, 7).contains(positionId)) {
+                throw new BusinessException(
+                        ErrorCode.FORBIDDEN,
+                        "팀원만 팀장 + CEO 결재 계약을 생성할 수 있습니다."
+                );
+            }
+        }
+
+        else {
+            throw new BusinessException(
+                    ErrorCode.CONTRACT_INVALID_APPROVAL_REQUEST,
+                    "잘못된 결재선 요청입니다."
+            );
+        }
+        /* =====================
+            2. 계약 생성
+       ===================== */
 
         // DTO → Entity 매핑
         ContractCommandEntity contract = new ContractCommandEntity();
@@ -111,14 +180,14 @@ public class ContractCommandServiceImpl implements ContractCommandService {
         contract.setPayMethod(dto.getPayMethod());
         contract.setSpecialContent(dto.getSpecialContent());
 
-        // 상태값 세팅
-        contract.setStatus("W");       // 결제대기
-        contract.setCurrentStep(1);    // 승인 1단계 시작
-
         // 계약 코드 생성
         contract.setContractCode(
                 codeGenerator.generate(CodeType.CONTRACT)
         );
+
+        // 상태값 세팅
+        contract.setStatus(isCeoRequest ? "P" : "W");
+        contract.setCurrentStep(1);
 
         CustomerlistCommandEntity customerRef =
                 entityManager.getReference(
@@ -132,7 +201,10 @@ public class ContractCommandServiceImpl implements ContractCommandService {
                 contractCommandRepository.save(contract);
 
 
-        // 결제생성
+        /* =====================
+             4. 승인 생성
+       ===================== */
+
         ApprovalCommandEntity approval = new ApprovalCommandEntity();
 
         approval.setApprovalCode(
@@ -144,24 +216,17 @@ public class ContractCommandServiceImpl implements ContractCommandService {
         approval.setStatus("P"); // 승인 대기
         approval.setContract(savedContract);
 
-        Long requestEmpId = RequestEmpId(
-                dto.getMemId(),
-                dto.getLeaderId(),
-                dto.getCeoId()
+        approval.setEmployee(
+                entityManager.getReference(Employee.class, loginEmpId)
         );
-
-        Employee employeeRef =
-                entityManager.getReference(Employee.class, requestEmpId);
-        approval.setEmployee(employeeRef);
 
         ApprovalCommandEntity savedApproval =
                 approvalCommandRepository.save(approval);
 
         createApprovalMapping(
                 savedApproval,
-                dto.getMemId(),
-                dto.getLeaderId(),
-                dto.getCeoId()
+                leaderId,
+                ceoId
         );
 
         /* =====================
@@ -220,14 +285,13 @@ public class ContractCommandServiceImpl implements ContractCommandService {
 
     private void createApprovalMapping(
             ApprovalCommandEntity approval,
-            Long memId,
             Long leaderId,
             Long ceoId
     ) {
         ContractCommandEntity contract = approval.getContract();
 
-        // case 1: CEO만 존재
-        if (memId == null && leaderId == null && ceoId != null) {
+        // case 1: CEO
+        if (leaderId == null && ceoId == null) {
 
             ApprovalMappingCommandEntity ceoStep =
                     ApprovalMappingCommandEntity.builder()
@@ -244,8 +308,8 @@ public class ContractCommandServiceImpl implements ContractCommandService {
             return;
         }
 
-        // case 2: 리더 + CEO만 존재
-        if (memId == null && leaderId != null && ceoId != null) {
+        // case 2: 팀장
+        if (leaderId == null && ceoId != null) {
 
             ApprovalMappingCommandEntity leaderStep =
                     ApprovalMappingCommandEntity.builder()
@@ -273,20 +337,10 @@ public class ContractCommandServiceImpl implements ContractCommandService {
         }
 
         // case 3: mem + leader + ceo (기본)
-        Employee memRef =
-                entityManager.getReference(Employee.class, memId);
         Employee leaderRef =
                 entityManager.getReference(Employee.class, leaderId);
         Employee ceoRef =
                 entityManager.getReference(Employee.class, ceoId);
-
-        ApprovalMappingCommandEntity memStep =
-                ApprovalMappingCommandEntity.builder()
-                        .approval(approval)
-                        .employee(memRef)
-                        .step(1)
-                        .isApproved("Y")
-                        .build();
 
         ApprovalMappingCommandEntity leaderStep =
                 ApprovalMappingCommandEntity.builder()
@@ -305,26 +359,11 @@ public class ContractCommandServiceImpl implements ContractCommandService {
                         .build();
 
         approvalMappingCommandRepository.saveAll(
-                List.of(memStep, leaderStep, ceoStep)
+                List.of(leaderStep, ceoStep)
         );
 
         contract.setCurrentStep(1);
         contract.setStatus("W");
     }
-
-    private Long RequestEmpId(
-            Long memId, Long leaderId, Long ceoId
-    ){
-        if (memId != null){
-            return memId;
-        }
-        if (leaderId != null){
-            return leaderId;
-        }
-        if (ceoId != null){
-            return ceoId;
-        }
-
-        throw new BusinessException( ErrorCode.CONTRACT_INVALID_APPROVAL_REQUEST, "결재 요청자를 지정할 수 없습니다 (memId, leaderId, ceoId 모두 null)" );}
 
 }
