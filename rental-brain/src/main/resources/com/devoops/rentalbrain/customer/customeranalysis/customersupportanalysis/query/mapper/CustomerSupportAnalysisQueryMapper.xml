@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.devoops.rentalbrain.customer.customeranalysis.customersupportanalysis.query.mapper.CustomerSupportAnalysisQueryMapper">
+
+    <!--  견적 월별 카운트 -->
+    <select id="countQuotes" resultType="long">
+        SELECT
+               COUNT(*)
+          FROM quote
+         WHERE counseling_date <![CDATA[>=]]> #{start}
+           AND counseling_date <![CDATA[<]]> #{end}
+    </select>
+    <!--  문의 월별 카운트 -->
+    <select id="countSupport" resultType="long">
+        SELECT
+               COUNT(*)
+          FROM customer_support
+         WHERE create_date <![CDATA[>=]]> #{start}
+           AND create_date <![CDATA[<]]> #{end}
+    </select>
+    <!-- 피드백 월별 카운트 -->
+    <select id="countFeedbacks" resultType="long">
+        SELECT
+               COUNT(*)
+          FROM feedback
+         WHERE create_date <![CDATA[>=]]> #{start}
+           AND create_date <![CDATA[<]]> #{end}
+    </select>
+
+
+    <!--  응대 완료율, 평균 처리 시간  -->
+    <select id="countSupportDone" resultType="long">
+        SELECT COUNT(*)
+        FROM customer_support
+        WHERE create_date <![CDATA[>=]]> #{start}
+        AND create_date <![CDATA[<]]> #{end}
+        AND action IS NOT NULL
+    </select>
+
+    <select id="countFeedbackDone" resultType="long">
+        SELECT COUNT(*)
+        FROM feedback
+        WHERE create_date <![CDATA[>=]]> #{start}
+        AND create_date <![CDATA[<]]> #{end}
+        AND action IS NOT NULL
+    </select>
+
+    <!--  평균 응대 시간  -->
+    <select id="avgQuoteProcessingTime" resultType="double">
+        SELECT AVG(processing_time)
+        FROM quote
+        WHERE counseling_date <![CDATA[>=]]> #{start}
+        AND counseling_date <![CDATA[<]]> #{end}
+    </select>
+
+
+    <!-- 피드백 평균 만족도  -->
+    <select id="avgFeedbackStar" resultType="double">
+        SELECT AVG(star)
+        FROM feedback
+        WHERE create_date <![CDATA[>=]]> #{start}
+        AND create_date <![CDATA[<]]> #{end}
+        AND star IS NOT NULL
+    </select>
+    <!--  피드백 별점을 준 사람들 중에 카운트  -->
+    <select id="countFeedbackStarTotal" resultType="long">
+        SELECT COUNT(*)
+        FROM feedback
+        WHERE create_date <![CDATA[>=]]> #{start}
+        AND create_date <![CDATA[<]]> #{end}
+        AND star IS NOT NULL
+    </select>
+    <!--    -->
+    <select id="countFeedbackLowStar" resultType="long">
+        SELECT COUNT(*)
+        FROM feedback
+        WHERE create_date <![CDATA[>=]]> #{start}
+        AND create_date <![CDATA[<]]> #{end}
+        AND star <![CDATA[<=]]> #{threshold}
+    </select>
+</mapper>
