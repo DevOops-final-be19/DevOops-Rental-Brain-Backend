@@ -10,4 +10,5 @@ public class CustomerHistoryDTO {
     private LocalDateTime date; // 일시
     private String performer;   // 담당자
     private String status;      // 상태
+    private String reason;      // 변경 사유
 }

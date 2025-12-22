@@ -228,15 +228,15 @@
 
     <select id="selectSegmentHistory" resultType="com.devoops.rentalbrain.customer.customersegmenthistory.query.dto.HistoryQueryDTO">
         SELECT
-            H.id,
+            H.id AS historyId,
             PS.name AS previousSegmentName,
             CS.name AS currentSegmentName,
-            H.reason,
-            H.trigger_type AS triggerType,
-            H.changed_at AS changedAt
+            H.reason AS historyReason,
+            H.trigger_type AS historyTriggerType,
+            H.changed_at AS historyChangedAt
         FROM customer_segment_history H
-                 LEFT JOIN segment PS ON H.previous_segment_id = PS.id
-                 JOIN segment CS ON H.current_segment_id = CS.id
+   LEFT JOIN segment PS ON H.previous_segment_id = PS.id
+        JOIN segment CS ON H.current_segment_id = CS.id
         WHERE H.customer_id = #{customerId}
         ORDER BY H.changed_at DESC
     </select>
