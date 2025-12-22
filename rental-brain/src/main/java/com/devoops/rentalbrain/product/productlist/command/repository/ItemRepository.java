@@ -9,8 +9,6 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface ItemRepository extends JpaRepository<Item, Long> {
-    List<Item> findByName(String name);
-
     @Query(value = """
         SELECT id
         FROM item
@@ -31,4 +29,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
         WHERE id IN (:ids)
     """, nativeQuery = true)
     int updateItemStatusToRented(@Param("ids") List<Long> ids);
+
+    List<Item> findByName(String name);
+
 }
