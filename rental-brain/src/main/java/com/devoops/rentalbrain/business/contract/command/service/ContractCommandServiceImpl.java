@@ -17,6 +17,7 @@ import com.devoops.rentalbrain.common.codegenerator.CodeGenerator;
 import com.devoops.rentalbrain.common.codegenerator.CodeType;
 import com.devoops.rentalbrain.common.error.ErrorCode;
 import com.devoops.rentalbrain.common.error.exception.BusinessException;
+import com.devoops.rentalbrain.common.segmentrebuild.command.service.SegmentTransitionCommandService;
 import com.devoops.rentalbrain.customer.customerlist.command.entity.CustomerlistCommandEntity;
 import com.devoops.rentalbrain.employee.command.dto.UserImpl;
 import com.devoops.rentalbrain.employee.command.entity.Employee;
@@ -30,6 +31,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -46,6 +49,7 @@ public class ContractCommandServiceImpl implements ContractCommandService {
     private final ApprovalMappingCommandRepository approvalMappingCommandRepository;
     private final PaymentDetailCommandRepository paymentDetailCommandRepository;
     private final CodeGenerator codeGenerator;
+    private final SegmentTransitionCommandService segmentTransitionCommandService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -58,7 +62,8 @@ public class ContractCommandServiceImpl implements ContractCommandService {
             ContractItemCommandRepository contractItemCommandRepository,
             ApprovalMappingCommandRepository approvalMappingCommandRepository,
             PaymentDetailCommandRepository paymentDetailCommandRepository,
-            CodeGenerator codeGenerator
+            CodeGenerator codeGenerator,
+            SegmentTransitionCommandService segmentTransitionCommandService
     ) {
         this.contractCommandRepository = contractCommandRepository;
         this.approvalCommandRepository = approvalCommandRepository;
@@ -67,6 +72,7 @@ public class ContractCommandServiceImpl implements ContractCommandService {
         this.approvalMappingCommandRepository = approvalMappingCommandRepository;
         this.paymentDetailCommandRepository = paymentDetailCommandRepository;
         this.codeGenerator = codeGenerator;
+        this.segmentTransitionCommandService = segmentTransitionCommandService;
     }
 
     /**
@@ -292,6 +298,31 @@ public class ContractCommandServiceImpl implements ContractCommandService {
 
             contractItemCommandRepository.saveAll(mappings);
         }
+
+        // 세그먼트 트리거 추가
+
+        Long customerId = dto.getCumId();
+        Long contractId = savedContract.getId(); // save 이후라 반드시 존재
+
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+
+                    @Override
+                    public void afterCommit() {
+                        try {
+                            segmentTransitionCommandService.onContractCommitted(customerId, contractId);
+                        } catch (Exception e) {
+                            // afterCommit은 rollback 불가 → 로그만
+                            log.error(
+                                    "[SEGMENT][AFTER_COMMIT_FAIL] customerId={}, contractId={}",
+                                    customerId,
+                                    contractId,
+                                    e
+                            );
+                        }
+                    }
+                }
+        );
     }
 
 
