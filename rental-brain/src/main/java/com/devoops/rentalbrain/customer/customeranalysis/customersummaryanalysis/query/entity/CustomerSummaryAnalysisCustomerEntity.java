@@ -1,9 +1,10 @@
-package com.devoops.rentalbrain.customer.customerlist.command.entity;
+package com.devoops.rentalbrain.customer.customeranalysis.customersummaryanalysis.query.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -15,7 +16,7 @@ import java.time.LocalDateTime;
 @ToString
 @DynamicUpdate
 @DynamicInsert
-public class CustomerlistCommandEntity {
+public class CustomerSummaryAnalysisCustomerEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -69,5 +70,4 @@ public class CustomerlistCommandEntity {
 
     @Column(name = "segment_id", nullable = false)
     private Long segmentId;
-
 }

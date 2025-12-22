@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.devoops.rentalbrain.customer.customeranalysis.customersupportanalysis.query.mapper.CustomerSupportAnalysisQueryMapper">
+
+    <!--  견적 월별 카운트 -->
+    <select id="countQuotes" resultType="long">
+        SELECT
+               COUNT(*)
+          FROM quote
+         WHERE counseling_date <![CDATA[>=]]> #{start}
+           AND counseling_date <![CDATA[<]]> #{end}
+    </select>
+    <!--  문의 월별 카운트 -->
+    <select id="countSupport" resultType="long">
+        SELECT
+               COUNT(*)
+          FROM customer_support
+         WHERE create_date <![CDATA[>=]]> #{start}
+           AND create_date <![CDATA[<]]> #{end}
+    </select>
+    <!-- 피드백 월별 카운트 -->
+    <select id="countFeedbacks" resultType="long">
+        SELECT
+               COUNT(*)
+          FROM feedback
+         WHERE create_date <![CDATA[>=]]> #{start}
+           AND create_date <![CDATA[<]]> #{end}
+    </select>
+
+
+    <!--  응대 완료율, 평균 처리 시간  -->
+    <select id="countSupportDone" resultType="long">
+        SELECT COUNT(*)
+        FROM customer_support
+        WHERE create_date <![CDATA[>=]]> #{start}
+        AND create_date <![CDATA[<]]> #{end}
+        AND action IS NOT NULL
+    </select>
+
+    <select id="countFeedbackDone" resultType="long">
+        SELECT COUNT(*)
+        FROM feedback
+        WHERE create_date <![CDATA[>=]]> #{start}
+        AND create_date <![CDATA[<]]> #{end}
+        AND action IS NOT NULL
+    </select>
+
+    <!--  평균 응대 시간  -->
+    <select id="avgQuoteProcessingTime" resultType="double">
+        SELECT AVG(processing_time)
+        FROM quote
+        WHERE counseling_date <![CDATA[>=]]> #{start}
+        AND counseling_date <![CDATA[<]]> #{end}
+    </select>
+
+
+    <!-- 피드백 평균 만족도  -->
+    <select id="avgFeedbackStar" resultType="double">
+        SELECT AVG(star)
+        FROM feedback
+        WHERE create_date <![CDATA[>=]]> #{start}
+        AND create_date <![CDATA[<]]> #{end}
+        AND star IS NOT NULL
+    </select>
+    <!--  피드백 별점을 준 사람들 중에 카운트  -->
+    <select id="countFeedbackStarTotal" resultType="long">
+        SELECT COUNT(*)
+        FROM feedback
+        WHERE create_date <![CDATA[>=]]> #{start}
+        AND create_date <![CDATA[<]]> #{end}
+        AND star IS NOT NULL
+    </select>
+    <!--  피드백 평점 낮은 사람(2.5점 이하)  -->
+    <select id="countFeedbackLowStar" resultType="long">
+        SELECT COUNT(*)
+        FROM feedback
+        WHERE create_date <![CDATA[>=]]> #{start}
+        AND create_date <![CDATA[<]]> #{end}
+        AND star <![CDATA[<=]]> #{threshold}
+    </select>
+
+    <!--  고객 응대 분석 트랜드 차트  -->
+    <select id="selectMonthlyTrend"
+            resultType="com.devoops.rentalbrain.customer.customeranalysis.customersupportanalysis.query.dto.CustomerSupportAnalysisMonthlyTrendDTO">
+
+        SELECT
+               m.month AS month,
+               COALESCE(q.cnt, 0) AS quoteCount,
+               COALESCE(cs.cnt, 0) AS SupportCount,
+               COALESCE(f.cnt, 0) AS feedbackCount,
+               COALESCE(s.cnt, 0) AS surveyCount
+        FROM (
+              SELECT 1 AS month UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
+              UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8
+              UNION ALL SELECT 9 UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL SELECT 12
+              ) m
+        LEFT JOIN (
+                    SELECT MONTH(counseling_date) AS month, COUNT(*) AS cnt
+                    FROM quote
+                    WHERE YEAR(counseling_date) = #{year}
+                    GROUP BY MONTH(counseling_date)
+                    ) q ON q.month = m.month
+        LEFT JOIN (
+                    SELECT MONTH(create_date) AS month, COUNT(*) AS cnt
+                    FROM customer_support
+                    WHERE YEAR(create_date) = #{year}
+                    GROUP BY MONTH(create_date)
+                    ) cs ON cs.month = m.month
+        LEFT JOIN (
+                    SELECT MONTH(create_date) AS month, COUNT(*) AS cnt
+                    FROM feedback
+                    WHERE YEAR(create_date) = #{year}
+                    GROUP BY MONTH(create_date)
+                    ) f ON f.month = m.month
+        LEFT JOIN (
+                    SELECT MONTH(STR_TO_DATE(SUBSTRING(start_date, 1, 10), '%Y-%m-%d')) AS month, COUNT(*) AS cnt
+                    FROM survey
+                    WHERE YEAR(STR_TO_DATE(SUBSTRING(start_date, 1, 10), '%Y-%m-%d')) = #{year}
+                    GROUP BY MONTH(STR_TO_DATE(SUBSTRING(start_date, 1, 10), '%Y-%m-%d'))
+                    ) s ON s.month = m.month
+        ORDER BY m.month ASC
+
+    </select>
+
+</mapper>
