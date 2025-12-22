@@ -43,6 +43,8 @@
            ON a.noti_id = b.id
         WHERE emp_id = #{empId}
           AND a.is_read = 'N'
+        ORDER BY a.created_at
+        LIMIT 100
     </select>
 
     <select id="getAllNoticeList" resultMap="getNewNoticeListResultMap">
@@ -59,6 +61,21 @@
              , b.link_url
         FROM notification_receiver a JOIN notification b
                                           ON a.noti_id = b.id
-        WHERE emp_id = #{empId}
+        WHERE a.emp_id = #{empId}
+        <if test="type != null and type != 'ALL'">
+            AND b.type = #{type}
+        </if>
+        ORDER BY a.is_read ASC, a.created_at DESC
+        LIMIT #{size}
+        OFFSET #{offset}
+    </select>
+    <select id="noticeCount">
+        SELECT COUNT(*)
+          FROM notification_receiver a
+                 JOIN notification b ON a.noti_id = b.id
+         WHERE a.emp_id = #{empId}
+        <if test="type != null and type != 'ALL'">
+            AND b.type = #{type}
+        </if>
     </select>
 </mapper>

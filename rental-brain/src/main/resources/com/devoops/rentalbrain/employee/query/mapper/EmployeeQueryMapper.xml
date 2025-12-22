@@ -20,7 +20,6 @@
             <id property="position_id" column="position_id"/>
             <result property="position_name" column="position_name"/>
         </association>
-
     </resultMap>
 
     <resultMap id="empListResultMap" type="com.devoops.rentalbrain.employee.query.dto.EmployeeListDTO">
@@ -47,7 +46,10 @@
         </collection>
     </resultMap>
 
-
+    <resultMap id="empAuthListResultMap" type="com.devoops.rentalbrain.employee.query.dto.EmpAuthListDTO">
+        <id property="id" column="id"/>
+        <result property="description" column="description"/>
+    </resultMap>
 
     <select id="getUserAuth" resultType="string">
         SELECT
@@ -59,6 +61,7 @@
             ON a.auth_id = c.id
          WHERE a.emp_id = #{empId}
     </select>
+
     <select id="getEmpInfoPage" resultMap="empInfoPageResultMap">
         SELECT
                a.id,
@@ -107,5 +110,11 @@
             ON a.id = c.emp_id
     </select>
 
+    <select id="getEmpAuthList" resultMap="empAuthListResultMap">
+        SELECT
+               a.id
+             , a.description
+          FROM auth_list a
+    </select>
 
 </mapper>
