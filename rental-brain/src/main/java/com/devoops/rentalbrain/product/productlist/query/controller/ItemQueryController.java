@@ -2,10 +2,7 @@ package com.devoops.rentalbrain.product.productlist.query.controller;
 
 import com.devoops.rentalbrain.common.pagination.Criteria;
 import com.devoops.rentalbrain.common.pagination.PageResponseDTO;
-import com.devoops.rentalbrain.product.productlist.query.dto.EachItemDTO;
-import com.devoops.rentalbrain.product.productlist.query.dto.ItemCategoryDTO;
-import com.devoops.rentalbrain.product.productlist.query.dto.ItemKpiDTO;
-import com.devoops.rentalbrain.product.productlist.query.dto.ItemNameDTO;
+import com.devoops.rentalbrain.product.productlist.query.dto.*;
 import com.devoops.rentalbrain.product.productlist.query.service.ItemQueryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -100,8 +97,8 @@ public class ItemQueryController {
     }
 
     @Operation(
-            summary = "제품 kpi 카드 조회",
-            description = "제품의 kpi 카드에 들어갈 수를 카운트합니다.",
+            summary = "전체 제품 kpi 카드 조회",
+            description = "전체 제품의 kpi 카드에 들어갈 수를 카운트합니다.",
             security = @SecurityRequirement(name = "bearerAuth"),
             responses = {
                     @ApiResponse(responseCode = "200", description = "조회 성공"),
@@ -147,5 +144,20 @@ public class ItemQueryController {
     public ResponseEntity<List<ItemCategoryDTO>> readCategory() {
         List<ItemCategoryDTO> categoryList = itemQueryService.readCategory();
         return ResponseEntity.ok().body(categoryList);
+    }
+
+    @Operation(
+            summary = "각 제품별 kpi 카드 조회",
+            description = "제품별 kpi 카드에 들어갈 수를 카운트합니다.",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "조회 성공"),
+                    @ApiResponse(responseCode = "400", description = "잘못된 요청")
+            }
+    )
+    @GetMapping("/kpi/{itemName}")
+    public EachItemKpiDTO readItemKpi(@PathVariable String itemName) {
+        EachItemKpiDTO kpiDTO = itemQueryService.countEachItemKpi(itemName);
+        return kpiDTO;
     }
 }

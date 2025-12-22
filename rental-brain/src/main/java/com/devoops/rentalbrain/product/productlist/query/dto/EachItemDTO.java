@@ -10,8 +10,11 @@ import java.time.LocalDateTime;
 @Setter
 @ToString
 public class EachItemDTO {
+    private Long id;
     private String itemCode;
     private String status;
+    private Integer sales;
+    private Integer repairCost;
     private String firmName;
     private LocalDateTime startDate;
     private LocalDateTime lastInspectDate;
