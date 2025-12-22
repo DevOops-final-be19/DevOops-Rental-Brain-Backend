@@ -1,5 +1,6 @@
-package com.devoops.rentalbrain.common.segmentrebuild.quartz;
+package com.devoops.rentalbrain.common.segmentrebuild.quartz.job;
 
+import com.devoops.rentalbrain.common.segmentrebuild.quartz.service.SegmentBatchCommandService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.Job;

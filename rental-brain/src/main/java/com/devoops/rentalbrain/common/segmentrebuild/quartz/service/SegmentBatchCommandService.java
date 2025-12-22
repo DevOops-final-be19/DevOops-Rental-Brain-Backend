@@ -1,4 +1,4 @@
-package com.devoops.rentalbrain.common.segmentrebuild.quartz;
+package com.devoops.rentalbrain.common.segmentrebuild.quartz.service;
 
 
 import com.devoops.rentalbrain.customer.customerlist.command.repository.CustomerlistCommandRepository;
