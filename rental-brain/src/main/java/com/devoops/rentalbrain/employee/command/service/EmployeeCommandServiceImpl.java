@@ -268,6 +268,9 @@ public class EmployeeCommandServiceImpl implements EmployeeCommandService {
         if(!employeeInfoModifyByAdminDTO.getGender().equals(employee.getGender())) {
             employee.setGender(employeeInfoModifyByAdminDTO.getGender());
         }
+        if(!employeeInfoModifyByAdminDTO.getStatus().equals(employee.getStatus())) {
+            employee.setStatus(employeeInfoModifyByAdminDTO.getStatus());
+        }
         if(!employeeInfoModifyByAdminDTO.getDept().equals(employee.getDept())) {
             employee.setDept(employeeInfoModifyByAdminDTO.getDept());
         }

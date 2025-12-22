@@ -52,6 +52,11 @@
         <result property="description" column="description"/>
     </resultMap>
 
+    <resultMap id="empPositionListResultMap" type="com.devoops.rentalbrain.employee.query.dto.PositionDTO">
+        <id property="position_id" column="id"/>
+        <result property="position_name" column="position_name"/>
+    </resultMap>
+
     <select id="getUserAuth" resultType="string">
         SELECT
                c.auth
@@ -116,6 +121,13 @@
                a.id
              , a.description
           FROM auth_list a
+    </select>
+
+    <select id="getPositionList" resultMap="empPositionListResultMap">
+        SELECT
+               a.id
+             , a.position_name
+          FROM emp_position a
     </select>
 
 </mapper>

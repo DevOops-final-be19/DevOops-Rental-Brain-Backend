@@ -48,12 +48,11 @@ public class EmployeeCommandController {
                     @ApiResponse(responseCode = "400", description = "잘못된 요청")
             }
     )
-    @PostMapping("/signup")
+    @PostMapping("/admin/signup")
     public ResponseEntity<?> signup(@RequestBody SignUpDTO signUpDTO) {
         try {
             employeeCommandService.signup(signUpDTO);
         } catch (Exception e) {
-            log.info("");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
         return ResponseEntity.ok().build();
