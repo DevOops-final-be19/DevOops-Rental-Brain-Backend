@@ -2,19 +2,19 @@ package com.devoops.rentalbrain.common.notice.query.controller;
 
 import com.devoops.rentalbrain.common.notice.query.dto.NoticeReceiveDTO;
 import com.devoops.rentalbrain.common.notice.query.service.NoticeQueryService;
+import com.devoops.rentalbrain.common.pagination.PageResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/notice")
+@Slf4j
 @Tag(name = "알림(Query)",
         description = "알림 조회(Query) API")
 public class NoticeQueryController {
@@ -44,9 +44,15 @@ public class NoticeQueryController {
                     @ApiResponse(responseCode = "200", description = "조회")
             }
     )
-    @GetMapping("/list/{empId}")
-    public ResponseEntity<List<NoticeReceiveDTO>> getAllNoticeList(@PathVariable Long empId) {
-        List<NoticeReceiveDTO> noticeReceiveDTO = noticeQueryService.getAllNoticeList(empId);
-        return ResponseEntity.ok().body(noticeReceiveDTO);
+    @GetMapping("/list")
+    public ResponseEntity<PageResponseDTO<NoticeReceiveDTO>> getAllNoticeList(
+            @RequestParam Long empId,
+            @RequestParam int size,
+            @RequestParam int page,
+            @RequestParam String type
+    ) {
+        log.info("{} {} {} {}",empId,size,page,type);
+        PageResponseDTO<NoticeReceiveDTO> result = noticeQueryService.getAllNoticeList(empId,size,page,type);
+        return ResponseEntity.ok().body(result);
     }
 }

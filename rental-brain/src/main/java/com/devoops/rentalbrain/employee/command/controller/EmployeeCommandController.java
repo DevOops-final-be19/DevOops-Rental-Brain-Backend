@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -53,7 +54,7 @@ public class EmployeeCommandController {
         employeeCommandService.signup(signUpDTO);
         }catch (Exception e){
             log.info("");
-            return ResponseEntity.ok().body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
         return ResponseEntity.ok().build();
     }
@@ -100,7 +101,7 @@ public class EmployeeCommandController {
         try {
             employeeCommandService.modifyEmpInfo(employeeInfoModifyDTO);
         }catch (Exception e){
-            return ResponseEntity.ok().body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
         return ResponseEntity.ok().body("Done");
     }
@@ -119,7 +120,7 @@ public class EmployeeCommandController {
         try{
             employeeCommandService.modifyEmpInfoByAdmin(employeeInfoModifyByAdminDTO);
         } catch (Exception e){
-            return ResponseEntity.ok().body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
         return ResponseEntity.ok().body("Done");
     }
@@ -137,7 +138,7 @@ public class EmployeeCommandController {
         try {
             employeeCommandService.modifyEmpPwd(employeePasswordModifyDTO);
         }catch (Exception e){
-            return ResponseEntity.ok().body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
         return ResponseEntity.ok().body("Done");
     }

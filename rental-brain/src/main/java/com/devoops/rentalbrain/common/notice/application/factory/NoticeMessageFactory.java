@@ -5,6 +5,7 @@ import com.devoops.rentalbrain.common.notice.application.strategy.event.QuoteIns
 import com.devoops.rentalbrain.common.notice.command.entity.Notification;
 import org.springframework.stereotype.Component;
 
+// 알림 생성
 @Component
 public class NoticeMessageFactory {
 

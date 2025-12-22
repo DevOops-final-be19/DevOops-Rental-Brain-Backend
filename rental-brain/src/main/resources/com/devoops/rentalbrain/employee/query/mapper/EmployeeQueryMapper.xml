@@ -47,7 +47,10 @@
         </collection>
     </resultMap>
 
-
+    <resultMap id="empAuthListResultMap" type="com.devoops.rentalbrain.employee.query.dto.EmpAuthListDTO">
+        <id property="id" column="id"/>
+        <result property="description" column="description"/>
+    </resultMap>
 
     <select id="getUserAuth" resultType="string">
         SELECT
@@ -105,6 +108,13 @@
             ON a.position_id = b.id
      LEFT JOIN employee_auth c
             ON a.id = c.emp_id
+    </select>
+
+    <select id="getEmpAuthList" resultMap="empAuthListResultMap">
+        SELECT
+               a.id
+             , a.description
+          FROM auth_list a
     </select>
 
     <select id="getContractEmpList" resultType="com.devoops.rentalbrain.employee.query.dto.ContractEmpDTO">

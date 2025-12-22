@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.devoops.rentalbrain.customer.customeranalysis.customersummaryanalysis.query.mapper.CustomerSummaryAnalysisQueryMapper">
+
+    <!-- 전체 고객수 -->
+    <select id="countTotalCustomers" resultType="int">
+        SELECT
+              COUNT(*)
+         FROM customer
+    </select>
+
+    <!-- 세그먼트별 고객 수 -->
+    <select id="countCustomersBySegmentId" resultType="int">
+        SELECT COUNT(*)
+        FROM customer
+        WHERE segment_id = #{segmentId}
+    </select>
+
+    <!-- 거래 고객 수(잠재+블랙리스트 제외) -->
+    <select id="countTradeCustomers" resultType="int">
+        SELECT COUNT(*)
+        FROM customer
+        WHERE segment_id IN (2, 3, 5, 7)
+    </select>
+
+    <!--  스냅샷 이탈 위험 고객(월별)  -->
+    <select id="countMonthRiskCustomers" resultType="int">
+        SELECT
+              COUNT(DISTINCT customer_id)
+         FROM customer_churn_snapshot
+        WHERE snapshot_month = #{snapshotMonth}
+          AND is_churn_risk = 'Y'
+    </select>
+
+    <!-- 차트 X축 월 목록 (스냅샷이 존재하는 월만 뽑음) -->
+    <!-- <![CDATA[ ~~ ]]> [] 안의 기호를 그대로 받아내는 것  -->
+    <select id="findMonthsBetween" resultType="string">
+        SELECT
+              DISTINCT snapshot_month
+         FROM customer_churn_snapshot
+        WHERE snapshot_month <![CDATA[ >= ]]> #{fromMonth}
+          AND snapshot_month <![CDATA[ <= ]]> #{toMonth}
+        ORDER BY snapshot_month
+    </select>
+
+
+    <!-- 평균 거래액(월) = 고객당 평균 월 과금액 (monthly_payment 기반) -->
+    <select id="avgMonthlyPaymentByMonth" resultType="long">
+        SELECT
+               COALESCE(ROUND(SUM(A.monthly_payment) / NULLIF(COUNT(DISTINCT A.cum_id), 0), 0), 0)
+          FROM contract A
+         WHERE A.start_date <![CDATA[>=]]> #{from}
+           AND A.start_date <![CDATA[<]]>  #{to}
+    </select>
+
+    <!-- 월별 평균 만족도(별점) -->
+    <select id="avgStarByMonth" resultType="double">
+        SELECT
+               COALESCE(ROUND(AVG(A.star), 1), 0)
+          FROM feedback A
+         WHERE A.create_date <![CDATA[>=]]> #{from}
+           AND A.create_date <![CDATA[<]]>  #{to}
+    </select>
+
+    <!-- 월 활동 고객 수 (이번달 계약 시작한 고객 distinct) -->
+    <select id="countActiveCustomersByMonth" resultType="int">
+        SELECT
+               COUNT(DISTINCT A.cum_id)
+          FROM contract A
+         WHERE A.start_date <![CDATA[>=]]> #{from}
+           AND A.start_date <![CDATA[<]]>  #{to}
+    </select>
+
+    <!--  이번달 잠재 -> 신규 고객 수, 신규 유입 -->
+    <select id="countFirstContractCustomersByMonth" resultType="int">
+        SELECT
+               COUNT(*)
+          FROM (SELECT A.cum_id, MIN(A.start_date) AS first_dt
+          FROM contract A
+         GROUP BY A.cum_id) B
+         WHERE B.first_dt <![CDATA[>=]]> #{from}
+           AND B.first_dt <![CDATA[<]]>  #{to}
+    </select>
+
+    <!-- 만족도 분포도 -->
+    <select id="getSatisfaction"
+            resultType="com.devoops.rentalbrain.customer.customeranalysis.customersummaryanalysis.query.dto.CustomerSummaryAnalysisQuerySatisfactionRowDTO">
+
+        SELECT
+        COALESCE(SUM(CASE WHEN A.star = 5 THEN 1 ELSE 0 END), 0) AS star5Count,
+        COALESCE(SUM(CASE WHEN A.star = 4 THEN 1 ELSE 0 END), 0) AS star4Count,
+        COALESCE(SUM(CASE WHEN A.star = 3 THEN 1 ELSE 0 END), 0) AS star3Count,
+        COALESCE(SUM(CASE WHEN A.star = 2 THEN 1 ELSE 0 END), 0) AS star2Count,
+        COALESCE(SUM(CASE WHEN A.star = 1 THEN 1 ELSE 0 END), 0) AS star1Count,
+        COALESCE(COUNT(*), 0) AS totalCount
+        FROM feedback A
+    </select>
+
+    <!-- MAX로 제일 최근 뽑아서 그 고객에 대해서 평점 찾기 -->
+    <select id="countCustomersByStar" resultType="long">
+        SELECT
+               COUNT(*)
+          FROM (
+                SELECT A.cum_id
+                FROM feedback A
+                JOIN (
+                        SELECT cum_id, MAX(create_date) AS max_dt
+                        FROM feedback
+                        GROUP BY cum_id
+                       ) B ON A.cum_id = B.cum_id
+            AND A.create_date = B.max_dt
+          WHERE A.star = #{star}
+        ) t
+    </select>
+
+    <!-- 만족도 분포 상세 조회 페이징 -->
+    <select id="selectCustomersByStarWithPaging"
+            resultType="com.devoops.rentalbrain.customer.customeranalysis.customersummaryanalysis.query.dto.CustomerSummaryAnalysisQuerySatisfactionCustomerDTO">
+        SELECT
+                C.id            AS customerId,
+                C.customer_code AS customerCode,
+                C.name          AS customerName,
+                A.star          AS star,
+                A.create_date   AS createDate
+           FROM feedback A
+           JOIN (
+                SELECT
+                        cum_id,
+                        MAX(create_date) AS max_dt
+                FROM feedback
+                GROUP BY cum_id
+                ) B
+             ON A.cum_id = B.cum_id
+            AND A.create_date = B.max_dt
+           JOIN customer C
+             ON C.id = A.cum_id
+          WHERE A.star = #{star}
+          ORDER BY A.create_date DESC, C.id DESC
+          LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 고객 요약 분석의 원형 차트 -->
+    <select id="selectCustomerSegmentDistribution"
+            resultType="com.devoops.rentalbrain.customer.customeranalysis.customersummaryanalysis.query.dto.CustomerSegmentDistributionDTO">
+
+        SELECT
+                B.id   AS segmentId,
+                B.name AS segmentName,
+                COUNT(A.id) AS customerCount
+        FROM customer A
+        JOIN segment B ON B.id = A.segment_id
+        WHERE A.is_deleted = 'N'
+        GROUP BY B.id, B.name
+        ORDER BY segmentId ASC
+    </select>
+
+</mapper>
