@@ -35,6 +35,7 @@
         <result property="status" column="status"/>
         <result property="dept" column="dept"/>
         <result property="hire_date" column="hire_date"/>
+        <result property="resign_date" column="resign_date"/>
         <association property="position" javaType="com.devoops.rentalbrain.employee.query.dto.PositionDTO">
             <id property="position_id" column="position_id"/>
             <result property="position_name" column="position_name"/>

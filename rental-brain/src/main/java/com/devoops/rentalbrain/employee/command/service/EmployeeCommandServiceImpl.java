@@ -213,8 +213,13 @@ public class EmployeeCommandServiceImpl implements EmployeeCommandService {
     @Override
     @Transactional
     public void modifyEmpInfoByAdmin(EmployeeInfoModifyByAdminDTO employeeInfoModifyByAdminDTO) {
-        Employee employee = employeeCommandRepository.findByEmpId(employeeInfoModifyByAdminDTO.getEmpId());
+        UserImpl user = (UserImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        List<EmployeeAuth> verifyAuthList = employeeAuthCommandRepository.findByEmpId(user.getId());
+        if(verifyAuthList.stream().noneMatch(auth -> auth.getAuthId()==26L)){
+            throw new RuntimeException("관리자 외 사용자의 권한 수정은 불가능합니다.");
+        }
 
+        Employee employee = employeeCommandRepository.findByEmpId(employeeInfoModifyByAdminDTO.getEmpId());
         if(employeeCommandRepository.existsByEmail(employeeInfoModifyByAdminDTO.getEmail())) {
             if(!employeeInfoModifyByAdminDTO.getEmail().equals(employee.getEmail())) {
             throw new RuntimeException("이미 존재하는 이메일입니다.");
