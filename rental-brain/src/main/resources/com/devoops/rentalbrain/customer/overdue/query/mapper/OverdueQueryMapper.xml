@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.devoops.rentalbrain.customer.overdue.query.mapper.OverdueQueryMapper">
+
+    <!-- 수납 연체 목록 -->
+    <select id="findPayOverdueList" resultType="com.devoops.rentalbrain.customer.overdue.query.dto.PayOverdueListDTO">
+        SELECT
+            po.id                    AS overdueId,
+            po.pay_overdue_code      AS payOverdueCode,
+            c.name                   AS customerName,
+            c.in_charge              AS inCharge,
+            c.call_num               AS callNum,
+            con.contract_code        AS contractCode,
+            con.monthly_payment      AS monthlyPayment,
+            po.due_date              AS dueDate,
+            po.overdue_period        AS overduePeriod,
+            po.status                AS status
+        FROM pay_overdue po
+                 JOIN customer c
+                      ON c.id = po.cum_id
+                 JOIN contract con
+                      ON con.id = po.contract_id
+        ORDER BY po.pay_overdue_code DESC
+    </select>
+
+    <!-- 수납 연체 상세 -->
+    <select id="findPayOverdueDetail"
+            parameterType="long"
+            resultType="com.devoops.rentalbrain.customer.overdue.query.dto.PayOverdueDetailDTO">
+        SELECT
+            po.id                    AS overdueId,
+            po.pay_overdue_code      AS payOverdueCode,
+            c.name                   AS customerName,
+            c.in_charge              AS inCharge,
+            c.call_num               AS callNum,
+            con.contract_code        AS contractCode,
+            con.monthly_payment      AS monthlyPayment,
+            po.due_date              AS dueDate,
+            po.overdue_period        AS overduePeriod,
+            po.status                AS status
+        FROM pay_overdue po
+                 JOIN customer c
+                      ON c.id = po.cum_id
+                 JOIN contract con
+                      ON con.id = po.contract_id
+        WHERE po.id = #{id}
+    </select>
+
+</mapper>
