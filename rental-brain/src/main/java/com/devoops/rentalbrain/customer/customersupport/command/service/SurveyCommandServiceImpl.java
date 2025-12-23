@@ -48,9 +48,72 @@ public class SurveyCommandServiceImpl implements SurveyCommandService {
 
         OpenAIClient client = OpenAIOkHttpClient.fromEnv();
 
+        String prompt = "SYSTEM:\n" +
+                "You are a data analysis engine.\n" +
+                "You must output ONLY valid JSON.\n" +
+                "Do not include explanations, markdown, HTML, or JavaScript.\n\n" +
+
+                "USER:\n" +
+                "You MUST return the result strictly following this JSON structure:\n" +
+                "{\n" +
+                "  \"generatedAt\": string,\n" +
+                "  \"summary\": {\n" +
+                "    \"title\": string,\n" +
+                "    \"bullets\": string[]\n" +
+                "  },\n" +
+                "  \"charts\": [\n" +
+                "    {\n" +
+                "      \"id\": string,\n" +
+                "      \"title\": string,\n" +
+                "      \"type\": \"bar\" | \"doughnut\" | \"pie\" | \"line\",\n" +
+                "      \"data\": {\n" +
+                "        \"labels\": string[],\n" +
+                "        \"datasets\": [\n" +
+                "          {\n" +
+                "            \"label\": string,\n" +
+                "            \"values\": number[]\n" +
+                "          }\n" +
+                "        ]\n" +
+                "      },\n" +
+                "      \"options\": {\n" +
+                "        \"indexAxis\"?: \"x\" | \"y\",\n" +
+                "        \"unit\"?: string,\n" +
+                "        \"description\"?: string\n" +
+                "      }\n" +
+                "    }\n" +
+                "  ],\n" +
+                "  \"recommendations\": [\n" +
+                "    {\n" +
+                "      \"title\": string,\n" +
+                "      \"description\": string,\n" +
+                "      \"tags\": string[]\n" +
+                "    }\n" +
+                "  ]\n" +
+                "}\n\n" +
+
+                "All human-readable text values MUST be written in Korean.\n\n" +
+
+                "STRICT RULES:\n" +
+                "- Output ONLY JSON\n" +
+                "- No markdown\n" +
+                "- No explanations\n" +
+                "- No HTML or JavaScript\n\n" +
+
+                "Below is the survey result data in CSV format.\n" +
+                "Analyze this data and generate chart-ready JSON.\n\n" +
+
+                "CSV DATA:\n" +
+                new String(csvFile.getBytes(), StandardCharsets.UTF_8) +
+                "\n" +
+                "Return ONLY the JSON object.\n";
+        log.info(prompt);
+
         ResponseCreateParams createParams = ResponseCreateParams.builder()
-                .input("너는 CSV 데이터를 분석하여 HTML 코드만 생성하는 도우미다. Chart.js를 사용해서 요약글 + 차트로 내용을 정리하고 마지막에 추천 프로모션도 작성해라. 다른 설명은 절대 출력하지 마라.\n"+
-                        new String(csvFile.getBytes(), StandardCharsets.UTF_8))
+                .temperature(0.0)
+                .topP(1.0)
+                .input(
+                        prompt
+                )
                 .model(ChatModel.GPT_5_1)
                 .build();
         log.info("response 값 : {}", createParams);
