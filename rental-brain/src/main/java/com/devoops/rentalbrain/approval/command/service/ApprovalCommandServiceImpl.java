@@ -1,17 +1,19 @@
 package com.devoops.rentalbrain.approval.command.service;
 
 
-import com.devoops.rentalbrain.approval.command.Repository.ApprovalCommandRepository;
+
 import com.devoops.rentalbrain.approval.command.Repository.ApprovalMappingCommandRepository;
 import com.devoops.rentalbrain.approval.command.entity.ApprovalCommandEntity;
 import com.devoops.rentalbrain.approval.command.entity.ApprovalMappingCommandEntity;
 import com.devoops.rentalbrain.business.contract.command.entity.ContractCommandEntity;
 import com.devoops.rentalbrain.business.contract.command.entity.PaymentDetailCommandEntity;
-import com.devoops.rentalbrain.business.contract.command.repository.ContractCommandRepository;
 import com.devoops.rentalbrain.business.contract.command.repository.PaymentDetailCommandRepository;
 import com.devoops.rentalbrain.common.error.ErrorCode;
 import com.devoops.rentalbrain.common.error.exception.BusinessException;
+import com.devoops.rentalbrain.employee.command.dto.UserImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,25 +26,23 @@ import java.util.List;
 public class ApprovalCommandServiceImpl implements ApprovalCommandService {
 
     private final ApprovalMappingCommandRepository approvalMappingCommandRepository;
-    private final ApprovalCommandRepository approvalCommandRepository;
-    private final ContractCommandRepository contractCommandRepository;
     private final PaymentDetailCommandRepository paymentDetailCommandRepository;
 
     @Autowired
     public ApprovalCommandServiceImpl(ApprovalMappingCommandRepository approvalMappingCommandRepository,
-                                      ApprovalCommandRepository approvalCommandRepository,
-                                      ContractCommandRepository contractCommandRepository,
                                       PaymentDetailCommandRepository paymentDetailCommandRepository) {
         this.approvalMappingCommandRepository = approvalMappingCommandRepository;
-        this.approvalCommandRepository = approvalCommandRepository;
-        this.contractCommandRepository = contractCommandRepository;
         this.paymentDetailCommandRepository = paymentDetailCommandRepository;
     }
 
     @Override
-    public void approve(Long approvalMappingId) {
+    public void approve() {
+
+        Long approvalMappingId = getCurrentEmpId();
         // 1) mapping 한 건 승인 처리
         ApprovalMappingCommandEntity mapping = getApprovalMapping(approvalMappingId);
+
+        validateApprovalAuthority(mapping);
 
         mapping.setIsApproved("Y");
         mapping.setRejectReason(null);
@@ -71,9 +71,13 @@ public class ApprovalCommandServiceImpl implements ApprovalCommandService {
 
 
     @Override
-    public void reject(Long approvalMappingId, String rejectReason) {
+    public void reject(String rejectReason) {
+
+        Long approvalMappingId = getCurrentEmpId();
         // 1. 승인 매핑 조회
         ApprovalMappingCommandEntity mapping = getApprovalMapping(approvalMappingId);
+
+        validateApprovalAuthority(mapping);
 
         // 이미 반려/승인된 건 방어
         if (!"U".equals(mapping.getIsApproved())) {
@@ -124,5 +128,55 @@ public class ApprovalCommandServiceImpl implements ApprovalCommandService {
         }
 
         paymentDetailCommandRepository.saveAll(rows);
+    }
+
+    private Long getCurrentEmpId() {
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
+        }
+
+        Object principal = authentication.getPrincipal();
+
+        if (!(principal instanceof UserImpl user)) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
+        }
+
+        return Long.valueOf(user.getId());
+    }
+
+    private void validateApprovalAuthority(ApprovalMappingCommandEntity mapping) {
+
+        Long currentEmpId = getCurrentEmpId();
+
+        // 내 결재인지 확인
+        if (!mapping.getEmployee().getId().equals(currentEmpId)) {
+            throw new BusinessException(ErrorCode.APPROVAL_ACCESS_DENIED);
+        }
+
+        // 이미 처리된 건 방어
+        if (!"U".equals(mapping.getIsApproved())) {
+            throw new BusinessException(ErrorCode.APPROVAL_ALREADY_PROCESSED);
+        }
+
+        Long approvalId = mapping.getApproval().getId();
+        Integer step = mapping.getStep();
+
+        // 이전 단계 완료 여부 확인
+        boolean hasPrevNotApproved =
+                approvalMappingCommandRepository
+                        .existsByApproval_IdAndStepLessThanAndIsApprovedNot(
+                                approvalId,
+                                step,
+                                "Y"
+                        );
+
+        if (hasPrevNotApproved) {
+            throw new BusinessException(
+                    ErrorCode.APPROVAL_PREVIOUS_STEP_NOT_COMPLETED
+            );
+        }
     }
 }

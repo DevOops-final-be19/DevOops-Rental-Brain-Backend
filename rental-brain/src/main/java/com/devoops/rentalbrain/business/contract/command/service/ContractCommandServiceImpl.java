@@ -392,10 +392,20 @@ public class ContractCommandServiceImpl implements ContractCommandService {
         }
 
         // case 3: mem + leader + ceo (기본)
+        Employee memRef =
+                entityManager.getReference(Employee.class, loginEmpId);
         Employee leaderRef =
                 entityManager.getReference(Employee.class, leaderId);
         Employee ceoRef =
                 entityManager.getReference(Employee.class, ceoId);
+
+        ApprovalMappingCommandEntity memStep =
+                ApprovalMappingCommandEntity.builder()
+                        .approval(approval)
+                        .employee(memRef)
+                        .step(1)
+                        .isApproved("Y")
+                        .build();
 
         ApprovalMappingCommandEntity leaderStep =
                 ApprovalMappingCommandEntity.builder()
@@ -414,7 +424,7 @@ public class ContractCommandServiceImpl implements ContractCommandService {
                         .build();
 
         approvalMappingCommandRepository.saveAll(
-                List.of(leaderStep, ceoStep)
+                List.of(memStep, leaderStep, ceoStep)
         );
 
         contract.setCurrentStep(1);
