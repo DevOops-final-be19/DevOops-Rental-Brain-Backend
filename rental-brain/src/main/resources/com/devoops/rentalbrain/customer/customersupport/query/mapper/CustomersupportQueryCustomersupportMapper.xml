@@ -22,50 +22,73 @@
     <select id="selectSupportList" resultMap="SupportMap"
             parameterType="com.devoops.rentalbrain.customer.customersupport.query.dto.CustomersupportSearchDTO">
         SELECT
-               A.ID
-             , A.CUSTOMER_SUPPORT_CODE
-             , A.TITLE
-             , A.CONTENT
-             , A.STATUS
-             , A.CREATE_DATE
-             , A.ACTION
-             , B.NAME AS CUSTOMER_NAME
-             , C.NAME AS EMP_NAME
-             , D.NAME AS CATEGORY_NAME
-             , E.NAME AS CHANNEL_NAME
-          FROM customer_support A
-          LEFT JOIN customer B ON A.CUM_ID = B.ID
-          LEFT JOIN employee C ON A.EMP_ID = C.ID
-          LEFT JOIN support_category D ON A.CATEGORY_ID = D.ID
-          LEFT JOIN channel E ON A.CHANNEL_ID = E.ID
+        A.ID
+        , A.CUSTOMER_SUPPORT_CODE
+        , A.TITLE
+        , A.CONTENT
+        , A.STATUS
+        , A.CREATE_DATE
+        , A.ACTION
+        , B.NAME AS CUSTOMER_NAME
+        , C.NAME AS EMP_NAME
+        , D.NAME AS CATEGORY_NAME
+        , E.NAME AS CHANNEL_NAME
+        FROM customer_support A
+        LEFT JOIN customer B ON A.CUM_ID = B.ID
+        LEFT JOIN employee C ON A.EMP_ID = C.ID
+        LEFT JOIN support_category D ON A.CATEGORY_ID = D.ID
+        LEFT JOIN channel E ON A.CHANNEL_ID = E.ID
         <where>
-            <if test="title != null and title != ''">
-                AND A.TITLE LIKE CONCAT('%', #{title}, '%')
-            </if>
             <if test="status != null and status != ''">
                 AND A.STATUS = #{status}
             </if>
+            <if test="category != null">
+                AND A.CATEGORY_ID = #{category}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (
+                A.TITLE LIKE CONCAT('%', #{keyword}, '%')
+                OR A.CONTENT LIKE CONCAT('%', #{keyword}, '%')
+                OR B.NAME LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
         </where>
-        ORDER BY A.ID DESC
+        <choose>
+            <when test="sortBy == 'id' and sortOrder == 'asc'">
+                ORDER BY A.ID ASC
+            </when>
+            <otherwise>
+                ORDER BY A.ID DESC
+            </otherwise>
+        </choose>
         LIMIT #{amount} OFFSET #{offset}
     </select>
 
     <select id="selectSupportCount" resultType="long"
             parameterType="com.devoops.rentalbrain.customer.customersupport.query.dto.CustomersupportSearchDTO">
-        SELECT COUNT(*) FROM customer_support A
+        SELECT COUNT(*)
+        FROM customer_support A
+        LEFT JOIN customer B ON A.CUM_ID = B.ID
         <where>
-            <if test="title != null and title != ''">
-                AND A.TITLE LIKE CONCAT('%', #{title}, '%')
-            </if>
             <if test="status != null and status != ''">
                 AND A.STATUS = #{status}
+            </if>
+            <if test="category != null">
+                AND A.CATEGORY_ID = #{category}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (
+                A.TITLE LIKE CONCAT('%', #{keyword}, '%')
+                OR A.CONTENT LIKE CONCAT('%', #{keyword}, '%')
+                OR B.NAME LIKE CONCAT('%', #{keyword}, '%')
+                )
             </if>
         </where>
     </select>
 
     <select id="selectSupportById" resultMap="SupportMap" parameterType="long">
         SELECT
-               A.ID
+            A.ID
              , A.CUSTOMER_SUPPORT_CODE
              , A.TITLE
              , A.CONTENT
@@ -76,11 +99,23 @@
              , C.NAME AS EMP_NAME
              , D.NAME AS CATEGORY_NAME
              , E.NAME AS CHANNEL_NAME
-          FROM customer_support A
-          LEFT JOIN customer B ON A.CUM_ID = B.ID
-          LEFT JOIN employee C ON A.EMP_ID = C.ID
-          LEFT JOIN support_category D ON A.CATEGORY_ID = D.ID
-          LEFT JOIN channel E ON A.CHANNEL_ID = E.ID
-         WHERE A.ID = #{id}
+        FROM customer_support A
+                 LEFT JOIN customer B ON A.CUM_ID = B.ID
+                 LEFT JOIN employee C ON A.EMP_ID = C.ID
+                 LEFT JOIN support_category D ON A.CATEGORY_ID = D.ID
+                 LEFT JOIN channel E ON A.CHANNEL_ID = E.ID
+        WHERE A.ID = #{id}
     </select>
+
+    <select id="selectSupportKpi" resultType="com.devoops.rentalbrain.customer.customersupport.query.dto.CustomersupportKpiDTO">
+        SELECT
+            COUNT(*) AS total,
+            SUM(CASE WHEN STATUS != 'C' THEN 1 ELSE 0 END) AS processing,
+            CASE
+                WHEN COUNT(*) = 0 THEN 0
+                ELSE ROUND((SUM(CASE WHEN STATUS = 'C' THEN 1 ELSE 0 END) / COUNT(*)) * 100, 1)
+                END AS resolutionRate
+        FROM customer_support
+    </select>
+
 </mapper>
