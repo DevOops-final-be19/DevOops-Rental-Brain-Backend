@@ -1,0 +1,45 @@
+package com.devoops.rentalbrain.customer.overdue.command.controller;
+
+import com.devoops.rentalbrain.customer.overdue.command.dto.PayOverdueCommandDTO;
+import com.devoops.rentalbrain.customer.overdue.command.service.OverdueCommandService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/customers/overdues")
+@Tag(name = "연체 관리 (Command)", description = "수납 연체 / 제품 연체 상태 변경 API")
+public class OverdueCommandController {
+
+    private final OverdueCommandService overdueCommandService;
+
+    @Operation(
+            summary = "수납 연체 상태 변경",
+            description = """
+                    수납 연체 상태를 변경합니다.
+                    
+                    - P → C : 연체 해결 (납부 완료)
+                    - 해결 시 paidDate가 함께 처리됩니다.
+                    
+                    ※ 연체 이력은 삭제되지 않습니다.
+                    """
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "수납 연체 상태 변경 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청 (유효하지 않은 상태값)"),
+            @ApiResponse(responseCode = "404", description = "수납 연체 정보 없음")
+    })
+    @PutMapping("/pay/{id}")
+    public void updatePayOverdue(
+            @PathVariable Long id,
+            @RequestBody PayOverdueCommandDTO dto
+    ) {
+        overdueCommandService.updatePayOverdue(id, dto);
+    }
+
+}
+

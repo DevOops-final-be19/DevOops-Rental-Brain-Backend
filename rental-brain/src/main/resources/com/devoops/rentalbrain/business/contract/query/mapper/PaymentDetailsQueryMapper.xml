@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.devoops.rentalbrain.business.contract.query.mapper.PaymentDetailsQueryMapper">
+    <select id="findOverdueCandidates"
+            resultType="com.devoops.rentalbrain.business.contract.command.dto.ContractCreateDTO">
+
+        SELECT
+        pd.con_id              AS contractId,
+        c.id                   AS customerId,
+        MIN(pd.payment_due)    AS oldestDueDate,
+        COUNT(*)               AS overdueCount
+        FROM payment_details pd
+        JOIN contract c ON c.id = pd.con_id
+        WHERE pd.payment_status = 'N'
+        <![CDATA[
+          AND pd.payment_due < NOW()
+        ]]>
+        GROUP BY pd.con_id, c.id
+
+    </select>
+
+</mapper>
