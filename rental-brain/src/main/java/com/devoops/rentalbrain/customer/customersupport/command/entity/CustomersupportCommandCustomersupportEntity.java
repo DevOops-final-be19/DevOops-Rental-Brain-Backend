@@ -21,34 +21,35 @@ public class CustomersupportCommandCustomersupportEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "customer_support_code", nullable = false, unique = true)
-    private String customerSupportCode; // [추가]
+    @Column(name = "customer_support_code")
+    private String customerSupportCode;
 
-    @Column(nullable = false)
     private String title;
 
-    @Column(nullable = false, length = 2000)
     private String content;
 
-    // DB Default 'P' 사용을 위해 nullable = false 제거 (Java에서는 null 허용)
-    @Column(length = 1)
-    private String status;
+    // [중요] 누락되었던 필드 추가
+    @Column(name = "status")
+    private String status; // 'P': 진행중, 'C': 완료 등
 
     @Column(name = "create_date")
     private LocalDateTime createDate;
 
+    @Column(name = "action")
     private String action;
 
-    @Column(name = "cum_id", nullable = false)
+    // [핵심] 고객 ID 매핑 (DB 컬럼: cum_id)
+    @Column(name = "cum_id")
     private Long cumId;
 
-    @Column(name = "emp_id", nullable = false)
+    // [핵심] 담당자 ID 매핑 (DB 컬럼: emp_id)
+    @Column(name = "emp_id")
     private Long empId;
 
-    @Column(name = "category_id", nullable = false)
+    @Column(name = "category_id")
     private Long categoryId;
 
-    @Column(name = "channel_id", nullable = false)
+    @Column(name = "channel_id")
     private Long channelId;
 
     @PrePersist
