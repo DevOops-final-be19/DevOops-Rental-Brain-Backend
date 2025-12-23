@@ -11,15 +11,13 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
-
 @Configuration
 public class AppConfig {
-
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new  BCryptPasswordEncoder();
     }
-  
+
     @Bean
     public ModelMapper modelMapper() {
         return new ModelMapper();

@@ -1,9 +1,6 @@
 package com.devoops.rentalbrain.product.productlist.query.mapper;
 
-import com.devoops.rentalbrain.product.productlist.query.dto.EachItemDTO;
-import com.devoops.rentalbrain.product.productlist.query.dto.ItemCategoryDTO;
-import com.devoops.rentalbrain.product.productlist.query.dto.ItemKpiDTO;
-import com.devoops.rentalbrain.product.productlist.query.dto.ItemNameDTO;
+import com.devoops.rentalbrain.product.productlist.query.dto.*;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -24,11 +21,14 @@ public interface ItemMapper {
 
     long countItemsList();
 
-    List<ItemNameDTO> filteringItemsByCategory(String categoryName, int offset, int amount);
+    List<ItemNameDTO> filteringItemsByCategory(String categoryName, @Param("offset") int offset,
+                                               @Param("limit") int limit);
 
     long countSearchItemsList(String keyword);
 
     long countFilteringItemsList(String categoryName);
 
     List<ItemCategoryDTO> selectCategory();
+
+    EachItemKpiDTO countEachItemKpi(String itemName);
 }

@@ -48,11 +48,12 @@ public class EmployeeCommandController {
                     @ApiResponse(responseCode = "400", description = "잘못된 요청")
             }
     )
-    @PostMapping("/admin/signup")
-    public ResponseEntity<?> signup(@RequestBody SignUpDTO signUpDTO) {
-        try {
-            employeeCommandService.signup(signUpDTO);
-        } catch (Exception e) {
+    @PostMapping("/signup")
+    public ResponseEntity<?> signup(@RequestBody SignUpDTO signUpDTO){
+        try{
+        employeeCommandService.signup(signUpDTO);
+        }catch (Exception e){
+            log.info("");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
         return ResponseEntity.ok().build();
@@ -103,7 +104,7 @@ public class EmployeeCommandController {
     public ResponseEntity<?> modifyEmpInfo(@RequestBody EmployeeInfoModifyDTO employeeInfoModifyDTO) {
         try {
             employeeCommandService.modifyEmpInfo(employeeInfoModifyDTO);
-        } catch (Exception e) {
+        }catch (Exception e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
         return ResponseEntity.ok().body("Done");
@@ -122,7 +123,7 @@ public class EmployeeCommandController {
     public ResponseEntity<?> modifyEmpInfoByAdmin(@RequestBody EmployeeInfoModifyByAdminDTO employeeInfoModifyByAdminDTO) {
         try {
             employeeCommandService.modifyEmpInfoByAdmin(employeeInfoModifyByAdminDTO);
-        } catch (Exception e) {
+        } catch (Exception e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
         return ResponseEntity.ok().body("Done");
@@ -140,7 +141,7 @@ public class EmployeeCommandController {
     public ResponseEntity<?> modifyEmpPwd(@RequestBody EmployeePasswordModifyDTO employeePasswordModifyDTO) {
         try {
             employeeCommandService.modifyEmpPwd(employeePasswordModifyDTO);
-        } catch (Exception e) {
+        }catch (Exception e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
         return ResponseEntity.ok().body("Done");
