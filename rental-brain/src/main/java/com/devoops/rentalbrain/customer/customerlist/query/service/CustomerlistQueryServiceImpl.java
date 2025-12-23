@@ -72,21 +72,4 @@ public class CustomerlistQueryServiceImpl implements CustomerlistQueryService {
         return detail;
     }
 
-    @Override
-    public PageResponseDTO<CustomerContractDTO> getCustomerContractListWithPaging(Criteria criteria) {
-        // 1. 목록조회
-        List<CustomerContractDTO> list =
-                customerlistQueryMapper.CustomerContractList(criteria);
-
-        // 2. 개수조회
-        long totalCount =
-                customerlistQueryMapper.CustomerContractListCount(criteria);
-
-        // 3. 페이지 버튼 정보 생성
-        PagingButtonInfo paging =
-                Pagination.getPagingButtonInfo(criteria, totalCount);
-
-        // 4. 응답 DTO 조립
-        return new PageResponseDTO<>(list, totalCount, paging);
-    }
 }
