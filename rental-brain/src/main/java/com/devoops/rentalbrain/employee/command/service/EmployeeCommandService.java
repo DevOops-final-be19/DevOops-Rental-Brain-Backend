@@ -10,7 +10,7 @@ public interface EmployeeCommandService extends UserDetailsService {
 
     void logout(LogoutDTO logoutDTO,String token);
 
-    void modifyAuth(List<EmployeeAuthDTO> empPositionAuthDTO);
+    void modifyAuth(EmployeeAuthDTO empPositionAuthDTO);
 
     void saveLoginHistory(Long id, String ipAddress, char y);
 

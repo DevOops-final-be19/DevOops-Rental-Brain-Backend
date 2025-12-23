@@ -3,9 +3,11 @@ package com.devoops.rentalbrain.employee.command.service;
 import com.devoops.rentalbrain.common.codegenerator.CodeGenerator;
 import com.devoops.rentalbrain.common.codegenerator.CodeType;
 import com.devoops.rentalbrain.employee.command.dto.*;
+import com.devoops.rentalbrain.employee.command.entity.EmpPosition;
 import com.devoops.rentalbrain.employee.command.entity.Employee;
 import com.devoops.rentalbrain.employee.command.entity.EmployeeAuth;
 import com.devoops.rentalbrain.employee.command.entity.LoginHistory;
+import com.devoops.rentalbrain.employee.command.repository.EmpPositionCommandRepository;
 import com.devoops.rentalbrain.employee.command.repository.EmployeeAuthCommandRepository;
 import com.devoops.rentalbrain.employee.command.repository.EmployeeCommandRepository;
 import com.devoops.rentalbrain.employee.command.repository.LoginHistoryCommandRepository;
@@ -41,6 +43,7 @@ public class EmployeeCommandServiceImpl implements EmployeeCommandService {
     private final Environment env;
     private final EmployeeAuthCommandRepository employeeAuthCommandRepository;
     private final LoginHistoryCommandRepository loginHistoryCommandRepository;
+    private final EmpPositionCommandRepository empPositionCommandRepository;
     private final CodeGenerator codeGenerator;
 
     public EmployeeCommandServiceImpl(EmployeeCommandRepository employeeCommandRepository,
@@ -49,6 +52,7 @@ public class EmployeeCommandServiceImpl implements EmployeeCommandService {
                                       Environment env,
                                       EmployeeAuthCommandRepository employeeAuthCommandRepository,
                                       LoginHistoryCommandRepository loginHistoryCommandRepository,
+                                      EmpPositionCommandRepository empPositionCommandRepository,
                                       CodeGenerator codeGenerator) {
         this.employeeCommandRepository = employeeCommandRepository;
         this.bCryptPasswordEncoder = new BCryptPasswordEncoder();
@@ -57,6 +61,7 @@ public class EmployeeCommandServiceImpl implements EmployeeCommandService {
         this.env = env;
         this.loginHistoryCommandRepository = loginHistoryCommandRepository;
         this.employeeAuthCommandRepository = employeeAuthCommandRepository;
+        this.empPositionCommandRepository = empPositionCommandRepository;
         this.codeGenerator = codeGenerator;
     }
 
@@ -142,27 +147,28 @@ public class EmployeeCommandServiceImpl implements EmployeeCommandService {
 
     @Override
     @Transactional
-    public void modifyAuth(List<EmployeeAuthDTO> employeeAuthDTO) {
-        if (employeeAuthDTO.isEmpty()) {
-            log.info("넘어온 사원 권한 정보 없음");
-            return;
+    public void modifyAuth(EmployeeAuthDTO employeeAuthDTO) {
+        // db에 있는 현재 요청 보낸 사용자 직책 조회
+        UserImpl user = (UserImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if(user.getId() == employeeAuthDTO.getEmp_id()){
+            throw new RuntimeException("자기 자신의 권한 수정은 불가능합니다.");
         }
-        Long emp_Id = employeeAuthDTO.get(0).getEmp_id();
-        List<Long> authList = employeeAuthDTO.stream()
-                .map(EmployeeAuthDTO::getAuth_id)
-                .toList();
+        List<EmployeeAuth> verifyAuthList = employeeAuthCommandRepository.findByEmpId(user.getId());
+        if(verifyAuthList.stream().noneMatch(auth -> auth.getAuthId()==26L)){
+            throw new RuntimeException("관리자 외 사용자의 권한 수정은 불가능합니다.");
+        }
 
         // db에 있는 직책별 권한 조회
-        List<EmployeeAuth> employeeAuthList = employeeAuthCommandRepository.findByEmpId(emp_Id);
+        List<EmployeeAuth> employeeAuthList = employeeAuthCommandRepository.findByEmpId(employeeAuthDTO.getEmp_id());
         Map<Long, EmployeeAuth> employeeAuthMap = employeeAuthList.stream()
                 .collect(Collectors.toMap(EmployeeAuth::getAuthId, EmployeeAuth->EmployeeAuth));
 
         // 수정된 권한이 있으면 저장
-        for (Long authId : authList) {
+        for (Long authId : employeeAuthDTO.getAuth_id()) {
             if (employeeAuthMap.get(authId) == null) {
                 EmployeeAuth employeeAuth = new EmployeeAuth();
                 employeeAuth.setAuthId(authId);
-                employeeAuth.setEmpId(emp_Id);
+                employeeAuth.setEmpId(employeeAuthDTO.getEmp_id());
                 employeeAuthCommandRepository.save(employeeAuth);
             } else {
                 employeeAuthMap.remove(authId);
@@ -207,8 +213,13 @@ public class EmployeeCommandServiceImpl implements EmployeeCommandService {
     @Override
     @Transactional
     public void modifyEmpInfoByAdmin(EmployeeInfoModifyByAdminDTO employeeInfoModifyByAdminDTO) {
-        Employee employee = employeeCommandRepository.findByEmpId(employeeInfoModifyByAdminDTO.getEmpId());
+        UserImpl user = (UserImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        List<EmployeeAuth> verifyAuthList = employeeAuthCommandRepository.findByEmpId(user.getId());
+        if(verifyAuthList.stream().noneMatch(auth -> auth.getAuthId()==26L)){
+            throw new RuntimeException("관리자 외 사용자의 권한 수정은 불가능합니다.");
+        }
 
+        Employee employee = employeeCommandRepository.findByEmpId(employeeInfoModifyByAdminDTO.getEmpId());
         if(employeeCommandRepository.existsByEmail(employeeInfoModifyByAdminDTO.getEmail())) {
             if(!employeeInfoModifyByAdminDTO.getEmail().equals(employee.getEmail())) {
             throw new RuntimeException("이미 존재하는 이메일입니다.");
@@ -256,6 +267,9 @@ public class EmployeeCommandServiceImpl implements EmployeeCommandService {
         }
         if(!employeeInfoModifyByAdminDTO.getGender().equals(employee.getGender())) {
             employee.setGender(employeeInfoModifyByAdminDTO.getGender());
+        }
+        if(!employeeInfoModifyByAdminDTO.getStatus().equals(employee.getStatus())) {
+            employee.setStatus(employeeInfoModifyByAdminDTO.getStatus());
         }
         if(!employeeInfoModifyByAdminDTO.getDept().equals(employee.getDept())) {
             employee.setDept(employeeInfoModifyByAdminDTO.getDept());

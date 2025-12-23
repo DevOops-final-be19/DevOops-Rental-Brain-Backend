@@ -3,6 +3,7 @@ package com.devoops.rentalbrain.employee.query.service;
 import com.devoops.rentalbrain.employee.command.dto.UserImpl;
 import com.devoops.rentalbrain.employee.query.dto.EmpAuthListDTO;
 import com.devoops.rentalbrain.employee.query.dto.EmployeeInfoDTO;
+import com.devoops.rentalbrain.employee.query.dto.PositionDTO;
 import com.devoops.rentalbrain.employee.query.mapper.EmployeeQueryMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
@@ -42,5 +43,10 @@ public class EmployeeQueryServiceImpl implements EmployeeQueryService {
     @Override
     public List<EmpAuthListDTO> getEmpAuthList() {
         return employeeQueryMapper.getEmpAuthList();
+    }
+
+    @Override
+    public List<PositionDTO> getPositionList() {
+        return employeeQueryMapper.getPositionList();
     }
 }

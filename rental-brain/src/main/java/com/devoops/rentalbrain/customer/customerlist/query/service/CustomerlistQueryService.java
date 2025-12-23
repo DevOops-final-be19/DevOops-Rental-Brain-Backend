@@ -1,7 +1,9 @@
 package com.devoops.rentalbrain.customer.customerlist.query.service;
 
+import com.devoops.rentalbrain.common.pagination.Criteria;
 import com.devoops.rentalbrain.common.pagination.PageResponseDTO; // 파일 경로 대소문자 확인 필요 (보통 패키지는 소문자)
 import com.devoops.rentalbrain.customer.common.CustomerDTO;
+import com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerContractDTO;
 import com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerDetailResponseDTO;
 import com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerKpiDTO; // KPI DTO Import
 import com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerlistSearchDTO;

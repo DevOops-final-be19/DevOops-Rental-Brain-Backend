@@ -22,6 +22,7 @@ public class EmployeeListDTO {
     private Character status;
     private String dept;
     private String hire_date;
+    private String resign_date;
     private PositionDTO position;
     private List<EmpAuthDTO> empAuth;
 }
