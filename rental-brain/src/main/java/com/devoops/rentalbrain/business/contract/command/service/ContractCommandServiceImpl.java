@@ -205,8 +205,8 @@ public class ContractCommandServiceImpl implements ContractCommandService {
             contractItemCommandRepository.saveAll(mappings);
         }
 
-        // 세그먼트 트리거 추가
 
+        // 세그먼트 트리거 추가
         Long customerId = dto.getCumId();
         Long contractId = savedContract.getId(); // save 이후라 반드시 존재
 
