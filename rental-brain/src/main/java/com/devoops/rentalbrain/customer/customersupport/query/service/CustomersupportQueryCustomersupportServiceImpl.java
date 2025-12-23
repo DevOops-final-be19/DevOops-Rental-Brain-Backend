@@ -32,4 +32,9 @@ public class CustomersupportQueryCustomersupportServiceImpl implements Customers
     public CustomersupportDTO getSupportDetail(Long id) {
         return mapper.selectSupportById(id);
     }
+
+    @Override
+    public CustomersupportKpiDTO getSupportKpi() {
+        return mapper.selectSupportKpi();
+    }
 }

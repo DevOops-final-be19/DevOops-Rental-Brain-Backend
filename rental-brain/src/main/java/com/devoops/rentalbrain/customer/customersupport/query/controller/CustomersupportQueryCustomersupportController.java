@@ -22,21 +22,27 @@ public class CustomersupportQueryCustomersupportController {
 
     private final CustomersupportQueryCustomersupportService queryService;
 
-    @Operation(summary = "문의 목록 조회", description = "제목, 상태 등의 검색 조건과 페이징을 적용하여 문의 목록을 조회합니다.")
+    @Operation(summary = "문의 목록 조회", description = "검색어, 카테고리, 상태, 정렬 조건을 포함하여 목록을 조회합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "조회 성공"),
             @ApiResponse(responseCode = "500", description = "서버 내부 오류")
     })
     @GetMapping("/all")
     public ResponseEntity<PageResponseDTO<CustomersupportDTO>> list(
-            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String status,
+            @RequestParam(required = false) Integer category,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String sortOrder,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
 
         CustomersupportSearchDTO criteria = new CustomersupportSearchDTO(page, size);
-        criteria.setTitle(title);
+        criteria.setKeyword(keyword);
         criteria.setStatus(status);
+        criteria.setCategory(category);
+        criteria.setSortBy(sortBy);
+        criteria.setSortOrder(sortOrder);
 
         return ResponseEntity.ok(queryService.getSupportList(criteria));
     }
@@ -51,4 +57,15 @@ public class CustomersupportQueryCustomersupportController {
     public ResponseEntity<CustomersupportDTO> detail(@PathVariable Long id) {
         return ResponseEntity.ok(queryService.getSupportDetail(id));
     }
+
+    @Operation(summary = "문의 KPI 조회")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+    @GetMapping("/kpi")
+    public ResponseEntity<CustomersupportKpiDTO> getKpi() {
+        return ResponseEntity.ok(queryService.getSupportKpi());
+    }
+
 }
