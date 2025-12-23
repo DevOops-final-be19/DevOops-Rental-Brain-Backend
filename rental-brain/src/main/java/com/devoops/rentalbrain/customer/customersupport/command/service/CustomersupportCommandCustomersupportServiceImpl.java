@@ -66,7 +66,10 @@ public class CustomersupportCommandCustomersupportServiceImpl implements Custome
         if(dto.getCategoryId() != null) entity.setCategoryId(dto.getCategoryId());
         if(dto.getChannelId() != null) entity.setChannelId(dto.getChannelId());
         if(dto.getEmpId() != null) entity.setEmpId(dto.getEmpId());
-        // 필요하다면 status나 action도 업데이트
+        // 조치사항(Action) 수정 기능
+        if(dto.getAction() != null) entity.setAction(dto.getAction());
+        // 상태(Status) 변경 기능 (진행중 -> 완료)
+        if(dto.getStatus() != null) entity.setStatus(dto.getStatus());
     }
 
     @Override   // 삭제
