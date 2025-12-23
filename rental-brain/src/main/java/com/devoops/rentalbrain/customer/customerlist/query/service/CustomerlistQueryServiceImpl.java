@@ -1,5 +1,6 @@
 package com.devoops.rentalbrain.customer.customerlist.query.service;
 
+import com.devoops.rentalbrain.common.pagination.Criteria;
 import com.devoops.rentalbrain.common.pagination.PageResponseDTO;
 import com.devoops.rentalbrain.common.pagination.Pagination;
 import com.devoops.rentalbrain.common.pagination.PagingButtonInfo;
@@ -70,4 +71,5 @@ public class CustomerlistQueryServiceImpl implements CustomerlistQueryService {
 
         return detail;
     }
+
 }

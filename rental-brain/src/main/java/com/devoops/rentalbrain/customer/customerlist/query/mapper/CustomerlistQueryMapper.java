@@ -1,5 +1,6 @@
 package com.devoops.rentalbrain.customer.customerlist.query.mapper;
 
+import com.devoops.rentalbrain.common.pagination.Criteria;
 import com.devoops.rentalbrain.customer.common.CustomerDTO;
 import com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerDetailResponseDTO;
 import com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerHistoryDTO;
