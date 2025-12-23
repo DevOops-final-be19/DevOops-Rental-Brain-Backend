@@ -131,17 +131,4 @@
           FROM emp_position a
     </select>
 
-    <select id="getContractEmpList" resultType="com.devoops.rentalbrain.employee.query.dto.ContractEmpDTO">
-        SELECT
-            e.id            AS id,
-            e.employee_code AS employeeCode,
-            e.name          AS name,
-            e.dept          AS dept,
-            e.position_id   AS positionId,
-            ep.position_name AS positionName,
-            ep.description  AS description
-        FROM employee e
-        LEFT JOIN emp_position ep
-        ON e.position_id = ep.id
-    </select>
 </mapper>

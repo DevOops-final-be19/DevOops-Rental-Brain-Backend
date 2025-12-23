@@ -19,7 +19,5 @@ public interface EmployeeQueryMapper {
 
     List<EmpAuthListDTO> getEmpAuthList();
 
-    List<ContractEmpDTO> getContractEmpList();
-
     List<PositionDTO> getPositionList();
 }

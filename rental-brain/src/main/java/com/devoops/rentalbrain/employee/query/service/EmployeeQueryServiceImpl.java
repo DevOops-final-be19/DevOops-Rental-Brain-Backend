@@ -42,11 +42,6 @@ public class EmployeeQueryServiceImpl implements EmployeeQueryService {
     }
 
     @Override
-    public List<ContractEmpDTO> getContractEmpList() {
-        return employeeQueryMapper.getContractEmpList();
-    }
-
-    @Override
     public List<EmpAuthListDTO> getEmpAuthList() {
         return employeeQueryMapper.getEmpAuthList();
     }

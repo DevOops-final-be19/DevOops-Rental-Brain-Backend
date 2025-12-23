@@ -17,7 +17,5 @@ public interface EmployeeQueryService {
 
     List<EmpAuthListDTO> getEmpAuthList();
 
-    List<ContractEmpDTO> getContractEmpList();
-
     List<PositionDTO> getPositionList();
 }

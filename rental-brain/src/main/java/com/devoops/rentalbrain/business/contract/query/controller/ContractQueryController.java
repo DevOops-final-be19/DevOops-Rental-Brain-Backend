@@ -3,11 +3,13 @@ package com.devoops.rentalbrain.business.contract.query.controller;
 
 import com.devoops.rentalbrain.business.contract.query.dto.*;
 import com.devoops.rentalbrain.business.contract.query.service.ContractQueryService;
+import com.devoops.rentalbrain.common.pagination.Criteria;
 import com.devoops.rentalbrain.common.pagination.PageResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -145,6 +147,18 @@ public class ContractQueryController {
         );
     }
 
+
+    @Operation(
+            summary = "계약 수납 정보 조회",
+            description = "계약에 대한 월별 수납 정보를 조회합니다."
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "계약 수납 조회 성공",
+            content = @Content(
+                    schema = @Schema(implementation = ContractPaymentDTO.class)
+            )
+    )
     @GetMapping("/{contractId}/payments")
     public ResponseEntity<List<ContractPaymentDTO>> getContractPayments(
             @PathVariable Long contractId
@@ -154,6 +168,18 @@ public class ContractQueryController {
         );
     }
 
+
+    @Operation(
+            summary = "렌탈 제품 목록 조회",
+            description = "계약에 포함된 렌탈 제품 정보를 조회합니다."
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "렌탈 제품 조회 성공",
+            content = @Content(
+                    schema = @Schema(implementation = RentalProductInfoDTO.class)
+            )
+    )
     @GetMapping("/{contractId}/products")
     public ResponseEntity<List<RentalProductInfoDTO>> getRentalProductList(
             @PathVariable Long contractId
@@ -163,4 +189,34 @@ public class ContractQueryController {
         );
     }
 
+
+    @Operation(summary = "계약 대상 고객 조회", description = "계약 생성을 위한 고객을 조회합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 고객"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+    @GetMapping("/customer")
+    public ResponseEntity<PageResponseDTO<CustomerContractApprovalDTO>> list(
+            @ModelAttribute Criteria criteria
+            ){
+        return ResponseEntity.ok(contractQueryService.getCustomerContractApprovalList(criteria));
+    }
+
+
+    @Operation(
+            summary = "계약 담당 직원 목록 조회",
+            description = "계약 생성 시 선택 가능한 직원 목록을 조회합니다."
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "직원 목록 조회 성공",
+            content = @Content(
+                    schema = @Schema(implementation = EmpContractDTO.class)
+            )
+    )
+    @GetMapping("/emp")
+    public ResponseEntity<List<EmpContractDTO>> getContractEmpList(){
+        return ResponseEntity.ok(contractQueryService.getContractEmpList());
+    }
 }

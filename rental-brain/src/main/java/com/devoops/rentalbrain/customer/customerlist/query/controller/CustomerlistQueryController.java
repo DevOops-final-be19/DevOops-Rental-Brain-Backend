@@ -72,16 +72,5 @@ public class CustomerlistQueryController {
         return ResponseEntity.ok(queryService.getCustomerDetail(id));
     }
 
-//    @Operation(summary = "계약 대상 고객 조회", description = "계약 생성을 위한 고객을 조회합니다.")
-//    @ApiResponses(value = {
-//            @ApiResponse(responseCode = "200", description = "조회 성공"),
-//            @ApiResponse(responseCode = "404", description = "존재하지 않는 고객"),
-//            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
-//    })
-//    @GetMapping("/contract")
-//    public ResponseEntity<PageResponseDTO<CustomerContractDTO>> list(
-//            @ModelAttribute Criteria criteria
-//            ){
-//        return ResponseEntity.ok(queryService.getCustomerContractListWithPaging(criteria));
-//    }
+
 }
