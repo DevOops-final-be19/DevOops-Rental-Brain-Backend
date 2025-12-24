@@ -82,12 +82,16 @@
         <result property="wholeCount" column="WHOLE_COUNT"/>
         <result property="rentalCount" column="RENTAL_COUNT"/>
         <result property="repairCount" column="REPAIR_COUNT"/>
+        <result property="availableCount" column="AVAILABLE_COUNT"/>
+        <result property="overdueCount" column="OVERDUE_COUNT"/>
     </resultMap>
     <select id="countItems" resultMap="getItemCountMap">
         SELECT
                COUNT(*) AS WHOLE_COUNT,
                COUNT(CASE WHEN A.STATUS = 'S' THEN 1 END) AS RENTAL_COUNT,
-               COUNT(CASE WHEN A.STATUS = 'S' THEN 1 END) AS REPAIR_COUNT
+               COUNT(CASE WHEN A.STATUS = 'R' THEN 1 END) AS REPAIR_COUNT,
+               COUNT(CASE WHEN A.STATUS = 'P' THEN 1 END) AS AVAILABLE_COUNT,
+               COUNT(CASE WHEN A.STATUS = 'O' THEN 1 END) AS OVERDUE_COUNT
           FROM item A
     </select>
     <select id="countItemsList">
