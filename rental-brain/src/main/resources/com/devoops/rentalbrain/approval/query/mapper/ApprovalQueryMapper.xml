@@ -13,7 +13,7 @@
                 SELECT COUNT(DISTINCT m.approval_id)
                 FROM approval_mapping m
                 WHERE m.emp_id = #{empId}
-                  AND m.is_approved = 'P'
+                  AND m.is_approved = 'U'
             ) AS my_pending,
 
             /* =========================
@@ -32,7 +32,7 @@
             ) AS total_approved,
 
             /* =========================
-               3. 총 반려된 결재 (R 하나라도)
+               3. 총 반려된 결재 (N 하나라도)
                ========================= */
             (
                 SELECT COUNT(*)
