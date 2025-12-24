@@ -6,9 +6,9 @@ import com.devoops.rentalbrain.business.campaign.command.dto.ModifyCouponDTO;
 public interface CouponCommandService {
     String insertCoupon(InsertCouponDTO couponDTO);
 
-    String updateCoupon(Long couponId, ModifyCouponDTO couponDTO);
+    String updateCoupon(String couCode, ModifyCouponDTO couponDTO);
 
-    String deleteCoupon(Long couponId);
+    String deleteCoupon(String couCode);
 
     String createIssuedCoupon(Long couponId, Long contractId);
 }

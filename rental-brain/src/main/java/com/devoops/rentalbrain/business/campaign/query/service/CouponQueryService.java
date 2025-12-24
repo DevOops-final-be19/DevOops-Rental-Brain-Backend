@@ -17,4 +17,6 @@ public interface CouponQueryService {
     PageResponseDTO<CouponDTO> filterCouponByStatus(String status, Criteria criteria);
 
     List<CouponWithContractDTO> useContractCoupon(String segment);
+
+    CouponDTO readDetailCoupon(String couCode);
 }

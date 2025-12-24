@@ -65,8 +65,8 @@ public class PromotionCommandServiceImpl implements PromotionCommandService {
 
     @Override
     @Transactional
-    public String updatePromotion(Long promotionId, ModifyPromotionDTO promotionDTO) {
-        Promotion promotion = promotionRepository.findById(promotionId).get();
+    public String updatePromotion(String proCode, ModifyPromotionDTO promotionDTO) {
+        Promotion promotion = promotionRepository.findByPromotionCode(proCode);
         if(promotionDTO.getName() != null && !promotion.getName().equals(promotionDTO.getName())) {
             promotion.setName(promotionDTO.getName());
         }
@@ -104,8 +104,8 @@ public class PromotionCommandServiceImpl implements PromotionCommandService {
 
     @Override
     @Transactional
-    public String deletePromotion(Long promotionId) {
-        promotionRepository.deleteById(promotionId);
+    public String deletePromotion(String proCode) {
+        promotionRepository.deleteByPromotionCode(proCode);
 
         return "promotion delete success";
     }

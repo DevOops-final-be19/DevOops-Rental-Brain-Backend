@@ -70,4 +70,10 @@ public class PromotionQueryServiceImpl implements PromotionQueryService {
         List<PromotionWithContractDTO> promotionList = promotionMapper.useContractPromotion(segment);
         return promotionList;
     }
+
+    @Override
+    public PromotionDTO readDetailPromotion(String proCode) {
+        PromotionDTO promotion = promotionMapper.selectEachPromotion(proCode);
+        return promotion;
+    }
 }

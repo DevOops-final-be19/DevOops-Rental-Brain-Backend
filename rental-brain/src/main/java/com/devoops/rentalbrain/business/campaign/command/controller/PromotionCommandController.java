@@ -48,9 +48,9 @@ public class PromotionCommandController {
                     @ApiResponse(responseCode = "400", description = "잘못된 요청")
             }
     )
-    @PutMapping("/update/{promotionId}")
-    public String updatePromotion(@PathVariable Long promotionId, @RequestBody ModifyPromotionDTO promotionDTO) {
-        String result = promotionCommandService.updatePromotion(promotionId, promotionDTO);
+    @PutMapping("/update/{proCode}")
+    public String updatePromotion(@PathVariable String proCode, @RequestBody ModifyPromotionDTO promotionDTO) {
+        String result = promotionCommandService.updatePromotion(proCode, promotionDTO);
         return result;
     }
 
@@ -63,9 +63,9 @@ public class PromotionCommandController {
                     @ApiResponse(responseCode = "400", description = "잘못된 요청")
             }
     )
-    @DeleteMapping("/delete/{promotionId}")
-    public String deletePromotion(@PathVariable Long promotionId) {
-        String result = promotionCommandService.deletePromotion(promotionId);
+    @DeleteMapping("/delete/{proCode}")
+    public String deletePromotion(@PathVariable String proCode) {
+        String result = promotionCommandService.deletePromotion(proCode);
         return result;
     }
 
