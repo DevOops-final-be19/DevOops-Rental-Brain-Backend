@@ -1,4 +1,4 @@
-package com.devoops.rentalbrain.common.segmentrebuild.command.mapper;
+package com.devoops.rentalbrain.common.segmentrebuild.command.entity;
 
 
 import jakarta.persistence.*;

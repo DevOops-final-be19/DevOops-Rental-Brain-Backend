@@ -103,15 +103,10 @@
 
     <!-- 세그먼트별 피드백 만족도 평균 -->
     <select id="getSegmentAvgStar" resultType="double">
-        SELECT
-            A.id AS segmentId,
-            A.name AS segmentName,
-            count(DISTINCT B.id) AS customerCount,
-            coalesce(round(avg(C.star),1),0)
-            FROM segment A
-        LEFT JOIN customer B ON A.id = B.segment_id
-        LEFT JOIN feedback C ON B.id = C.cum_id
-        WHERE A.id = #{segmentId}
+        SELECT COALESCE(ROUND(AVG(C.star), 1), 0)
+        FROM customer B
+        LEFT JOIN feedback C ON C.cum_id = B.id
+        WHERE B.segment_id = #{segmentId}
     </select>
 
     <!-- 세그먼트별 인기 품목 -->

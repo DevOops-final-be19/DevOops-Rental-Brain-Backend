@@ -1,4 +1,4 @@
-package com.devoops.rentalbrain.common.segmentrebuild.command.entity;
+package com.devoops.rentalbrain.common.segmentrebuild.command.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;

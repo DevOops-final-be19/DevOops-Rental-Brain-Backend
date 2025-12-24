@@ -1,6 +1,6 @@
 package com.devoops.rentalbrain.common.segmentrebuild.command.service;
 
-import com.devoops.rentalbrain.common.segmentrebuild.command.entity.SegmentTransitionCommandMapper;
+import com.devoops.rentalbrain.common.segmentrebuild.command.mapper.SegmentTransitionCommandMapper;
 import com.devoops.rentalbrain.customer.customerlist.command.entity.CustomerlistCommandEntity;
 import com.devoops.rentalbrain.customer.customerlist.command.repository.CustomerlistCommandRepository;
 import com.devoops.rentalbrain.customer.customersegmenthistory.command.domain.SegmentChangeReferenceType;
