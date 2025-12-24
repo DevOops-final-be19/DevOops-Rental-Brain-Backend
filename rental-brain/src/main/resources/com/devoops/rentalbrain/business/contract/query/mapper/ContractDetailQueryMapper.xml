@@ -51,13 +51,19 @@
             id AS contractId,
             start_date AS startDate,
             contract_period AS contractPeriod,
-            LEAST(
+            CASE
+                WHEN <![CDATA[ NOW() < start_date ]]> THEN 0
+
+                WHEN <![CDATA[
+                NOW() >= DATE_ADD(start_date, INTERVAL contract_period MONTH)
+            ]]> THEN 100
+
+                ELSE
                     ROUND(
                             TIMESTAMPDIFF(MONTH, start_date, NOW())
                                 / contract_period * 100
-                    ),
-                    100
-            ) AS progressRate
+                    )
+                END AS progressRate
         FROM contract
         WHERE id = #{contractId}
     </select>
