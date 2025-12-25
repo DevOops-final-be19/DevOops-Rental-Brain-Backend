@@ -6,5 +6,4 @@ import com.devoops.rentalbrain.business.contract.command.dto.ContractUpdateDTO;
 public interface ContractCommandService {
     void updateContractStatus();
     void createContract(ContractCreateDTO  contractCreateDTO);
-    void updateContract(ContractUpdateDTO contractUpdateDTO);
 }

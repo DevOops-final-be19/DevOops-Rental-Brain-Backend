@@ -90,7 +90,7 @@
             i.name AS itemName,
             COUNT(cwi.id) AS quantity
         FROM contract_with_item cwi
-                 JOIN item i ON cwi.item_id = i.id
+                RIGHT JOIN item i ON cwi.item_id = i.id
         WHERE cwi.contract_id = #{contractId}
         GROUP BY i.name
     </select>
@@ -107,7 +107,7 @@
             i.name              AS name,
             i.last_inspect_date AS latelyInspectDate
         FROM contract_with_item cwi
-                 JOIN item i ON cwi.item_id = i.id
+                 RIGHT JOIN item i ON cwi.item_id = i.id
         WHERE cwi.contract_id = #{contractId}
     </select>
     <!-- =========================

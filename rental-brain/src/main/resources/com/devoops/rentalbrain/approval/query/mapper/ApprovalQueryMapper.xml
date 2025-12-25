@@ -14,6 +14,12 @@
                 FROM approval_mapping m
                 WHERE m.emp_id = #{empId}
                   AND m.is_approved = 'U'
+                  AND NOT EXISTS (
+                    SELECT 1
+                    FROM approval_mapping x
+                    WHERE x.approval_id = m.approval_id
+                      AND x.is_approved = 'N'
+                )
             ) AS my_pending,
 
             /* =========================
