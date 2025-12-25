@@ -70,4 +70,10 @@ public class CouponQueryServiceImpl implements CouponQueryService {
         List<CouponWithContractDTO> couponList = couponMapper.useContractCoupon(segment);
         return couponList;
     }
+
+    @Override
+    public CouponDTO readDetailCoupon(String couCode) {
+        CouponDTO coupon = couponMapper.selectEachCoupon(couCode);
+        return coupon;
+    }
 }

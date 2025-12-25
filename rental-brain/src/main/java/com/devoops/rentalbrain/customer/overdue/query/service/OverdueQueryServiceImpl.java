@@ -84,7 +84,7 @@ public class OverdueQueryServiceImpl implements OverdueQueryService {
                 overdueQueryMapper.findOverdueItemsByContractId(overdue.getContractId());
 
         Map<String, Object> result = new HashMap<>();
-        result.put("overdue", overdue);
+        result.put("detail", overdue);
         result.put("items", items);
 
         return result;

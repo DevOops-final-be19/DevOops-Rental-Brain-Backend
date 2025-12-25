@@ -18,7 +18,7 @@
         <result property="used" column="USED"/>
         <result property="usedRate" column="USED_RATE"/>
     </resultMap>
-    <select id="selectCoupon" resultMap="getCouponMap">
+    <select id="selectCoupon" resultMap="getCouponMap" parameterType="_int">
         SELECT
                A.COUPON_CODE,
                A.NAME,
@@ -37,13 +37,14 @@
           LEFT JOIN segment B ON A.SEGMENT_ID = B.ID
           LEFT JOIN issued_coupon C ON A.ID = C.COUPON_ID
          GROUP BY A.ID, A.NAME
+         LIMIT #{limit} OFFSET #{offset}
     </select>
     <select id="countCouponList">
         SELECT
                COUNT(*)
           FROM coupon A
     </select>
-    <select id="searchCoupon" resultMap="getCouponMap" parameterType="string">
+    <select id="searchCoupon" resultMap="getCouponMap" parameterType="map">
         SELECT
                A.COUPON_CODE,
                A.NAME,
@@ -63,6 +64,7 @@
           LEFT JOIN issued_coupon C ON A.ID = C.COUPON_ID
          WHERE A.COUPON_CODE LIKE CONCAT('%', #{keyword}, '%') OR A.NAME LIKE CONCAT('%', #{keyword}, '%')
          GROUP BY A.ID, A.NAME
+         LIMIT #{limit} OFFSET #{offset}
     </select>
     <select id="countSearchedCoupon" parameterType="string">
         SELECT
@@ -90,6 +92,7 @@
           LEFT JOIN issued_coupon C ON A.ID = C.COUPON_ID
          WHERE A.TYPE = #{type}
          GROUP BY A.ID, A.NAME
+         LIMIT #{limit} OFFSET #{offset}
     </select>
     <select id="countFliteringCoupon" parameterType="string">
         SELECT
@@ -117,6 +120,7 @@
           LEFT JOIN issued_coupon C ON A.ID = C.COUPON_ID
          WHERE A.STATUS = #{status}
          GROUP BY A.ID, A.NAME
+         LIMIT #{limit} OFFSET #{offset}
     </select>
     <select id="countFliterCouponByStatus" parameterType="string">
         SELECT
@@ -141,5 +145,26 @@
           FROM coupon A
           LEFT JOIN segment B ON A.SEGMENT_ID = B.ID
          WHERE B.NAME = #{segment}
+    </select>
+    <select id="selectEachCoupon" resultMap="getCouponMap" parameterType="string">
+        SELECT
+               A.COUPON_CODE,
+               A.NAME,
+               A.RATE,
+               A.TYPE,
+               A.MIN_FEE,
+               B.NAME AS SEGMENT_NAME,
+               A.STATUS,
+               A.START_DATE,
+               A.END_DATE,
+               A.CONTENT,
+               COUNT(C.ID) AS ISSUED,
+               COUNT(CASE WHEN C.IS_USED = 'Y' THEN 1 END) AS USED,
+               (COUNT(CASE WHEN C.IS_USED = 'Y' THEN 1 END)/COUNT(C.id))*100 AS USED_RATE
+          FROM coupon A
+          LEFT JOIN segment B ON A.SEGMENT_ID = B.ID
+          LEFT JOIN issued_coupon C ON A.ID = C.COUPON_ID
+         WHERE A.COUPON_CODE = #{couCode}
+         GROUP BY A.ID, A.NAME
     </select>
 </mapper>

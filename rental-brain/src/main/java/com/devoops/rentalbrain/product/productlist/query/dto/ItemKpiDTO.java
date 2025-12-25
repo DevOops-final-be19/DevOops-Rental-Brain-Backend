@@ -11,4 +11,6 @@ public class ItemKpiDTO {
     private int wholeCount;
     private int rentalCount;
     private int repairCount;
+    private Integer availableCount;
+    private Integer overdueCount;
 }

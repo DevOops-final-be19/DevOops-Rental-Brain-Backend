@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class CouponStatusScheduler {
     private final CouponRepository couponRepository;
 
-    @Scheduled(cron = "0 */1 * * * *")
+    @Scheduled(cron = "0 0 6 * * *")
     @Transactional
     public void updateCouponStatus() {
         couponRepository.updateCouponStatus();

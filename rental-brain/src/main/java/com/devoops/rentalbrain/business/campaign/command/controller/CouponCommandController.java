@@ -49,9 +49,9 @@ public class CouponCommandController {
                     @ApiResponse(responseCode = "400", description = "잘못된 요청")
             }
     )
-    @PutMapping("/update/{couponId}")
-    public String updateCoupon(@PathVariable Long couponId, @RequestBody ModifyCouponDTO couponDTO) {
-        String result = couponCommandService.updateCoupon(couponId, couponDTO);
+    @PutMapping("/update/{couCode}")
+    public String updateCoupon(@PathVariable String couCode, @RequestBody ModifyCouponDTO couponDTO) {
+        String result = couponCommandService.updateCoupon(couCode, couponDTO);
 
         return result;
     }
@@ -65,9 +65,9 @@ public class CouponCommandController {
                     @ApiResponse(responseCode = "400", description = "잘못된 요청")
             }
     )
-    @DeleteMapping("/delete/{couponId}")
-    public String deleteCoupon(@PathVariable("couponId") Long couponId) {
-        String result = couponCommandService.deleteCoupon(couponId);
+    @DeleteMapping("/delete/{couCode}")
+    public String deleteCoupon(@PathVariable("couCode") String couCode) {
+        String result = couponCommandService.deleteCoupon(couCode);
         return result;
     }
 

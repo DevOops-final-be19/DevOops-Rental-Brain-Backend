@@ -70,8 +70,8 @@ public class CouponCommandServiceImpl implements CouponCommandService {
 
     @Override
     @Transactional
-    public String updateCoupon(Long couponId, ModifyCouponDTO couponDTO) {
-        Coupon coupon = couponRepository.findById(couponId).get();
+    public String updateCoupon(String couCode, ModifyCouponDTO couponDTO) {
+        Coupon coupon = couponRepository.findByCouponCode(couCode);
         if(couponDTO.getName() != null && !coupon.getName().equals(couponDTO.getName())) {
             coupon.setName(couponDTO.getName());
         }
@@ -119,8 +119,8 @@ public class CouponCommandServiceImpl implements CouponCommandService {
 
     @Override
     @Transactional
-    public String deleteCoupon(Long couponId) {
-        couponRepository.deleteById(couponId);
+    public String deleteCoupon(String couCode) {
+        couponRepository.deleteByCouponCode(couCode);
         return "Coupon deleted successfully";
     }
 

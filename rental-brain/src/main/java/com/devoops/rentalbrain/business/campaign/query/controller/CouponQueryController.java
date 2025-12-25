@@ -114,4 +114,19 @@ public class CouponQueryController {
         List<CouponWithContractDTO> couponList = couponQueryService.useContractCoupon(segment);
         return ResponseEntity.ok().body(couponList);
     }
+
+    @Operation(
+            summary = "쿠폰 상세 조회",
+            description = "각 쿠폰별 정보를 상세 조회합니다.",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "조회 성공"),
+                    @ApiResponse(responseCode = "400", description = "잘못된 요청")
+            }
+    )
+    @GetMapping("/read-detail/{couCode}")
+    public ResponseEntity<CouponDTO> readDetail(@PathVariable String couCode) {
+        CouponDTO coupon = couponQueryService.readDetailCoupon(couCode);
+        return ResponseEntity.ok().body(coupon);
+    }
 }

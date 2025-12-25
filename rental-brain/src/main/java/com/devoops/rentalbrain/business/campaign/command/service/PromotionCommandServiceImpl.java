@@ -65,26 +65,55 @@ public class PromotionCommandServiceImpl implements PromotionCommandService {
 
     @Override
     @Transactional
-    public String updatePromotion(Long promotionId, ModifyPromotionDTO promotionDTO) {
-        Promotion promotion = promotionRepository.findById(promotionId).get();
-        if(promotionDTO.getName() != null && !promotion.getName().equals(promotionDTO.getName())) {
-            promotion.setName(promotionDTO.getName());
-        }
-        if(promotionDTO.getStartDate() != null && !promotion.getStartDate().equals(promotionDTO.getStartDate())) {
-            promotion.setStartDate(promotionDTO.getStartDate());
-        }
-        if(promotionDTO.getEndDate() != null && !promotion.getEndDate().equals(promotionDTO.getEndDate())) {
-            promotion.setEndDate(promotionDTO.getEndDate());
-        }
-        if(promotionDTO.getStatus() != null && !promotion.getStatus().equals(promotionDTO.getStatus())) {
-            promotion.setStatus(promotionDTO.getStatus());
-        }
+    public String updatePromotion(String proCode, ModifyPromotionDTO promotionDTO) {
+        Promotion promotion = promotionRepository.findByPromotionCode(proCode);
+        promotion.setStartDate(null);
+        promotion.setEndDate(null);
+        promotion.setTriggerVal(null);
         if(promotionDTO.getType() != null && !promotion.getType().equals(promotionDTO.getType())) {
             promotion.setType(promotionDTO.getType());
         }
-        if(promotionDTO.getTriggerVal() != null && !promotion.getTriggerVal().equals(promotionDTO.getTriggerVal())) {
-            promotion.setTriggerVal(promotionDTO.getTriggerVal());
+        if(promotionDTO.getName() != null && !promotion.getName().equals(promotionDTO.getName())) {
+            promotion.setName(promotionDTO.getName());
         }
+        if ("M".equals(promotion.getType())) {
+            LocalDateTime oldStart = promotion.getStartDate();
+            LocalDateTime newStart = promotionDTO.getStartDate();
+
+            if (newStart != null && !newStart.equals(oldStart)) {
+                promotion.setStartDate(newStart);
+            }
+            if ("A".equals(promotionDTO.getType()) && newStart == null) {
+                promotion.setStartDate(null);
+            }
+
+            LocalDateTime oldEnd = promotion.getEndDate();
+            LocalDateTime newEnd = promotionDTO.getEndDate();
+
+            if (newEnd != null && !newEnd.equals(oldEnd)) {
+                promotion.setEndDate(newEnd);
+            }
+            if ("A".equals(promotionDTO.getType()) && newEnd == null) {
+                promotion.setEndDate(null);
+            }
+        }
+
+        if(promotionDTO.getStatus() != null && !promotion.getStatus().equals(promotionDTO.getStatus())) {
+            promotion.setStatus(promotionDTO.getStatus());
+        }
+        if ("A".equals(promotion.getType())) {
+            String oldTrigger = promotion.getTriggerVal();
+            String newTrigger = promotionDTO.getTriggerVal();
+
+            if (newTrigger != null && !newTrigger.equals(oldTrigger)) {
+                promotion.setTriggerVal(newTrigger);
+            }
+
+            if ("M".equals(promotionDTO.getType()) && newTrigger == null) {
+                promotion.setTriggerVal(null);
+            }
+        }
+
         if(promotionDTO.getContent() != null && !promotion.getContent().equals(promotionDTO.getContent())) {
             promotion.setContent(promotionDTO.getContent());
         }
@@ -104,8 +133,8 @@ public class PromotionCommandServiceImpl implements PromotionCommandService {
 
     @Override
     @Transactional
-    public String deletePromotion(Long promotionId) {
-        promotionRepository.deleteById(promotionId);
+    public String deletePromotion(String proCode) {
+        promotionRepository.deleteByPromotionCode(proCode);
 
         return "promotion delete success";
     }

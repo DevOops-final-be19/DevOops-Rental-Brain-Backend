@@ -38,9 +38,6 @@ public class ItemOverdue {
     @Column(name = "cum_id", nullable = false)
     private Long customerId;
 
-    @Column(name = "item_id", nullable = false)
-    private Long itemId;
-
     public void resolve() {
         this.status = "C";
     }

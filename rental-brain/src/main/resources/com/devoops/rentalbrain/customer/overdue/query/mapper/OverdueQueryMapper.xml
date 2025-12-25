@@ -100,9 +100,7 @@
     </select>
 
     <!-- 제품 연체 목록 -->
-    <select id="findItemOverdueList"
-            parameterType="com.devoops.rentalbrain.common.pagination.Criteria"
-            resultType="com.devoops.rentalbrain.customer.overdue.query.dto.ItemOverdueListDTO">
+    <select id="findItemOverdueList" resultType="com.devoops.rentalbrain.customer.overdue.query.dto.ItemOverdueListDTO">
 
         SELECT
         io.id                AS overdueId,
@@ -145,7 +143,7 @@
     </select>
 
     <!-- 제품 연체 전체 건수 -->
-    <select id="countItemOverdue" resultType="long">
+    <select id="countItemOverdueList" resultType="long">
 
         SELECT COUNT(*)
         FROM item_overdue io
@@ -167,6 +165,10 @@
 
                     <when test="criteria.type == 'contract'">
                         AND con.contract_code LIKE CONCAT('%', #{criteria.keyword}, '%')
+                    </when>
+
+                    <when test="criteria.type == 'overdue'">
+                        AND io.item_overdue_code LIKE CONCAT('%', #{criteria.keyword}, '%')
                     </when>
                 </choose>
             </if>
