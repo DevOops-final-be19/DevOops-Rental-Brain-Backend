@@ -8,8 +8,8 @@ import com.devoops.rentalbrain.common.pagination.Criteria;
 import com.devoops.rentalbrain.common.pagination.PageResponseDTO;
 
 public interface ApprovalQueryService {
-    ApprovalStatusDTO getApprovalStatus(Long empId);
-    PageResponseDTO<PendingApprovalDTO> getPendingApprovals(Long empId, Criteria criteria);
-    PageResponseDTO<ApprovalProgressDTO> getApprovalProgress(Long empId, Criteria criteria);
-    PageResponseDTO<ApprovalCompletedDTO> getApprovalCompleted(Long empId, Criteria criteria);
+    ApprovalStatusDTO getApprovalStatus();
+    PageResponseDTO<PendingApprovalDTO> getPendingApprovals(Criteria criteria);
+    PageResponseDTO<ApprovalProgressDTO> getApprovalProgress(Criteria criteria);
+    PageResponseDTO<ApprovalCompletedDTO> getApprovalCompleted(Criteria criteria);
 }

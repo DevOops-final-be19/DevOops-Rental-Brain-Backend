@@ -4,6 +4,8 @@ import com.devoops.rentalbrain.approval.command.Repository.ApprovalCommandReposi
 import com.devoops.rentalbrain.approval.command.Repository.ApprovalMappingCommandRepository;
 import com.devoops.rentalbrain.approval.command.entity.ApprovalCommandEntity;
 import com.devoops.rentalbrain.approval.command.entity.ApprovalMappingCommandEntity;
+import com.devoops.rentalbrain.business.campaign.command.service.CouponCommandService;
+import com.devoops.rentalbrain.business.campaign.command.service.PromotionCommandService;
 import com.devoops.rentalbrain.business.contract.command.dto.ContractCreateDTO;
 import com.devoops.rentalbrain.business.contract.command.dto.ContractItemDTO;
 import com.devoops.rentalbrain.business.contract.command.dto.ContractUpdateDTO;
@@ -50,6 +52,8 @@ public class ContractCommandServiceImpl implements ContractCommandService {
     private final PaymentDetailCommandRepository paymentDetailCommandRepository;
     private final CodeGenerator codeGenerator;
     private final SegmentTransitionCommandService segmentTransitionCommandService;
+    private final PromotionCommandService promotionCommandService;
+    private final CouponCommandService couponCommandService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -63,7 +67,9 @@ public class ContractCommandServiceImpl implements ContractCommandService {
             ApprovalMappingCommandRepository approvalMappingCommandRepository,
             PaymentDetailCommandRepository paymentDetailCommandRepository,
             CodeGenerator codeGenerator,
-            SegmentTransitionCommandService segmentTransitionCommandService
+            SegmentTransitionCommandService segmentTransitionCommandService,
+            PromotionCommandService promotionCommandService,
+            CouponCommandService couponCommandService
     ) {
         this.contractCommandRepository = contractCommandRepository;
         this.approvalCommandRepository = approvalCommandRepository;
@@ -73,6 +79,8 @@ public class ContractCommandServiceImpl implements ContractCommandService {
         this.paymentDetailCommandRepository = paymentDetailCommandRepository;
         this.codeGenerator = codeGenerator;
         this.segmentTransitionCommandService = segmentTransitionCommandService;
+        this.promotionCommandService = promotionCommandService;
+        this.couponCommandService = couponCommandService;
     }
 
     /**
@@ -223,9 +231,28 @@ public class ContractCommandServiceImpl implements ContractCommandService {
         ContractCommandEntity savedContract =
                 contractCommandRepository.save(contract);
 
+        Long contractId = savedContract.getId();
+
 
         /* =====================
-             4. 승인 생성
+            2-1. 프로모션 / 쿠폰 로그
+        ===================== */
+
+        if (dto.getPromotionId() != null) {
+            promotionCommandService.createPromotionLog(
+                    dto.getPromotionId(),
+                    contractId
+            );
+        }
+
+        if (dto.getCouponId() != null) {
+            couponCommandService.createIssuedCoupon(
+                    dto.getCouponId(),
+                    contractId
+            );
+        }
+        /* =====================
+             3. 승인 생성
        ===================== */
 
         ApprovalCommandEntity approval = new ApprovalCommandEntity();
@@ -254,7 +281,7 @@ public class ContractCommandServiceImpl implements ContractCommandService {
         );
 
         /* =====================
-       3. 제품 상태 update + 계약-제품 매핑 insert
+       4. 제품 상태 update + 계약-제품 매핑 insert
        ===================== */
         for (ContractItemDTO item : dto.getItems()) {
 
@@ -300,9 +327,7 @@ public class ContractCommandServiceImpl implements ContractCommandService {
         }
 
         // 세그먼트 트리거 추가
-
         Long customerId = dto.getCumId();
-        Long contractId = savedContract.getId(); // save 이후라 반드시 존재
 
         TransactionSynchronizationManager.registerSynchronization(
                 new TransactionSynchronization() {
@@ -324,13 +349,6 @@ public class ContractCommandServiceImpl implements ContractCommandService {
                 }
         );
     }
-
-
-    @Override
-    public void updateContract(ContractUpdateDTO dto) {
-
-    }
-
 
     private void createApprovalMapping(
             ApprovalCommandEntity approval,
@@ -392,10 +410,20 @@ public class ContractCommandServiceImpl implements ContractCommandService {
         }
 
         // case 3: mem + leader + ceo (기본)
+        Employee memRef =
+                entityManager.getReference(Employee.class, loginEmpId);
         Employee leaderRef =
                 entityManager.getReference(Employee.class, leaderId);
         Employee ceoRef =
                 entityManager.getReference(Employee.class, ceoId);
+
+        ApprovalMappingCommandEntity memStep =
+                ApprovalMappingCommandEntity.builder()
+                        .approval(approval)
+                        .employee(memRef)
+                        .step(1)
+                        .isApproved("Y")
+                        .build();
 
         ApprovalMappingCommandEntity leaderStep =
                 ApprovalMappingCommandEntity.builder()
@@ -414,7 +442,7 @@ public class ContractCommandServiceImpl implements ContractCommandService {
                         .build();
 
         approvalMappingCommandRepository.saveAll(
-                List.of(leaderStep, ceoStep)
+                List.of(memStep, leaderStep, ceoStep)
         );
 
         contract.setCurrentStep(1);
