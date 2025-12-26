@@ -66,5 +66,10 @@ public class OverdueCommandServiceImpl implements OverdueCommandService {
         if (Boolean.TRUE.equals(dto.getResolved())) {
             entity.resolve();
         }
+
+        // count가 0이면 자동 해결
+        if (dto.getCount() != null && dto.getCount() == 0) {
+            entity.resolve();
+        }
     }
 }

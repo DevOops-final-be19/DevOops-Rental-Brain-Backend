@@ -55,7 +55,7 @@ public class OverdueCommandController {
     )
     @PutMapping("/item/{id}")
     public void updateItemOverdue(
-            @PathVariable Long overdueId,
+            @PathVariable("id") Long overdueId,
             @RequestBody ItemOverdueCommandDTO dto
     ) {
         overdueCommandService.updateItemOverdue(overdueId, dto);
