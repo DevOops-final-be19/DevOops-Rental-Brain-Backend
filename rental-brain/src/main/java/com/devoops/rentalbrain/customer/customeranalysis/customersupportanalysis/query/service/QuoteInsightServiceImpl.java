@@ -106,17 +106,19 @@ public class QuoteInsightServiceImpl implements QuoteInsightService {
                 "반드시 아래 JSON 스키마로만 응답하세요. (모든 텍스트는 한국어)\n" +
                 "{\n" +
                 "  \"generatedAt\": string,\n" +
-                "  \"successFactorsTop3\": [{\"rank\": number, \"label\": string, \"count\": number}],\n" +
-                "  \"failFactorsTop3\":    [{\"rank\": number, \"label\": string, \"count\": number}],\n" +
+                "  \"successFactorsTop5\": [{\"rank\": number, \"label\": string, \"count\": number}],\n" +
+                "  \"failFactorsTop5\":    [{\"rank\": number, \"label\": string, \"count\": number}],\n" +
                 "  \"positiveKeywords\":    [{\"rank\": number, \"label\": string, \"count\": number}],\n" +
-                "  \"complaintTop3\":       [{\"rank\": number, \"label\": string, \"count\": number}],\n" +
+                "  \"complaintTop5\":       [{\"rank\": number, \"label\": string, \"count\": number}],\n" +
                 "  \"notes\":               string[]\n" +
                 "}\n\n" +
                 "규칙:\n" +
-                "- successFactorsTop3: 성공(1) 데이터에서 반복적으로 나타나는 성공 요인 TOP3\n" +
-                "- failFactorsTop3: 실패(0) 데이터에서 반복적으로 나타나는 실패 요인 TOP3\n" +
+
+                "- successFactorsTop5: 성공(1) 데이터에서 반복적으로 나타나는 성공 요인 TOP5\n" +
+                "- failFactorsTop5: 실패(0) 데이터에서 반복적으로 나타나는 실패 요인 TOP5\n" +
+
                 "- positiveKeywords: 긍정 피드백/장점 키워드 TOP5 (rank 1~5)\n" +
-                "- complaintTop3: 불만/컴플레인 원인 TOP3\n" +
+                "- complaintTop5: 불만/컴플레인 원인 TOP5\n" +
                 "- count는 샘플 내 빈도를 기반으로 산정하세요(정수).\n" +
                 "- label은 2~12자 내의 짧은 문구로 정리(예: '맞춤 제안', '가격 경쟁력', 'AS 지연').\n" +
                 "- notes는 2~4개로, 실무 액션 힌트를 포함한 한 줄 문장으로 작성.\n" +
