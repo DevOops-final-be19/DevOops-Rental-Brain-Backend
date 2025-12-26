@@ -6,12 +6,12 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class OverdueAutoCreateScheduler {
+public class ItemOverdueAutoCreateScheduler {
 
-    private final OverdueAutoCreateCommandService service;
+    private final ItemOverdueAutoCreateService service;
 
-    @Scheduled(cron = "0 0 8 * * ?") // 매일 아침 8시
-    public void runOverdueAutoCreate() {
-        service.createOverdueFromPaymentDetails();
+    @Scheduled(cron = "0 0 8 * * ?") // 매일 오전 8시
+    public void run() {
+        service.createItemOverdueFromExpiredContract();
     }
 }
