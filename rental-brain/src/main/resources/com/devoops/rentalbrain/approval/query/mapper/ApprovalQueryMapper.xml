@@ -6,33 +6,66 @@
             parameterType="long"
             resultType="com.devoops.rentalbrain.approval.query.dto.ApprovalStatusDTO">
         SELECT
-            -- 개인 승인 상태
-            SUM(CASE WHEN emp_id = #{empId} AND is_approved = 'Y' THEN 1 ELSE 0 END) AS my_approved,
-            SUM(CASE WHEN emp_id = #{empId} AND is_approved = 'N' THEN 1 ELSE 0 END) AS my_rejected,
-            SUM(CASE WHEN emp_id = #{empId} AND is_approved = 'U' THEN 1 ELSE 0 END) AS my_pending,
+            /* =========================
+               1. 내가 대기 중인 결재
+               ========================= */
+            (
+                SELECT COUNT(DISTINCT m.approval_id)
+                FROM approval_mapping m
+                WHERE m.emp_id = #{empId}
+                  AND m.is_approved = 'U'
+                  AND NOT EXISTS (
+                    SELECT 1
+                    FROM approval_mapping x
+                    WHERE x.approval_id = m.approval_id
+                      AND x.is_approved = 'N'
+                )
+            ) AS my_pending,
 
-            -- 전체 승인 상태
-            SUM(CASE
-                    WHEN approval_id IN (
-                        SELECT approval_id
-                        FROM approval_mapping
-                        GROUP BY approval_id
-                        HAVING SUM(CASE WHEN is_approved != 'Y' THEN 1 ELSE 0 END) = 0
-                    )
-                        THEN 1 ELSE 0
-                END) AS fully_approved_count,
+            /* =========================
+               2. 총 승인된 결재 (모두 Y)
+               ========================= */
+            (
+                SELECT COUNT(*)
+                FROM (
+                         SELECT approval_id
+                         FROM approval_mapping
+                         GROUP BY approval_id
+                         HAVING SUM(
+                                        CASE WHEN is_approved != 'Y' THEN 1 ELSE 0 END
+                                ) = 0
+                     ) t
+            ) AS total_approved,
 
-            SUM(CASE
-                    WHEN approval_id IN (
-                        SELECT approval_id
-                        FROM approval_mapping
-                        GROUP BY approval_id
-                        HAVING SUM(CASE WHEN is_approved != 'Y' THEN 1 ELSE 0 END) > 0
-                    )
-                        THEN 1 ELSE 0
-                END) AS not_fully_approved_count
-        FROM approval_mapping
-        WHERE emp_id = #{empId}
+            /* =========================
+               3. 총 반려된 결재 (N 하나라도)
+               ========================= */
+            (
+                SELECT COUNT(*)
+                FROM (
+                         SELECT approval_id
+                         FROM approval_mapping
+                         GROUP BY approval_id
+                         HAVING SUM(
+                                        CASE WHEN is_approved = 'N' THEN 1 ELSE 0 END
+                                ) > 0
+                     ) t
+            ) AS total_rejected,
+
+            /* =========================
+               4. 결재 진행 중 (R 없음 + P 존재)
+               ========================= */
+            (
+                SELECT COUNT(*)
+                FROM (
+                         SELECT approval_id
+                         FROM approval_mapping
+                         GROUP BY approval_id
+                         HAVING
+                             SUM(CASE WHEN is_approved = 'N' THEN 1 ELSE 0 END) = 0
+                            AND SUM(CASE WHEN is_approved = 'U' THEN 1 ELSE 0 END) > 0
+                     ) t
+            ) AS in_progress
     </select>
 
     <select id="selectPendingApprovalsByEmpIdWithPaging"
@@ -151,6 +184,13 @@
         )
         AND approval_status = 'P'
 
+        -- 반려된 결재 문서 제외
+        AND NOT EXISTS (
+        SELECT 1
+        FROM v_approval_payment_manage x
+        WHERE x.approval_code = v.approval_code
+        AND x.is_approved = 'N'
+        )
         <!--
          검색 조건 -->
         <if test="criteria.keyword != null and criteria.keyword != ''">
@@ -170,14 +210,22 @@
             parameterType="map"
             resultType="long">
 
-        SELECT COUNT(DISTINCT approval_code)
-        FROM v_approval_payment_manage
-        WHERE approval_code IN (
+        SELECT COUNT(DISTINCT v.approval_code)
+        FROM v_approval_payment_manage v
+        WHERE v.approval_code IN (
         SELECT approval_code
         FROM v_approval_payment_manage
         WHERE approver_emp_id = #{empId}
         )
-        AND approval_status = 'P'
+        AND v.approval_status = 'P'
+
+        -- 반려된 결재 문서 제외
+        AND NOT EXISTS (
+        SELECT 1
+        FROM v_approval_payment_manage x
+        WHERE x.approval_code = v.approval_code
+        AND x.is_approved = 'N'
+        )
 
         <if test="criteria.keyword != null and criteria.keyword != ''">
             AND (
@@ -211,9 +259,9 @@
             <!-- 로그인 사용자 기준 -->
             v.approver_emp_id = #{empId}
 
-            <!-- ✅ 완료 조건 -->
+            <!-- 완료 조건 -->
             AND (
-            /* 1️⃣ 거절이 하나라도 있으면 완료 */
+            /* 거절이 하나라도 있으면 완료 */
             EXISTS (
             SELECT 1
             FROM v_approval_payment_manage sub
@@ -221,7 +269,7 @@
             AND sub.is_approved IN ('N','R')
             )
             OR
-            /* 2️⃣ 미처리(U)가 하나도 없으면 완료 */
+            /* 미처리(U)가 하나도 없으면 완료 */
             NOT EXISTS (
             SELECT 1
             FROM v_approval_payment_manage sub

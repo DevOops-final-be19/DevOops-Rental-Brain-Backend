@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @Setter
 @ToString
 public class CouponWithContractDTO {
+    private Long id;
     private String couponCode;
     private String name;
     private String content;

@@ -42,11 +42,11 @@ public class ApprovalCommandController {
                     content = @Content
             )
     })
-    @PatchMapping("/{id}/approve")
+    @PatchMapping("/approve/{approvalMappingId}")
     public ResponseEntity<Void> approve(
-            @PathVariable Long id
+            @PathVariable Long approvalMappingId
     ) {
-        approvalCommandService.approve(id);
+        approvalCommandService.approve(approvalMappingId);
         return ResponseEntity.noContent().build();
     }
 
@@ -70,12 +70,12 @@ public class ApprovalCommandController {
                     content = @Content
             )
     })
-    @PatchMapping("/{id}/reject")
+    @PatchMapping("/reject/{approvalMappingId}")
     public ResponseEntity<Void> reject(
-            @PathVariable Long id,
+            @PathVariable Long approvalMappingId,
             @RequestBody ApprovalRejectRequest request
     ) {
-        approvalCommandService.reject(id, request.getRejectReason());
+        approvalCommandService.reject(approvalMappingId, request.getRejectReason());
         return ResponseEntity.noContent().build();
     }
 }

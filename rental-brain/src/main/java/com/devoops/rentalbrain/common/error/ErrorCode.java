@@ -40,7 +40,9 @@ public enum ErrorCode {
 
     /* Approval */
     APPROVAL_MAPPING_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR,"APR001","승인 매핑 정보를 찾을 수 없습니다."),
-    APPROVAL_ALREADY_PROCESSED(HttpStatus.CONFLICT, "APR002", "이미 처리된 승인 요청입니다.");
+    APPROVAL_ALREADY_PROCESSED(HttpStatus.CONFLICT, "APR002", "이미 처리된 승인 요청입니다."),
+    APPROVAL_ACCESS_DENIED(HttpStatus.FORBIDDEN,"APR003" ,"결재권한이 없습니다." ),
+    APPROVAL_PREVIOUS_STEP_NOT_COMPLETED(HttpStatus.CONFLICT,"APR004" ,"이전 승인 단계가 완료되지 않았습니다." );
 
     private final HttpStatus status;
     private final String code;

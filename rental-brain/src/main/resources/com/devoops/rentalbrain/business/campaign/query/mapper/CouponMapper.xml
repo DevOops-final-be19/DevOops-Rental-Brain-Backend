@@ -130,21 +130,22 @@
     </select>
     <resultMap id="getCouponWithContractMap" type="com.devoops.rentalbrain.business.campaign.query.dto.CouponWithContractDTO">
         <id property="couponCode" column="COUPON_CODE"/>
+        <result property="id" column="ID"/>
         <result property="name" column="NAME"/>
         <result property="content" column="CONTENT"/>
         <result property="rate" column="RATE"/>
         <result property="endDate" column="END_DATE"/>
     </resultMap>
-    <select id="useContractCoupon" resultMap="getCouponWithContractMap" parameterType="string">
+    <select id="useContractCoupon" resultMap="getCouponWithContractMap" parameterType="Integer">
         SELECT
-               A.COUPON_CODE,
-               A.NAME,
-               A.CONTENT,
-               A.RATE,
-               A.END_DATE
-          FROM coupon A
-          LEFT JOIN segment B ON A.SEGMENT_ID = B.ID
-         WHERE B.NAME = #{segment}
+               ID,
+               COUPON_CODE,
+               NAME,
+               CONTENT,
+               RATE,
+               END_DATE
+          FROM coupon
+         WHERE SEGMENT_ID = #{segment}
     </select>
     <select id="selectEachCoupon" resultMap="getCouponMap" parameterType="string">
         SELECT
