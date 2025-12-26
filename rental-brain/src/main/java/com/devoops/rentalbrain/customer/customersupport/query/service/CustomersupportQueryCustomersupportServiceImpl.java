@@ -5,6 +5,7 @@ import com.devoops.rentalbrain.common.pagination.Pagination;
 import com.devoops.rentalbrain.common.pagination.PagingButtonInfo;
 import com.devoops.rentalbrain.customer.customersupport.query.dto.*;
 import com.devoops.rentalbrain.customer.customersupport.query.mapper.CustomersupportQueryCustomersupportMapper;
+import com.devoops.rentalbrain.employee.query.dto.InChargeDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,5 +37,10 @@ public class CustomersupportQueryCustomersupportServiceImpl implements Customers
     @Override
     public CustomersupportKpiDTO getSupportKpi() {
         return mapper.selectSupportKpi();
+    }
+
+    @Override
+    public List<InChargeDTO> getInChargeList() {
+        return mapper.selectInChargeList();
     }
 }

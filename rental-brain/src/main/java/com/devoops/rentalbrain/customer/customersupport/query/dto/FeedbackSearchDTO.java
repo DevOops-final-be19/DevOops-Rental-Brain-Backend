@@ -6,10 +6,12 @@ import lombok.*;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class FeedbackSearchDTO extends Criteria {
-    private String title;
-    private Integer star;
+    private String status; // 'P' or 'C'
+    private Integer category;
+    private String sortBy;
+    private String sortOrder;
 
-    public FeedbackSearchDTO(int page, int size) {
-        super(page, size);
+    public FeedbackSearchDTO(int page, int amount) {
+        super(page, amount);
     }
 }

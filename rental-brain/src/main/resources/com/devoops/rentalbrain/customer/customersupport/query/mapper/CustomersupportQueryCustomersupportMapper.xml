@@ -118,4 +118,12 @@
         FROM customer_support
     </select>
 
+    <select id="selectInChargeList" resultType="com.devoops.rentalbrain.employee.query.dto.InChargeDTO">
+        SELECT
+            id,
+            name
+        FROM employee
+        ORDER BY name ASC
+    </select>
+
 </mapper>
