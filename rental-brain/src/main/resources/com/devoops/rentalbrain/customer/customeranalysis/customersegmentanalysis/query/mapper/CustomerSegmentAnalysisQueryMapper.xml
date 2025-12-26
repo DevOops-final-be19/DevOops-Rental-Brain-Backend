@@ -54,6 +54,34 @@
         ORDER BY cnt DESC
     </select>
 
+    <!--  KPI 2번: 이탈 위험 사유 분포 고객들 (월 기준 필터) -->
+    <select id="findRiskReasonCustomersByMonth"
+            resultType="com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.CustomerSegmentAnalysisRiskReasonCustomerDTO">
+
+        SELECT
+        C.id          AS customerId,
+        C.customer_code AS customerCode,
+        C.name        AS customerName,
+        C.in_charge   AS inCharge,
+        C.dept        AS dept,
+        C.call_num    AS callNum,
+        C.is_deleted  AS isDeleted,
+        H.changed_at  AS changedAt
+        FROM customer_risk_transition_history H
+        JOIN (
+                SELECT customer_id, MAX(changed_at) AS max_changed_at
+                FROM customer_risk_transition_history
+                WHERE to_segment_id = #{riskSegmentId}
+                AND reason_code = #{reasonCode}
+                AND changed_at <![CDATA[>=]]> #{from}
+                AND changed_at <![CDATA[<]]>  #{to}
+                GROUP BY customer_id
+                ) X ON X.customer_id = H.customer_id AND X.max_changed_at = H.changed_at
+        JOIN customer C ON C.id = H.customer_id
+        WHERE H.to_segment_id = #{riskSegmentId}
+        AND H.reason_code = #{reasonCode}
+        ORDER BY H.changed_at DESC, C.id DESC
+    </select>
 
     <!-- 고객 세그먼트 차트 -->
     <select id="getSegmentTradeChart"
