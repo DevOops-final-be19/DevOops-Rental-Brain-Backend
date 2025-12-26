@@ -97,7 +97,7 @@ public class AiServiceImpl implements AiService {
                 """.formatted(mergedContext, question);
 
         ResponseCreateParams params = ResponseCreateParams.builder()
-                .model(ChatModel.GPT_4_1)
+                .model(ChatModel.GPT_5_1)
                 .input(input)
                 .temperature(0.2)
                 .build();

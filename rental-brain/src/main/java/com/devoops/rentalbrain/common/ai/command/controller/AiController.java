@@ -27,13 +27,11 @@ public class AiController {
     @GetMapping("/ask")
     public String ask(@RequestParam String q) throws IOException {
         Response response = aiService.answer(q);
-        String result = response.output().stream()
+        return response.output().stream()
                 .flatMap(item -> item.message().stream())
                 .flatMap(message -> message.content().stream())
                 .flatMap(content -> content.outputText().stream())
                 .map(ResponseOutputText::text)
-                .filter(s->!s.equals("```html")&&!s.equals("```"))
                 .reduce("",(a,b)->a+b);
-        return result;
     }
 }
