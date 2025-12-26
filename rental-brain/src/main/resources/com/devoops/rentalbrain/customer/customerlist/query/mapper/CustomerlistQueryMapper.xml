@@ -4,7 +4,123 @@
 
 <mapper namespace="com.devoops.rentalbrain.customer.customerlist.query.mapper.CustomerlistQueryMapper">
 
-    <select id="selectCustomerKpi" resultType="com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerKpiDTO">
+    <resultMap id="CustomerKpiMap" type="com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerKpiDTO">
+        <result property="totalCustomers" column="totalCustomers"/>
+        <result property="vipCustomers" column="vipCustomers"/>
+        <result property="riskCustomers" column="riskCustomers"/>
+        <result property="blacklistCustomers" column="blacklistCustomers"/>
+    </resultMap>
+
+    <resultMap id="CustomerMap" type="com.devoops.rentalbrain.customer.common.CustomerDTO">
+        <id property="id" column="id"/>
+        <result property="customerCode" column="customerCode"/>
+        <result property="name" column="name"/>
+        <result property="inCharge" column="inCharge"/>
+        <result property="dept" column="dept"/>
+        <result property="callNum" column="callNum"/>
+        <result property="phone" column="phone"/>
+        <result property="email" column="email"/>
+        <result property="businessNum" column="businessNum"/>
+        <result property="addr" column="addr"/>
+        <result property="memo" column="memo"/>
+        <result property="isDeleted" column="isDeleted"/>
+        <result property="segmentName" column="segmentName"/>
+        <result property="channelName" column="channelName"/>
+        <result property="firstContractDate" column="firstContractDate"/>
+        <result property="totalTransactionAmount" column="totalTransactionAmount"/>
+        <result property="contractCount" column="contractCount"/>
+    </resultMap>
+
+    <resultMap id="CustomerDetailMap" type="com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerDetailResponseDTO" extends="CustomerMap">
+    </resultMap>
+
+    <resultMap id="CustomerHistoryMap" type="com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerHistoryDTO">
+        <result property="type" column="type"/>
+        <result property="content" column="content"/>
+        <result property="date" column="date"/>
+        <result property="performer" column="performer"/>
+        <result property="status" column="status"/>
+    </resultMap>
+
+    <resultMap id="SupportListMap" type="com.devoops.rentalbrain.customer.customersupport.query.dto.CustomersupportDTO">
+        <id property="id" column="id"/>
+        <result property="customerSupportCode" column="customerSupportCode"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="status" column="status"/>
+        <result property="createDate" column="createDate"/>
+        <result property="action" column="action"/>
+        <result property="categoryName" column="categoryName"/>
+        <result property="channelName" column="channelName"/>
+        <result property="empName" column="empName"/>
+    </resultMap>
+
+    <resultMap id="QuoteListMap" type="com.devoops.rentalbrain.business.quote.query.dto.QuoteQueryResponseDTO">
+        <id property="quoteId" column="quoteId"/>
+        <result property="quoteCode" column="quoteCode"/>
+        <result property="quoteCounselingDate" column="quoteCounselingDate"/>
+        <result property="quoteCounselor" column="quoteCounselor"/>
+        <result property="quoteSummary" column="quoteSummary"/>
+        <result property="channelName" column="channelName"/>
+    </resultMap>
+
+    <resultMap id="ContractListMap" type="com.devoops.rentalbrain.business.contract.query.dto.AllContractDTO">
+        <id property="id" column="id"/>
+        <result property="contract_code" column="contract_code"/>
+        <result property="conName" column="conName"/>
+        <result property="status" column="status"/>
+        <result property="start_date" column="start_date"/>
+        <result property="contract_period" column="contract_period"/>
+        <result property="monthly_payment" column="monthly_payment"/>
+    </resultMap>
+
+    <resultMap id="AsListMap" type="com.devoops.rentalbrain.product.maintenance.query.dto.AfterServiceDetailDTO">
+        <id property="id" column="id"/>
+        <result property="after_service_code" column="after_service_code"/>
+        <result property="type" column="type"/>
+        <result property="status" column="status"/>
+        <result property="dueDate" column="dueDate"/>
+        <result property="engineer" column="engineer"/>
+        <result property="contents" column="contents"/>
+    </resultMap>
+
+    <resultMap id="FeedbackListMap" type="com.devoops.rentalbrain.customer.customersupport.query.dto.FeedbackDTO">
+        <id property="id" column="id"/>
+        <result property="feedbackCode" column="feedbackCode"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="star" column="star"/>
+        <result property="createDate" column="createDate"/>
+        <result property="action" column="action"/>
+        <result property="categoryName" column="categoryName"/>
+        <result property="channelName" column="channelName"/>
+        <result property="empName" column="empName"/>
+    </resultMap>
+
+    <resultMap id="CouponListMap" type="com.devoops.rentalbrain.business.campaign.query.dto.CouponDTO">
+        <result property="name" column="name"/>
+        <result property="status" column="status"/>
+        <result property="rate" column="rate"/>
+        <result property="couponCode" column="couponCode"/>
+    </resultMap>
+
+    <resultMap id="PromotionListMap" type="com.devoops.rentalbrain.business.campaign.query.dto.PromotionDTO">
+        <result property="name" column="name"/>
+        <result property="status" column="status"/>
+        <result property="promotionCode" column="promotionCode"/>
+    </resultMap>
+
+    <resultMap id="SegmentHistoryMap" type="com.devoops.rentalbrain.customer.customersegmenthistory.query.dto.HistoryQueryDTO">
+        <id property="historyId" column="historyId"/>
+        <result property="previousSegmentName" column="previousSegmentName"/>
+        <result property="currentSegmentName" column="currentSegmentName"/>
+        <result property="historyReason" column="historyReason"/>
+        <result property="historyTriggerType" column="historyTriggerType"/>
+        <result property="historyChangedAt" column="historyChangedAt"/>
+    </resultMap>
+
+
+    <select id="selectCustomerKpi" resultMap="CustomerKpiMap">
         SELECT
                 (SELECT COUNT(*) FROM customer WHERE is_deleted = 'N') AS totalCustomers,
                 (SELECT COUNT(*) FROM customer c JOIN segment s ON c.segment_id = s.id WHERE s.name = 'VIP 고객' AND c.is_deleted = 'N') AS vipCustomers,
@@ -12,7 +128,7 @@
                 (SELECT COUNT(*) FROM customer c JOIN segment s ON c.segment_id = s.id WHERE s.name = '블랙리스트 고객' AND c.is_deleted = 'N') AS blacklistCustomers
     </select>
 
-    <select id="selectCustomerList" resultType="com.devoops.rentalbrain.customer.common.CustomerDTO">
+    <select id="selectCustomerList" resultMap="CustomerMap">
         SELECT
         A.id,
         A.customer_code AS customerCode,
@@ -91,7 +207,7 @@
         </where>
     </select>
 
-    <select id="selectCustomerDetail" resultType="com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerDetailResponseDTO">
+    <select id="selectCustomerDetail" resultMap="CustomerDetailMap">
         SELECT
             A.id,
             A.customer_code AS customerCode,
@@ -116,7 +232,7 @@
         WHERE A.id = #{id}
     </select>
 
-    <select id="selectCustomerHistory" resultType="com.devoops.rentalbrain.customer.customerlist.query.dto.CustomerHistoryDTO">
+    <select id="selectCustomerHistory" resultMap="CustomerHistoryMap">
         SELECT type, content, date, performer, status
         FROM (
             SELECT '문의' AS type, title AS content, create_date AS date, (SELECT name FROM employee WHERE id = emp_id) AS performer, status FROM customer_support WHERE cum_id = #{customerId}
@@ -132,13 +248,13 @@
         ORDER BY date DESC
     </select>
 
-    <select id="selectSupportList" resultType="com.devoops.rentalbrain.customer.customersupport.query.dto.CustomersupportDTO">
+    <select id="selectSupportList" resultMap="SupportListMap">
         SELECT
             CS.id,
             CS.customer_support_code AS customerSupportCode,
             CS.title,
             CS.content,
-            CS.status, -- 프론트에서 변환 예정
+            CS.status,
             CS.create_date AS createDate,
             CS.action,
             SC.name AS categoryName,
@@ -152,7 +268,7 @@
         ORDER BY CS.create_date DESC
     </select>
 
-    <select id="selectQuoteList" resultType="com.devoops.rentalbrain.business.quote.query.dto.QuoteQueryResponseDTO">
+    <select id="selectQuoteList" resultMap="QuoteListMap">
         SELECT
             Q.id AS quoteId,
             Q.quote_code AS quoteCode,
@@ -166,35 +282,35 @@
         ORDER BY Q.counseling_date DESC
     </select>
 
-    <select id="selectContractList" resultType="com.devoops.rentalbrain.business.contract.query.dto.AllContractDTO">
+    <select id="selectContractList" resultMap="ContractListMap">
         SELECT
             id,
-            contract_code,      -- AllContractDTO 필드명: contract_code
-            name AS conName,    -- AllContractDTO 필드명: conName
-            status,             -- AllContractDTO 필드명: status
-            start_date,         -- AllContractDTO 필드명: start_date
-            contract_period,    -- AllContractDTO 필드명: contract_period
-            monthly_payment     -- AllContractDTO 필드명: monthly_payment
+            contract_code,
+            name AS conName,
+            status,
+            start_date,
+            contract_period,
+            monthly_payment
         FROM contract
         WHERE cum_id = #{customerId}
         ORDER BY start_date DESC
     </select>
 
-    <select id="selectAsList" resultType="com.devoops.rentalbrain.product.maintenance.query.dto.AfterServiceDetailDTO">
+    <select id="selectAsList" resultMap="AsListMap">
         SELECT
             id,
-            after_service_code, -- AfterServiceDetailDTO 필드명: after_service_code
+            after_service_code,
             type,
             status,
-            due_date AS dueDate, -- AfterServiceDetailDTO 필드명: dueDate (camelCase)
-            engineer,           -- AfterServiceDetailDTO 필드명: engineer
-            contents            -- AfterServiceDetailDTO 필드명: contents
+            due_date AS dueDate,
+            engineer,
+            contents
         FROM after_service
         WHERE cum_id = #{customerId}
         ORDER BY due_date DESC
     </select>
 
-    <select id="selectFeedbackList" resultType="com.devoops.rentalbrain.customer.customersupport.query.dto.FeedbackDTO">
+    <select id="selectFeedbackList" resultMap="FeedbackListMap">
         SELECT
             F.id,
             F.feedback_code AS feedbackCode,
@@ -214,7 +330,7 @@
         ORDER BY F.create_date DESC
     </select>
 
-    <select id="selectCouponList" resultType="com.devoops.rentalbrain.business.campaign.query.dto.CouponDTO">
+    <select id="selectCouponList" resultMap="CouponListMap">
         SELECT
             C.name,
             IC.is_used AS status,
@@ -225,7 +341,7 @@
         WHERE IC.cum_id = #{customerId}
     </select>
 
-    <select id="selectPromotionList" resultType="com.devoops.rentalbrain.business.campaign.query.dto.PromotionDTO">
+    <select id="selectPromotionList" resultMap="PromotionListMap">
         SELECT
             P.name,
             P.status,
@@ -235,7 +351,7 @@
         WHERE PL.cum_id = #{customerId}
     </select>
 
-    <select id="selectSegmentHistory" resultType="com.devoops.rentalbrain.customer.customersegmenthistory.query.dto.HistoryQueryDTO">
+    <select id="selectSegmentHistory" resultMap="SegmentHistoryMap">
         SELECT
             H.id AS historyId,
             PS.name AS previousSegmentName,
@@ -244,8 +360,8 @@
             H.trigger_type AS historyTriggerType,
             H.changed_at AS historyChangedAt
         FROM customer_segment_history H
-   LEFT JOIN segment PS ON H.previous_segment_id = PS.id
-        JOIN segment CS ON H.current_segment_id = CS.id
+                 LEFT JOIN segment PS ON H.previous_segment_id = PS.id
+                 LEFT JOIN segment CS ON H.current_segment_id = CS.id
         WHERE H.customer_id = #{customerId}
         ORDER BY H.changed_at DESC
     </select>
