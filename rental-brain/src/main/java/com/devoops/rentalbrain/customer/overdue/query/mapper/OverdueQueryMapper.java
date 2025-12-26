@@ -1,6 +1,7 @@
 package com.devoops.rentalbrain.customer.overdue.query.mapper;
 
 import com.devoops.rentalbrain.common.pagination.Criteria;
+import com.devoops.rentalbrain.customer.overdue.query.dto.ItemOverdueCandidateDTO;
 import com.devoops.rentalbrain.customer.overdue.query.dto.*;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -35,5 +36,7 @@ public interface OverdueQueryMapper {
     ItemOverdueDetailDTO findItemOverdueDetail(Long overdueId);
 
     List<OverdueItemDTO> findOverdueItemsByContractId(Long contractId);
+
+    List<ItemOverdueCandidateDTO> findItemOverdueCandidates();
 }
 

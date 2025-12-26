@@ -1,5 +1,6 @@
 package com.devoops.rentalbrain.customer.overdue.command.controller;
 
+import com.devoops.rentalbrain.customer.overdue.command.dto.ItemOverdueCommandDTO;
 import com.devoops.rentalbrain.customer.overdue.command.dto.PayOverdueCommandDTO;
 import com.devoops.rentalbrain.customer.overdue.command.service.OverdueCommandService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,5 +42,23 @@ public class OverdueCommandController {
         overdueCommandService.updatePayOverdue(id, dto);
     }
 
+    @Operation(
+            summary = "제품 연체 수정 / 해결",
+            description = """
+                제품 연체 정보를 수정합니다.
+                
+                - count 수정 가능
+                - resolved=true → 회수 완료 처리 (P → C)
+                
+                ※ 수납 연체와는 무관합니다.
+                """
+    )
+    @PutMapping("/item/{id}")
+    public void updateItemOverdue(
+            @PathVariable("id") Long overdueId,
+            @RequestBody ItemOverdueCommandDTO dto
+    ) {
+        overdueCommandService.updateItemOverdue(overdueId, dto);
+    }
 }
 

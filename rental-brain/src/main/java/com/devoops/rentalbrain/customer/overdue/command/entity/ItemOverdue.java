@@ -23,6 +23,7 @@ public class ItemOverdue {
     @Column(nullable = false)
     private Integer count;
 
+    // 계약 만료일 (= 제품 회수 기준일)
     @Column(name = "due_date", nullable = false)
     private LocalDateTime dueDate;
 
@@ -38,6 +39,10 @@ public class ItemOverdue {
     @Column(name = "cum_id", nullable = false)
     private Long customerId;
 
+    public void changeCount(Integer count) {
+        this.count = count;
+    }
+
     public void resolve() {
         this.status = "C";
     }
@@ -45,12 +50,16 @@ public class ItemOverdue {
     public static ItemOverdue create(
             Long contractId,
             Long customerId,
-            Integer count
+            Integer count,
+            LocalDateTime dueDate,
+            Integer overduePeriod
     ) {
         ItemOverdue entity = new ItemOverdue();
         entity.contractId = contractId;
         entity.customerId = customerId;
         entity.count = count;
+        entity.dueDate = dueDate;
+        entity.overduePeriod = overduePeriod;
         entity.status = "P";
         return entity;
     }
