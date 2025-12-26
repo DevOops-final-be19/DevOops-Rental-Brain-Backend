@@ -1,80 +1,123 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.devoops.rentalbrain.customer.customersupport.query.mapper.CustomersupportQueryFeedbackMapper">
 
-    <resultMap id="FeedbackMap" type="com.devoops.rentalbrain.customer.customersupport.query.dto.FeedbackDTO">
-        <id property="id" column="ID"/>
-        <result property="feedbackCode" column="FEEDBACK_CODE"/>
-        <result property="title" column="TITLE"/>
-        <result property="content" column="CONTENT"/>
-        <result property="star" column="STAR"/>
-        <result property="createDate" column="CREATE_DATE"/>
-        <result property="action" column="ACTION"/>
+    <resultMap id="FeedbackResultMap" type="com.devoops.rentalbrain.customer.customersupport.query.dto.FeedbackDTO">
+        <id property="id" column="id"/>
+        <result property="feedbackCode" column="feedback_code"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="star" column="star"/>
+        <result property="action" column="action"/>
+        <result property="createDate" column="create_date_fmt"/>
 
-        <result property="customerName" column="CUSTOMER_NAME"/>
-        <result property="categoryName" column="CATEGORY_NAME"/>
-        <result property="empName" column="EMP_NAME"/>
-        <result property="channelName" column="CHANNEL_NAME"/>
+        <result property="cumId" column="cum_id"/>
+        <result property="customerName" column="customer_name_alias"/> <result property="empId" column="emp_id"/>
+        <result property="empName" column="emp_name"/>
+        <result property="categoryId" column="category_id"/>
+        <result property="categoryName" column="category_name"/>
+        <result property="channelId" column="channel_id"/>
+        <result property="channelName" column="channel_name"/>
     </resultMap>
 
-    <select id="selectFeedbackList" resultMap="FeedbackMap"
-            parameterType="com.devoops.rentalbrain.customer.customersupport.query.dto.FeedbackSearchDTO">
+    <select id="selectFeedbackList" resultMap="FeedbackResultMap">
         SELECT
-               A.ID
-             , A.FEEDBACK_CODE
-             , A.TITLE
-             , A.CONTENT
-             , A.STAR
-             , A.CREATE_DATE
-             , A.ACTION
-             , B.NAME AS CUSTOMER_NAME
-             , C.NAME AS CATEGORY_NAME
-             , D.NAME AS EMP_NAME
-             , E.NAME AS CHANNEL_NAME
-          FROM feedback A
-          LEFT JOIN customer B ON A.CUM_ID = B.ID
-          LEFT JOIN support_category C ON A.CATEGORY_ID = C.ID
-          LEFT JOIN employee D ON A.EMP_ID = D.ID
-          LEFT JOIN channel E ON A.CHANNEL_ID = E.ID
+        f.id,
+        f.feedback_code,
+        f.title,
+        f.content,
+        f.star,
+        DATE_FORMAT(f.create_date, '%Y-%m-%d %H:%i:%s') as create_date_fmt,
+        f.action,
+        f.cum_id,
+        /* [수정] 테이블명을 customer로 변경하고, 컬럼이 name인지 customer_name인지 확인 필요. 안전하게 c.name을 사용 */
+        c.name as customer_name_alias,
+        f.emp_id,
+        e.name as emp_name,
+        f.category_id,
+        CASE
+        WHEN f.category_id = 5 THEN '서비스 만족'
+        WHEN f.category_id = 6 THEN '제품 불량'
+        WHEN f.category_id = 7 THEN '제품 품질'
+        WHEN f.category_id = 8 THEN 'AS 관련'
+        ELSE '기타'
+        END as category_name,
+        f.channel_id,
+        CASE
+        WHEN f.channel_id = 1 THEN '전화'
+        WHEN f.channel_id = 2 THEN '이메일'
+        WHEN f.channel_id = 3 THEN '웹'
+        WHEN f.channel_id = 4 THEN 'SNS'
+        WHEN f.channel_id = 5 THEN '방문'
+        ELSE '기타'
+        END as channel_name
+        FROM feedback f
+        /* [핵심 수정] customer_list -> customer */
+        LEFT JOIN customer c ON f.cum_id = c.id
+        LEFT JOIN employee e ON f.emp_id = e.id
         <where>
-            <if test="title != null and title != ''">
-                AND A.TITLE LIKE CONCAT('%', #{title}, '%')
+            <if test='status == "C"'>
+                AND f.action IS NOT NULL AND f.action != ''
+            </if>
+            <if test='status == "P"'>
+                AND (f.action IS NULL OR f.action = '')
             </if>
         </where>
-        ORDER BY A.ID DESC
+        ORDER BY
+        <choose>
+            <when test="sortBy == 'id'">f.id ${sortOrder}</when>
+            <when test="sortBy == 'star'">f.star ${sortOrder}</when>
+            <when test="sortBy == 'feedbackCode'">f.feedback_code ${sortOrder}</when>
+            <otherwise>f.id DESC</otherwise>
+        </choose>
         LIMIT #{amount} OFFSET #{offset}
     </select>
 
-    <select id="selectFeedbackCount" resultType="long"
-            parameterType="com.devoops.rentalbrain.customer.customersupport.query.dto.FeedbackSearchDTO">
-        SELECT COUNT(*) FROM feedback A
+    <select id="countFeedbackList" resultType="int">
+        SELECT COUNT(*)
+        FROM feedback f
+        /* [핵심 수정] customer_list -> customer */
+        LEFT JOIN customer c ON f.cum_id = c.id
         <where>
-            <if test="title != null and title != ''">
-                AND A.TITLE LIKE CONCAT('%', #{title}, '%')
+            <if test='status == "C"'>
+                AND f.action IS NOT NULL AND f.action != ''
+            </if>
+            <if test='status == "P"'>
+                AND (f.action IS NULL OR f.action = '')
             </if>
         </where>
     </select>
 
-    <select id="selectFeedbackById" resultMap="FeedbackMap" parameterType="long">
+    <select id="selectFeedbackDetail" resultMap="FeedbackResultMap">
         SELECT
-               A.ID
-             , A.FEEDBACK_CODE
-             , A.TITLE
-             , A.CONTENT
-             , A.STAR
-             , A.CREATE_DATE
-             , A.ACTION
-             , B.NAME AS CUSTOMER_NAME
-             , C.NAME AS CATEGORY_NAME
-             , D.NAME AS EMP_NAME
-             , E.NAME AS CHANNEL_NAME
-          FROM feedback A
-          LEFT JOIN customer B ON A.CUM_ID = B.ID
-          LEFT JOIN support_category C ON A.CATEGORY_ID = C.ID
-          LEFT JOIN employee D ON A.EMP_ID = D.ID
-          LEFT JOIN channel E ON A.CHANNEL_ID = E.ID
-         WHERE A.ID = #{id}
+            f.id,
+            f.feedback_code,
+            f.title,
+            f.content,
+            f.star,
+            DATE_FORMAT(f.create_date, '%Y-%m-%d %H:%i:%s') as create_date_fmt,
+            f.action,
+            f.cum_id,
+            /* [수정] */
+            c.name as customer_name_alias,
+            f.emp_id,
+            e.name as emp_name,
+            f.category_id,
+            CASE WHEN f.category_id = 5 THEN '서비스 만족' WHEN f.category_id = 6 THEN '제품 불량' WHEN f.category_id = 7 THEN '제품 품질' WHEN f.category_id = 8 THEN 'AS 관련' ELSE '기타' END as category_name,
+            f.channel_id,
+            CASE WHEN f.channel_id = 1 THEN '전화' WHEN f.channel_id = 2 THEN '이메일' WHEN f.channel_id = 3 THEN '웹' WHEN f.channel_id = 4 THEN 'SNS' WHEN f.channel_id = 5 THEN '방문' ELSE '기타' END as channel_name
+        FROM feedback f
+                 /* [핵심 수정] customer_list -> customer */
+                 LEFT JOIN customer c ON f.cum_id = c.id
+                 LEFT JOIN employee e ON f.emp_id = e.id
+        WHERE f.id = #{id}
     </select>
+
+    <select id="selectFeedbackKpi" resultType="java.util.Map">
+        SELECT
+            COUNT(*) as total,
+            COUNT(CASE WHEN star &lt;= 2 THEN 1 END) as complaints
+        FROM feedback
+    </select>
+
 </mapper>

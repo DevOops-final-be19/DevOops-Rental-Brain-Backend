@@ -2,6 +2,7 @@ package com.devoops.rentalbrain.customer.customersupport.command.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import java.time.LocalDateTime;
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
 @ToString
 @DynamicUpdate
 @DynamicInsert
+@Builder
 public class CustomersupportCommandFeedbackEntity {
 
     @Id
@@ -22,35 +24,41 @@ public class CustomersupportCommandFeedbackEntity {
     private Long id;
 
     @Column(name = "feedback_code", nullable = false, unique = true)
-    private String feedbackCode; // [추가]
+    private String feedbackCode;
 
-    @Column(nullable = false)
     private String title;
 
-    @Column(nullable = false, length = 2000)
+    @Column(columnDefinition = "TEXT")
     private String content;
 
     private Integer star;
 
-    @Column(name = "create_date")
-    private LocalDateTime createDate;
-
     private String action;
 
-    @Column(name = "cum_id", nullable = false)
+    @Column(name = "create_date", updatable = false)
+    @CreationTimestamp
+    private LocalDateTime createDate;
+
+    @Column(name = "cum_id")
     private Long cumId;
 
-    @Column(name = "category_id", nullable = false)
-    private Long categoryId;
-
-    @Column(name = "emp_id", nullable = false)
+    @Column(name = "emp_id")
     private Long empId;
 
-    @Column(name = "channel_id", nullable = false)
+    @Column(name = "category_id")
+    private Long categoryId;
+
+    @Column(name = "channel_id")
     private Long channelId;
 
-    @PrePersist
-    public void prePersist() {
-        if (this.createDate == null) this.createDate = LocalDateTime.now();
+    // 수정 메서드
+    public void updateFeedback(String title, String content, Integer star, String action, Long empId, Long categoryId, Long channelId) {
+        this.title = title;
+        this.content = content;
+        this.star = star;
+        this.action = action;
+        this.empId = empId;
+        this.categoryId = categoryId;
+        this.channelId = channelId;
     }
 }

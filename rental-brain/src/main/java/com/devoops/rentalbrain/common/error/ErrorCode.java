@@ -1,4 +1,4 @@
-package  com.devoops.rentalbrain.common.error;
+package com.devoops.rentalbrain.common.error;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -13,11 +13,20 @@ public enum ErrorCode {
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "C002", "서버 내부 오류가 발생했습니다."),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "C003", "인증이 필요합니다."),
     FORBIDDEN(HttpStatus.FORBIDDEN, "C004", "권한이 없습니다."),
-    ENTITY_NOT_FOUND(HttpStatus.NOT_FOUND, "C005", "Entity not found"),
+    ENTITY_NOT_FOUND(HttpStatus.NOT_FOUND, "C005", "대상을 찾을 수 없습니다."),
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "C006", "지원하지 않는 HTTP 메서드입니다."),
 
     /* Employee */
     EMPLOYEE_NOT_FOUND(HttpStatus.NOT_FOUND, "M001", "직원을 찾을 수 없습니다."),
+
+    /* Customer List (고객 목록) */
+    CUSTOMER_NOT_FOUND(HttpStatus.NOT_FOUND, "CUST001", "고객 정보를 찾을 수 없습니다."),
+    CUSTOMER_DUPLICATE(HttpStatus.CONFLICT, "CUST002", "이미 존재하는 고객입니다."),
+
+    /* Customer Support (고객 응대 - 문의, 피드백, 설문) */
+    SUPPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "CS001", "문의 내역을 찾을 수 없습니다."),
+    FEEDBACK_NOT_FOUND(HttpStatus.NOT_FOUND, "CS002", "피드백 내역을 찾을 수 없습니다."),
+    SURVEY_NOT_FOUND(HttpStatus.NOT_FOUND, "CS003", "설문 내역을 찾을 수 없습니다."),
 
     /* After Service */
     AS_INVALID_REQUEST(HttpStatus.BAD_REQUEST, "AS001", "AS/정기점검 요청 값이 올바르지 않습니다."),
