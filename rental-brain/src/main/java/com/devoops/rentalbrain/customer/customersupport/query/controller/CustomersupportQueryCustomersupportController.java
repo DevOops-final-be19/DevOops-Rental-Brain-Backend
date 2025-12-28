@@ -3,6 +3,7 @@ package com.devoops.rentalbrain.customer.customersupport.query.controller;
 import com.devoops.rentalbrain.common.pagination.PageResponseDTO;
 import com.devoops.rentalbrain.customer.customersupport.query.dto.*;
 import com.devoops.rentalbrain.customer.customersupport.query.service.CustomersupportQueryCustomersupportService;
+import com.devoops.rentalbrain.employee.query.dto.InChargeDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -10,6 +11,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Tag(
         name = "고객 문의 조회(Query)",
@@ -68,4 +71,13 @@ public class CustomersupportQueryCustomersupportController {
         return ResponseEntity.ok(queryService.getSupportKpi());
     }
 
+    @Operation(summary = "담당자 목록 조회", description = "문의 등록 시 선택할 담당자(직원) 목록을 조회합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+    @GetMapping("/in-charge")
+    public ResponseEntity<List<InChargeDTO>> getInChargeList() {
+        return ResponseEntity.ok(queryService.getInChargeList());
+    }
 }

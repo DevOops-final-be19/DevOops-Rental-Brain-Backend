@@ -1,9 +1,6 @@
 package com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.controller;
 
-import com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.CustomerSegmentAnalysisRiskKPIDTO;
-import com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.CustomerSegmentAnalysisRiskReaseonKPIDTO;
-import com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.CustomerSegmentDetailCardDTO;
-import com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.CustomerSegmentTradeChartDTO;
+import com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.*;
 import com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.service.CustomerSegmentAnalysisQueryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -94,6 +91,27 @@ public class CustomerSegmentAnalysisQueryController {
                 = customerSegmentAnalysisQueryservice.getRiskReasonKpi(month);
 
         return ResponseEntity.ok(kpis);
+    }
+
+    @GetMapping("/riskReasonCustomers")
+    @Operation(
+            summary = "이탈 위험 사유별 고객 리스트 조회",
+            description = """
+                기준 월(month)과 사유 코드(reasonCode)에 대해 해당 사유로 이탈 위험(세그먼트 4)으로 전환된 고객 리스트를 조회합니다.
+                - month 형식: YYYY-MM (예: 2025-02)
+                - reasonCode: EXPIRING | LOW_SAT | OVERDUE | NO_RENEWAL
+                """
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "400", description = "요청 파라미터 형식 오류"),
+            @ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    public ResponseEntity<CustomerSegmentAnalysisRiskReasonCustomersListDTO> getRiskReasonCustomers(
+            @RequestParam String month,
+            @RequestParam String reasonCode
+    ){
+        return ResponseEntity.ok(customerSegmentAnalysisQueryservice.getRiskReasonCustomers(month, reasonCode));
     }
 
     @GetMapping("/segmentTradeChart")

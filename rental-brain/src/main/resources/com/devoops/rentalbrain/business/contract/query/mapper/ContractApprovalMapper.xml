@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.devoops.rentalbrain.business.contract.query.mapper.ContractApprovalMapper">
+    <select id="CustomerContractList"
+            parameterType="map"
+            resultType="com.devoops.rentalbrain.business.contract.query.dto.CustomerContractApprovalDTO">
+
+        SELECT
+        c.id             AS customerId,
+        c.customer_code  AS customerCode,
+        c.name           AS customerName,
+        c.in_charge      AS inCharge,
+        c.segment_id     AS segmentId,
+        s.name           AS segmentName
+        FROM customer c
+        LEFT JOIN segment s ON c.segment_id = s.id
+        WHERE c.is_deleted = 'N'
+        AND <![CDATA[ c.segment_id <> 6 ]]>
+
+        <if test="criteria.keyword != null
+      and criteria.keyword != ''
+      and criteria.keyword != 'null'">
+            AND (
+            c.customer_code LIKE CONCAT('%',#{criteria.keyword},'%')
+            OR c.name LIKE CONCAT('%', #{criteria.keyword}, '%')
+            OR c.in_charge LIKE CONCAT('%', #{criteria.keyword}, '%')
+            )
+        </if>
+
+        ORDER BY c.id DESC
+        LIMIT #{criteria.amount}
+        OFFSET #{criteria.offset}
+    </select>
+    <select id="CustomerContractListCount"
+            parameterType="map"
+            resultType="long">
+
+        SELECT COUNT(*)
+        FROM customer c
+        WHERE c.is_deleted = 'N'
+        AND <![CDATA[ c.segment_id <> 6 ]]>
+
+        <if test="criteria.keyword != null
+      and criteria.keyword != ''
+      and criteria.keyword != 'null'">
+            AND (
+            c.name LIKE CONCAT('%', #{criteria.keyword}, '%')
+            OR c.in_charge LIKE CONCAT('%', #{criteria.keyword}, '%')
+            )
+        </if>
+    </select>
+
+    <select id="getContractEmpList" resultType="com.devoops.rentalbrain.business.contract.query.dto.EmpContractDTO">
+        SELECT
+            e.id            AS id,
+            e.employee_code AS employeeCode,
+            e.name          AS name,
+            e.dept          AS dept,
+            e.position_id   AS positionId,
+            ep.position_name AS positionName,
+            ep.description  AS description
+        FROM employee e
+                 LEFT JOIN emp_position ep
+                           ON e.position_id = ep.id
+    </select>
+
+</mapper>

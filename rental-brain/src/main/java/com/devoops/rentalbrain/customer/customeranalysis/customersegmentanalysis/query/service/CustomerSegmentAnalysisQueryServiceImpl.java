@@ -1,9 +1,6 @@
 package com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.service;
 
-import com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.CustomerSegmentAnalysisRiskKPIDTO;
-import com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.CustomerSegmentAnalysisRiskReaseonKPIDTO;
-import com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.CustomerSegmentDetailCardDTO;
-import com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.CustomerSegmentTradeChartDTO;
+import com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.*;
 import com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.mapper.CustomerSegmentAnalysisQueryMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,6 +106,47 @@ public class CustomerSegmentAnalysisQueryServiceImpl implements CustomerSegmentA
 
         return result;
     }
+
+
+    // 이탈 사유 고객
+    @Override
+    public CustomerSegmentAnalysisRiskReasonCustomersListDTO getRiskReasonCustomers(String month, String reasonCode) {
+
+        if (month == null || month.isBlank()) {
+            throw new IllegalArgumentException("month 파라미터는 필수입니다. 예: 2025-02");
+        }
+        if (reasonCode == null || reasonCode.isBlank()) {
+            throw new IllegalArgumentException("reasonCode 파라미터는 필수입니다.");
+        }
+
+        // KPI랑 동일하게 고정 코드만 허용
+        List<String> fixedCodes = List.of("EXPIRING", "LOW_SAT", "OVERDUE", "NO_RENEWAL");
+        if (!fixedCodes.contains(reasonCode)) {
+            throw new IllegalArgumentException("허용되지 않는 reasonCode 입니다: " + reasonCode);
+        }
+
+        YearMonth ym = YearMonth.parse(month);
+        String from = ym.atDay(1).atStartOfDay().toString();
+        String to   = ym.plusMonths(1).atDay(1).atStartOfDay().toString();
+
+        var list = customerSegmentAnalysisQueryMapper.findRiskReasonCustomersByMonth(
+                RISK_SEGMENT_ID, reasonCode, from, to
+        );
+
+        return CustomerSegmentAnalysisRiskReasonCustomersListDTO.builder()
+                .month(month)
+                .reasonCode(reasonCode)
+                .totalCount(list == null ? 0 : list.size())
+                .customers(list)
+                .build();
+    }
+
+
+
+
+
+
+
 
     private double rate(int numerator, int denom) {
         if(denom <= 0) {

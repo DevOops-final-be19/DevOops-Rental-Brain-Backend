@@ -1,6 +1,7 @@
 package com.devoops.rentalbrain.employee.query.service;
 
 import com.devoops.rentalbrain.employee.command.dto.UserImpl;
+import com.devoops.rentalbrain.employee.query.dto.ContractEmpDTO;
 import com.devoops.rentalbrain.employee.query.dto.EmpAuthListDTO;
 import com.devoops.rentalbrain.employee.query.dto.EmployeeInfoDTO;
 import com.devoops.rentalbrain.employee.query.dto.InChargeDTO;

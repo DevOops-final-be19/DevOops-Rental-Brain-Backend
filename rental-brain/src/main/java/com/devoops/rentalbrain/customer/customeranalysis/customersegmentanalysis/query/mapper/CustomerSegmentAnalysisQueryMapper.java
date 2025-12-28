@@ -1,5 +1,6 @@
 package com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.mapper;
 
+import com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.CustomerSegmentAnalysisRiskReasonCustomerDTO;
 import com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.CustomerSegmentDetailCardDTO;
 import com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.CustomerSegmentTradeChartDTO;
 import org.apache.ibatis.annotations.Mapper;
@@ -20,6 +21,14 @@ public interface CustomerSegmentAnalysisQueryMapper {
 
     // kpi 2번
     List<Map<String, Object>> countRiskReasons(@Param("riskSegmentId") int riskSegmentId);
+
+    // kpi 고객 리스트
+    List<CustomerSegmentAnalysisRiskReasonCustomerDTO> findRiskReasonCustomersByMonth(
+            @Param("riskSegmentId") int riskSegmentId,
+            @Param("reasonCode") String reasonCode,
+            @Param("from") String from,
+            @Param("to") String to
+    );
 
     // 필터 넣는것
     List<Map<String, Object>> countRiskReasonsByMonth(@Param("riskSegmentId") int riskSegmentId,

@@ -4,9 +4,10 @@ import lombok.Data;
 
 @Data
 public class CustomerContractDTO {
-    Long customerId;
-    String customerCode;
-    String customerName;
-    String inCharge;
-    String segmentName;
+    private Long customerId;
+    private String customerCode;
+    private String customerName;
+    private String inCharge;
+    private Integer segmentId;
+    private String segmentName;
 }

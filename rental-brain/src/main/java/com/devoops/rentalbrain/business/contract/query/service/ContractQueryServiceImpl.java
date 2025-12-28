@@ -1,8 +1,10 @@
 package com.devoops.rentalbrain.business.contract.query.service;
 
 import com.devoops.rentalbrain.business.contract.query.dto.*;
+import com.devoops.rentalbrain.business.contract.query.mapper.ContractApprovalMapper;
 import com.devoops.rentalbrain.business.contract.query.mapper.ContractDetailQueryMapper;
 import com.devoops.rentalbrain.business.contract.query.mapper.ContractQueryMapper;
+import com.devoops.rentalbrain.common.pagination.Criteria;
 import com.devoops.rentalbrain.common.pagination.PageResponseDTO;
 import com.devoops.rentalbrain.common.pagination.Pagination;
 import com.devoops.rentalbrain.common.pagination.PagingButtonInfo;
@@ -16,12 +18,15 @@ public class ContractQueryServiceImpl implements ContractQueryService {
 
     private final ContractQueryMapper contractQueryMapper;
     private final ContractDetailQueryMapper contractDetailQueryMapper;
+    private final ContractApprovalMapper contractApprovalMapper;
 
     @Autowired
     public ContractQueryServiceImpl(ContractQueryMapper contractQueryMapper,
-                                    ContractDetailQueryMapper contractDetailQueryMapper) {
+                                    ContractDetailQueryMapper contractDetailQueryMapper,
+                                    ContractApprovalMapper contractApprovalMapper) {
         this.contractQueryMapper = contractQueryMapper;
         this.contractDetailQueryMapper = contractDetailQueryMapper;
+        this.contractApprovalMapper = contractApprovalMapper;
     }
 
     @Override
@@ -47,9 +52,6 @@ public class ContractQueryServiceImpl implements ContractQueryService {
         long progressContracts =
                 contractQueryMapper.countProgressContracts();
 
-        long expectedExpireContracts =
-                contractQueryMapper.countExpectedExpireContracts();
-
         long imminentExpireContracts =
                 contractQueryMapper.countImminentExpireContracts();
 
@@ -59,7 +61,6 @@ public class ContractQueryServiceImpl implements ContractQueryService {
         return new ContractSummaryDTO(
                 totalContracts,
                 progressContracts,
-                expectedExpireContracts,
                 imminentExpireContracts,
                 thisMonthContracts
         );
@@ -96,4 +97,25 @@ public class ContractQueryServiceImpl implements ContractQueryService {
         return contractQueryMapper.selectRentalProductList(contractId);
     }
 
+    @Override
+    public PageResponseDTO<CustomerContractApprovalDTO> getCustomerContractApprovalList(Criteria criteria) {
+        List<CustomerContractApprovalDTO> list =
+                contractApprovalMapper.CustomerContractList(criteria);
+
+        long total =
+                contractApprovalMapper.CustomerContractListCount(criteria);
+
+        // 3. 페이지 버튼 정보 생성
+        PagingButtonInfo paging =
+                Pagination.getPagingButtonInfo(criteria, total);
+
+        return new PageResponseDTO<>(list, total, paging);
+    }
+
+    @Override
+    public List<EmpContractDTO> getContractEmpList() {
+        return contractApprovalMapper.getContractEmpList();
+    }
 }
+
+

@@ -20,6 +20,7 @@
             <id property="position_id" column="position_id"/>
             <result property="position_name" column="position_name"/>
         </association>
+
     </resultMap>
 
     <resultMap id="empListResultMap" type="com.devoops.rentalbrain.employee.query.dto.EmployeeListDTO">

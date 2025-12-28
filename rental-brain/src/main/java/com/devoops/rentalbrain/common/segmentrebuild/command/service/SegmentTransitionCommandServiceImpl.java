@@ -1,6 +1,7 @@
 package com.devoops.rentalbrain.common.segmentrebuild.command.service;
 
-import com.devoops.rentalbrain.common.segmentrebuild.command.entity.SegmentTransitionCommandMapper;
+import com.devoops.rentalbrain.common.segmentrebuild.command.mapper.SegmentTransitionCommandMapper;
+import com.devoops.rentalbrain.common.segmentrebuild.command.repository.SegmentRebuildBatchRepository;
 import com.devoops.rentalbrain.customer.customerlist.command.entity.CustomerlistCommandEntity;
 import com.devoops.rentalbrain.customer.customerlist.command.repository.CustomerlistCommandRepository;
 import com.devoops.rentalbrain.customer.customersegmenthistory.command.domain.SegmentChangeReferenceType;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 public class SegmentTransitionCommandServiceImpl implements SegmentTransitionCommandService {
 
     private final SegmentTransitionCommandMapper segmentTransitionCommandMapper;
+    private final SegmentRebuildBatchRepository segmentRebuildBatchRepository;
 
     private static final long SEG_POTENTIAL = 1L; // 잠재
     private static final long SEG_NEW       = 2L; // 신규
@@ -37,10 +39,9 @@ public class SegmentTransitionCommandServiceImpl implements SegmentTransitionCom
         Long currentSegmentId = customer.getSegmentId();
 
         // 잠재 고객일 때만 신규로 승격
-        if (currentSegmentId != null && currentSegmentId == SEG_POTENTIAL) {
-            customer.setSegmentId(SEG_NEW); // dirty checking으로 UPDATE
-
-            customerlistCommandRepository.saveAndFlush(customer); // flush 물 내려버리기
+        if (currentSegmentId != null && currentSegmentId.equals(SEG_POTENTIAL)) {
+            customer.setSegmentId(SEG_NEW);
+            customerlistCommandRepository.saveAndFlush(customer);
 
             historyCommandRepository.save(
                     HistoryCommandEntity.builder()
@@ -48,16 +49,14 @@ public class SegmentTransitionCommandServiceImpl implements SegmentTransitionCom
                             .previousSegmentId(SEG_POTENTIAL)
                             .currentSegmentId(SEG_NEW)
                             .reason("첫 계약 체결")
-                            .triggerType(SegmentChangeTriggerType.valueOf("AUTO"))
-                            .referenceType(SegmentChangeReferenceType.valueOf("CONTRACT"))
+                            .triggerType(SegmentChangeTriggerType.AUTO)
+                            .referenceType(SegmentChangeReferenceType.CONTRACT)
                             .referenceId(contractId)
                             .build()
             );
 
-            log.info("[SEGMENT] customerId={} POTENTIAL(1) -> NEW(2) (contractId={})",
+        log.info("세그먼트 변경 customerId={} 잠재 고객: POTENTIAL(1) -> 신규 고객: NEW(2) (contractId={})",
                     customerId, contractId);
-        } else {
-            log.info("[SEGMENT] customerId={} skip (currentSegmentId={})", customerId, currentSegmentId);
         }
 
     }

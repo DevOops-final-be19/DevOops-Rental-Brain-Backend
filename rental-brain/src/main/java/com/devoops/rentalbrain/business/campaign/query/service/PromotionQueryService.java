@@ -16,5 +16,7 @@ public interface PromotionQueryService {
 
     PageResponseDTO<PromotionDTO> filterPromotionByStatus(String status, Criteria criteria);
 
-    List<PromotionWithContractDTO> useContractPromotion(String segment);
+    List<PromotionWithContractDTO> useContractPromotion(Integer segment);
+
+    PromotionDTO readDetailPromotion(String proCode);
 }

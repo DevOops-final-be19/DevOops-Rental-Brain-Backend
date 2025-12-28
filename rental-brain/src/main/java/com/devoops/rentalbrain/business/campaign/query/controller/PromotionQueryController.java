@@ -110,8 +110,23 @@ public class PromotionQueryController {
             }
     )
     @GetMapping("/use-contract/{segment}")
-    public ResponseEntity<List<PromotionWithContractDTO>> useContract(@PathVariable String segment) {
+    public ResponseEntity<List<PromotionWithContractDTO>> useContract(@PathVariable Integer segment) {
         List<PromotionWithContractDTO> promotionList = promotionQueryService.useContractPromotion(segment);
         return ResponseEntity.ok().body(promotionList);
+    }
+
+    @Operation(
+            summary = "프로모션 상세 조회",
+            description = "각 프로모션별 정보를 상세 조회합니다.",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "조회 성공"),
+                    @ApiResponse(responseCode = "400", description = "잘못된 요청")
+            }
+    )
+    @GetMapping("/read-detail/{proCode}")
+    public ResponseEntity<PromotionDTO> readDetail(@PathVariable String proCode) {
+        PromotionDTO promotion = promotionQueryService.readDetailPromotion(proCode);
+        return ResponseEntity.ok().body(promotion);
     }
 }

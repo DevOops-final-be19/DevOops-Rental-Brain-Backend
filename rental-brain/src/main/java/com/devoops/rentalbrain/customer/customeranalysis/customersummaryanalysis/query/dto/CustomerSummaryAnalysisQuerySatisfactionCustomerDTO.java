@@ -16,5 +16,6 @@ public class CustomerSummaryAnalysisQuerySatisfactionCustomerDTO {
     private Long customerId;
     private String customerCode;
     private String customerName;
+    private String segmentName;
     private LocalDateTime createDate;  // 최근 피드백 일시
 }

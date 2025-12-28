@@ -27,13 +27,14 @@
                A.END_DATE
           FROM promotion A
           LEFT JOIN segment B ON A.SEGMENT_ID = B.ID
+         LIMIT #{limit} OFFSET #{offset}
     </select>
     <select id="countPromotionList">
         SELECT
                COUNT(*)
           FROM promotion A;
     </select>
-    <select id="searchPromotion" resultMap="getPromotionMap" parameterType="string">
+    <select id="searchPromotion" resultMap="getPromotionMap" parameterType="map">
         SELECT
                A.PROMOTION_CODE,
                A.NAME,
@@ -47,6 +48,7 @@
           FROM promotion A
           LEFT JOIN segment B ON A.SEGMENT_ID = B.ID
          WHERE A.PROMOTION_CODE LIKE CONCAT('%', #{keyword}, '%') OR A.NAME LIKE CONCAT('%', #{keyword}, '%')
+         LIMIT #{limit} OFFSET #{offset}
     </select>
     <select id="countSearchedPromotion" parameterType="string">
         SELECT
@@ -54,7 +56,7 @@
           FROM promotion A
          WHERE A.PROMOTION_CODE LIKE CONCAT('%', #{keyword}, '%') OR A.NAME LIKE CONCAT('%', #{keyword}, '%')
     </select>
-    <select id="filteringPromotionByType" resultMap="getPromotionMap" parameterType="string">
+    <select id="filteringPromotionByType" resultMap="getPromotionMap" parameterType="map">
         SELECT
                A.PROMOTION_CODE,
                A.NAME,
@@ -68,6 +70,7 @@
           FROM promotion A
           LEFT JOIN segment B ON A.SEGMENT_ID = B.ID
          WHERE A.TYPE = #{type}
+         LIMIT #{limit} OFFSET #{offset}
     </select>
     <select id="countFliteringPromotion" parameterType="string">
         SELECT
@@ -75,7 +78,7 @@
           FROM promotion A
          WHERE A.TYPE = #{type}
     </select>
-    <select id="filteringPromotionByStatus" resultMap="getPromotionMap" parameterType="string">
+    <select id="filteringPromotionByStatus" resultMap="getPromotionMap" parameterType="map">
         SELECT
                A.PROMOTION_CODE,
                A.NAME,
@@ -89,6 +92,7 @@
           FROM promotion A
           LEFT JOIN segment B ON A.SEGMENT_ID = B.ID
          WHERE A.STATUS = #{status}
+         LIMIT #{limit} OFFSET #{offset}
     </select>
     <select id="countFliterPromotionByStatus" parameterType="string">
         SELECT
@@ -98,21 +102,37 @@
     </select>
     <resultMap id="getPromotionWithContractMap"
                type="com.devoops.rentalbrain.business.campaign.query.dto.PromotionWithContractDTO">
-        <id property="promotionCode" column="PROMOTION_CODE"/>
+        <id property="id" column="ID"/>
+        <result property="promotionCode" column="PROMOTION_CODE"/>
         <result property="name" column="NAME"/>
         <result property="content" column="CONTENT"/>
         <result property="endDate" column="END_DATE"/>
         <result property="triggerVal" column="TRIGGER_VAL"/>
     </resultMap>
-    <select id="useContractPromotion" resultMap="getPromotionWithContractMap" parameterType="string">
+    <select id="useContractPromotion" resultMap="getPromotionWithContractMap" parameterType="integer">
+        SELECT
+               ID,
+               PROMOTION_CODE,
+               NAME,
+               CONTENT,
+               END_DATE,
+               TRIGGER_VAL
+          FROM promotion A
+         WHERE SEGMENT_ID = #{segment}
+    </select>
+    <select id="selectEachPromotion" resultMap="getPromotionMap" parameterType="string">
         SELECT
                A.PROMOTION_CODE,
                A.NAME,
+               A.TYPE,
+               A.STATUS,
+               A.TRIGGER_VAL,
+               B.NAME AS SEGMENT_NAME,
                A.CONTENT,
-               A.END_DATE,
-               A.TRIGGER_VAL
+               A.START_DATE,
+               A.END_DATE
           FROM promotion A
           LEFT JOIN segment B ON A.SEGMENT_ID = B.ID
-         WHERE B.NAME = #{segment}
+         WHERE A.PROMOTION_CODE = #{proCode}
     </select>
 </mapper>

@@ -20,5 +20,8 @@ public class ContractCreateDTO {
     private Long leaderId;
     private Long ceoId;
 
+    private Long promotionId;
+    private Long couponId;
+
     private List<ContractItemDTO> items;
 }

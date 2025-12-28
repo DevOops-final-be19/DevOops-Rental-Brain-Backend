@@ -1,5 +1,6 @@
 package com.devoops.rentalbrain.employee.query.mapper;
 
+import com.devoops.rentalbrain.employee.query.dto.ContractEmpDTO;
 import com.devoops.rentalbrain.employee.query.dto.EmpAuthListDTO;
 import com.devoops.rentalbrain.employee.query.dto.EmployeeInfoDTO;
 import com.devoops.rentalbrain.employee.query.dto.InChargeDTO;
