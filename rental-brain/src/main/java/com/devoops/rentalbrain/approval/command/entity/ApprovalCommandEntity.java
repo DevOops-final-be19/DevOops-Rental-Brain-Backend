@@ -54,7 +54,7 @@ public class ApprovalCommandEntity {
     private ContractCommandEntity contract;
 
     /**
-     * 승인자 사원 (N:1)
+     * 기안자 사원 (N:1)
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "emp_id", nullable = false)

@@ -32,4 +32,45 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
     List<Item> findByName(String name);
 
+    @Query(value = """
+        SELECT i.id
+        FROM item i
+        WHERE i.name = :name
+          AND i.status = 'P'
+          AND NOT EXISTS (
+              SELECT 1
+              FROM contract_with_item ci
+              JOIN contract c ON ci.contract_id = c.id
+              WHERE ci.item_id = i.id
+                AND c.status IN ('P','I')
+          )
+        ORDER BY i.id ASC
+        LIMIT :quantity
+        FOR UPDATE
+    """, nativeQuery = true)
+    List<Long> findRentableItemIdsForContract(
+            @Param("name") String name,
+            @Param("quantity") int quantity
+    );
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(value = """
+    UPDATE item i
+    JOIN contract_with_item ci ON i.id = ci.item_id
+    SET i.status = 'P'
+    WHERE ci.contract_id = :contractId
+      AND i.status = 'S'
+""", nativeQuery = true)
+    int rollbackItemsToPending(@Param("contractId") Long contractId);
+
+    @Modifying
+    @Query(value = """
+    UPDATE item i
+    JOIN contract_with_item cwi ON cwi.item_id = i.id
+    SET i.sales = COALESCE(i.sales, 0) + i.monthly_price
+    WHERE cwi.contract_id = :contractId
+      AND i.status = 'S'
+""", nativeQuery = true)
+    int addMonthlySalesByContract(@Param("contractId") Long contractId);
+
 }

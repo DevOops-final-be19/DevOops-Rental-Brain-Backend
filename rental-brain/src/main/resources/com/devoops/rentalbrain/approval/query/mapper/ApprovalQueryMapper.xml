@@ -237,44 +237,55 @@
     <select id="selectCompletedApprovals"
             parameterType="map"
             resultType="com.devoops.rentalbrain.approval.query.dto.ApprovalCompletedDTO">
-
         SELECT
-        v.approval_code        AS approvalCode,
-        v.approval_title       AS approvalTitle,
+        a.approval_code        AS approvalCode,
+        a.title                AS approvalTitle,
 
-        MIN(v.request_date)    AS requestDate,
-        MAX(v.approval_date)   AS lastProcessDate,
+        a.request_date         AS requestDate,
 
-        v.reject_reason        AS rejectReason,
-        /* 결과 상태 */
+        /* ⭐ 최신 정렬 기준 (승인/반려 공통) */
+        COALESCE(a.approval_date, a.request_date) AS lastProcessDate,
+
+        MAX(am.reject_reason)  AS rejectReason,
+
+        /* 최종 결과 상태 */
         CASE
-        WHEN SUM(CASE WHEN v.is_approved IN ('N','R') THEN 1 ELSE 0 END) > 0
+        WHEN SUM(
+        CASE
+        WHEN am.is_approved IN ('N','R') THEN 1
+        ELSE 0
+        END
+        ) > 0
         THEN 'REJECTED'
         ELSE 'APPROVED'
         END AS resultStatus
 
-        FROM v_approval_payment_manage v
+        FROM approval a
+        JOIN approval_mapping am
+        ON am.approval_id = a.id
 
         <where>
-            <!-- 로그인 사용자 기준 -->
-            v.approver_emp_id = #{empId}
+            <!-- 내가 결재선에 포함된 approval만 -->
+            a.id IN (
+            SELECT DISTINCT m.approval_id
+            FROM approval_mapping m
+            WHERE m.emp_id = #{empId}
+            )
 
             <!-- 완료 조건 -->
             AND (
-            /* 거절이 하나라도 있으면 완료 */
             EXISTS (
             SELECT 1
-            FROM v_approval_payment_manage sub
-            WHERE sub.approval_code = v.approval_code
-            AND sub.is_approved IN ('N','R')
+            FROM approval_mapping m
+            WHERE m.approval_id = a.id
+            AND m.is_approved IN ('N','R')
             )
             OR
-            /* 미처리(U)가 하나도 없으면 완료 */
             NOT EXISTS (
             SELECT 1
-            FROM v_approval_payment_manage sub
-            WHERE sub.approval_code = v.approval_code
-            AND sub.is_approved = 'U'
+            FROM approval_mapping m
+            WHERE m.approval_id = a.id
+            AND m.is_approved = 'U'
             )
             )
 
@@ -282,22 +293,29 @@
             <if test="criteria.keyword != null and criteria.keyword != ''">
                 <choose>
                     <when test="criteria.type == 'code'">
-                        AND v.approval_code LIKE CONCAT('%', #{criteria.keyword}, '%')
+                        AND a.approval_code LIKE CONCAT('%', #{criteria.keyword}, '%')
                     </when>
                     <when test="criteria.type == 'title'">
-                        AND v.approval_title LIKE CONCAT('%', #{criteria.keyword}, '%')
+                        AND a.title LIKE CONCAT('%', #{criteria.keyword}, '%')
                     </when>
                     <otherwise>
                         AND (
-                        v.approval_code LIKE CONCAT('%', #{criteria.keyword}, '%')
-                        OR v.approval_title LIKE CONCAT('%', #{criteria.keyword}, '%')
+                        a.approval_code LIKE CONCAT('%', #{criteria.keyword}, '%')
+                        OR a.title LIKE CONCAT('%', #{criteria.keyword}, '%')
                         )
                     </otherwise>
                 </choose>
             </if>
         </where>
 
-        GROUP BY v.approval_code, v.approval_title
+        GROUP BY
+        a.id,
+        a.approval_code,
+        a.title,
+        a.request_date,
+        a.approval_date
+
+        <!-- ⭐ 최신순 정렬 -->
         ORDER BY lastProcessDate DESC
         LIMIT #{criteria.amount}
         OFFSET #{criteria.offset}
@@ -309,47 +327,57 @@
 
         SELECT COUNT(*)
         FROM (
-        SELECT v.approval_code
-        FROM v_approval_payment_manage v
+        SELECT a.id
+        FROM approval a
+
+        JOIN approval_mapping am
+        ON am.approval_id = a.id
 
         <where>
-            v.approver_emp_id = #{empId}
+            <!-- 내가 결재선에 포함된 approval만 -->
+            a.id IN (
+            SELECT DISTINCT m.approval_id
+            FROM approval_mapping m
+            WHERE m.emp_id = #{empId}
+            )
 
+            <!-- 완료 조건 -->
             AND (
             EXISTS (
             SELECT 1
-            FROM v_approval_payment_manage sub
-            WHERE sub.approval_code = v.approval_code
-            AND sub.is_approved IN ('N','R')
+            FROM approval_mapping m
+            WHERE m.approval_id = a.id
+            AND m.is_approved IN ('N','R')
             )
             OR
             NOT EXISTS (
             SELECT 1
-            FROM v_approval_payment_manage sub
-            WHERE sub.approval_code = v.approval_code
-            AND sub.is_approved = 'U'
+            FROM approval_mapping m
+            WHERE m.approval_id = a.id
+            AND m.is_approved = 'U'
             )
             )
 
+            <!-- 검색 -->
             <if test="criteria.keyword != null and criteria.keyword != ''">
                 <choose>
                     <when test="criteria.type == 'code'">
-                        AND v.approval_code LIKE CONCAT('%', #{criteria.keyword}, '%')
+                        AND a.approval_code LIKE CONCAT('%', #{criteria.keyword}, '%')
                     </when>
                     <when test="criteria.type == 'title'">
-                        AND v.approval_title LIKE CONCAT('%', #{criteria.keyword}, '%')
+                        AND a.title LIKE CONCAT('%', #{criteria.keyword}, '%')
                     </when>
                     <otherwise>
                         AND (
-                        v.approval_code LIKE CONCAT('%', #{criteria.keyword}, '%')
-                        OR v.approval_title LIKE CONCAT('%', #{criteria.keyword}, '%')
+                        a.approval_code LIKE CONCAT('%', #{criteria.keyword}, '%')
+                        OR a.title LIKE CONCAT('%', #{criteria.keyword}, '%')
                         )
                     </otherwise>
                 </choose>
             </if>
         </where>
 
-        GROUP BY v.approval_code
+        GROUP BY a.id
         ) completed
     </select>
 
