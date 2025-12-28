@@ -9,4 +9,5 @@ public interface SegmentTransitionCommandService {
     void onContractCommitted(Long customerId, Long contractId);
 
 
+
 }
