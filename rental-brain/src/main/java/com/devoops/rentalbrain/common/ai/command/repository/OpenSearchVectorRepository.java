@@ -82,7 +82,7 @@ public class OpenSearchVectorRepository {
                         ))
                         .source(src -> src
                                 .filter(f -> f
-                                        .includes("text", "chunkId", "category", "sentiment", "segments")
+                                        .includes("text", "chunkId", "category", "sentiment", "segments","vocab","responseStyle")
                                 )
                         ),
                 Map.class

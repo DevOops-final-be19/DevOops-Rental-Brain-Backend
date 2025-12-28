@@ -38,6 +38,10 @@ public class MetaDataDTO {
             filter.put("vocab", vocab);
         }
 
+        if (responseStyle != null && !responseStyle.isBlank()) {
+            filter.put("responseStyle", responseStyle);
+        }
+
         return filter;
     }
 }

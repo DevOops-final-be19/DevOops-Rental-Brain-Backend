@@ -36,13 +36,16 @@ public class AiCommandServiceImpl implements AiCommandService {
     private final OpenAIClient openAIClient;
     private final OpenSearchVectorRepository openSearchVectorRepository;
     private final AiQueryService aiQueryService;
+    private final PromptCommandService promptCommandService;
 
     public AiCommandServiceImpl(OpenAIClient openAIClient,
                                 OpenSearchVectorRepository openSearchVectorRepository,
-                                AiQueryService aiQueryService) {
+                                AiQueryService aiQueryService,
+                                PromptCommandService promptCommandService) {
         this.openAIClient = openAIClient;
         this.openSearchVectorRepository = openSearchVectorRepository;
         this.aiQueryService = aiQueryService;
+        this.promptCommandService = promptCommandService;
     }
 
     public List<Float> embed(String input) {
@@ -60,7 +63,7 @@ public class AiCommandServiceImpl implements AiCommandService {
     @Transactional(readOnly = true)
     public void indexDocument() throws IOException {
         for (EmbeddingDTO embeddingDTO : aiQueryService.getFeedBacks()) {
-            String prompt = buildVocabSentimentPrompt(embeddingDTO.getText());
+            String prompt = promptCommandService.buildVocabSentimentPrompt(embeddingDTO.getText());
 
             Response response = openAIClient.responses().create(
                     ResponseCreateParams.builder()
@@ -76,11 +79,12 @@ public class AiCommandServiceImpl implements AiCommandService {
                     .flatMap(content -> content.outputText().stream())
                     .map(ResponseOutputText::text)
                     .reduce("", (a, b) -> a + b);
-            int start = outputText.indexOf('{');
-            int end = outputText.lastIndexOf('}');
-            if (start < 0 || end < 0 || start >= end) {
-                throw new IllegalArgumentException("Invalid JSON: " + outputText);
+
+            String json = outputText.trim();
+            if (!json.startsWith("{")) {
+                throw new IllegalStateException("LLM JSON malformed: " + json);
             }
+
             ObjectMapper mapper = new ObjectMapper();
 
             SentimentDTO sentimentDTO = mapper.readValue(outputText, SentimentDTO.class);
@@ -107,43 +111,6 @@ public class AiCommandServiceImpl implements AiCommandService {
             openSearchVectorRepository.upsertChunk(embeddingDTO.getChunkId(), doc);
         }
     }
-
-    private String buildVocabSentimentPrompt(String text) {
-        return """
-                당신은 고객 피드백 분석 엔진입니다.
-                
-                아래 텍스트에서 "감정"과 "이슈를 나타내는 핵심 구(phrase)"만 추출해서 JSON 형식으로 반환하세요.
-                
-                규칙:
-                - 2단어 이상으로 의미가 완성되는 표현은 유지
-                  (예: 제품 불량, 서비스 질 저하)
-                - 감정 강도 표현은 키워드에서 제외
-                  (예: 매우 만족, 매우 빠름, 아주 좋음, 매우 불만, 매우 느림, 아주 나쁨)
-                - 강조어(매우, 아주, 상당히)는 제거
-                - 이슈의 대상 + 상태가 명확한 표현만 유지
-                  (예: 응대 속도, 서비스 품질 저하, 제품 불량)
-                - 단독으로 의미가 약한 일반 단어는 제외
-                  (예: 제품, 서비스, 만족)
-                - 불용어가 포함되더라도 전체가 이슈라면 유지
-                - 명사/형용사 중심
-                - 최대 6개
-                - JSON 외 출력 금지
-                - 중복 단어 제거
-                - 감정은 문맥 기준으로 판단
-                
-                출력 형식:
-                {
-                  "vocab": [],
-                  "sentiment": "긍정 | 중립 | 부정"
-                }
-                
-                텍스트:
-                \"\"\"
-                %s
-                \"\"\"
-                """.formatted(text);
-    }
-
 
     //    public List<String> retrieveTopK(String question, int k) throws IOException {
 //        List<Float> qVec = embed(question);
@@ -177,13 +144,12 @@ public class AiCommandServiceImpl implements AiCommandService {
 
 
     public Response answer(String question) throws IOException {
-
         MetaDataDTO meta = extract(question);
         log.info("meta: {}", meta);
         Map<String, Object> filter = meta.toFilterMap();
 
         List<String> contexts = retrieveTopK(question,filter, 10);
-
+        
         if (contexts.isEmpty()) {
             return openAIClient.responses().create(
                     ResponseCreateParams.builder()
@@ -193,9 +159,10 @@ public class AiCommandServiceImpl implements AiCommandService {
             );
         }
 
-        String input = buildPrompt(contexts,question,meta.getResponseStyle());
+        String input = promptCommandService.buildPrompt(contexts,question,meta.getResponseStyle());
 
         log.info("input: {}", input);
+
 
         ResponseCreateParams params = ResponseCreateParams.builder()
                 .model(ChatModel.GPT_5_1)
@@ -204,29 +171,6 @@ public class AiCommandServiceImpl implements AiCommandService {
                 .build();
 
         return openAIClient.responses().create(params);
-    }
-
-    private String buildPrompt(List<String> ctx, String q, String style) {
-        String rule = switch (style) {
-            case "summary" -> "핵심 이슈 위주로 요약하라.";
-            case "list" -> "항목별로 정리하라.";
-            default -> "이유를 설명하라.";
-        };
-
-        return """
-        SYSTEM:
-        너는 회사 내부 문서 기반 Q&A 어시스턴트다.
-        아래 CONTEXT 범위 안에서만 답변하고, 근거가 없으면 "문서에서 근거를 찾지 못했습니다"라고 말해라.
-
-        RULE:
-        %s
-
-        CONTEXT:
-        %s
-
-        QUESTION:
-        %s
-        """.formatted(rule, String.join("\n---\n", ctx), q);
     }
 
     public List<KeywordCountDTO> getTop3NegativeKeywords() throws IOException {
@@ -238,13 +182,12 @@ public class AiCommandServiceImpl implements AiCommandService {
     }
 
     public MetaDataDTO extract(String question) throws IOException {
-
         ObjectMapper objectMapper = new ObjectMapper();
 
         Response response = openAIClient.responses().create(
                 ResponseCreateParams.builder()
                         .model(ChatModel.GPT_5_1)
-                        .input(buildQueryMetadataPrompt(question))
+                        .input(promptCommandService.buildQueryMetadataPrompt(question))
                         .temperature(0)
                         .build()
         );
@@ -259,30 +202,6 @@ public class AiCommandServiceImpl implements AiCommandService {
         return objectMapper.readValue(json, MetaDataDTO.class);
     }
 
-    private String buildQueryMetadataPrompt(String question) {
-        return """
-        너는 검색용 질문 분석기다.
-        질문에서 검색 조건과 응답 방식을 분리해 JSON으로 반환하라.
 
-        규칙:
-        - JSON 외 텍스트 금지
-        - responseStyle:
-          - 요약, 정리 → summary
-          - 목록, 나열 → list
-          - 이유, 왜 → explain
-
-        출력 형식:
-        {
-          "category": null | "서비스 만족" | "제품 불량" | "제품 품질" | "AS 지연" | "직원 응대" | "서비스 불만"
-          "sentiment": null | "긍정" | "부정" | "중립",
-          "vocab": [],
-          "segments": null | string,
-          "responseStyle": "summary | list | explain"
-        }
-
-        질문:
-        \"\"\"%s\"\"\"
-        """.formatted(question);
-    }
 
 }
