@@ -18,10 +18,14 @@ public class SegmentRebuildTestController {
     public ResponseEntity<Map<String, Object>> runOnce() {
         int u1 = segmentRebuildBatchService.fixPotentialToNew();
         int u2 = segmentRebuildBatchService.fixNewToNormalWithHistory();
+        int u3 = segmentRebuildBatchService.fixNormalToVipWithHistory();
+        int u4 = segmentRebuildBatchService.fixToRiskWithHistory();
 
         return ResponseEntity.ok(Map.of(
                 "potentialToNewUpdated", u1,
-                "newToNormalUpdated", u2
+                "newToNormalUpdated", u2,
+                "normalToVipUpdated", u3,
+                "toRiskUpdated", u4
         ));
     }
 }

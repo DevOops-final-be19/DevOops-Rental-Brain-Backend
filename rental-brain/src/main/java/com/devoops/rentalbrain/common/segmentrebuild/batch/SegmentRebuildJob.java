@@ -17,13 +17,26 @@ public class SegmentRebuildJob implements Job {
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
-        try {
-            int u1 = segmentRebuildBatchService.fixPotentialToNew();
-            int u2 = segmentRebuildBatchService.fixNewToNormalWithHistory();
 
-            log.info("[QUARTZ][SEGMENT] done potential->new={}, new->normal={}", u1, u2);
+        log.info("세그먼트 배치 시작: 고객 세그먼트 자동 보정 작업을 시작합니다.");
+
+        try {
+            int potentialToNew = segmentRebuildBatchService.fixPotentialToNew();
+            int newToNormal    = segmentRebuildBatchService.fixNewToNormalWithHistory();
+            int normalToVip    = segmentRebuildBatchService.fixNormalToVipWithHistory();
+            int toRiskUpdated = segmentRebuildBatchService.fixToRiskWithHistory();
+
+
+            log.info(
+                    "[세그먼트 배치 완료] 잠재→신규: {}건, 신규→일반: {}건, 일반→VIP: {}건, 이탈위험: {}건",
+                    potentialToNew,
+                    newToNormal,
+                    normalToVip,
+                    toRiskUpdated
+            );
+
         } catch (Exception e) {
-            log.error("[QUARTZ][SEGMENT] job failed", e);
+            log.error("[세그먼트 배치 실패] 세그먼트 자동 보정 중 오류 발생", e);
             throw new JobExecutionException(e);
         }
     }
