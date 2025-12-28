@@ -149,7 +149,7 @@ public class AiCommandServiceImpl implements AiCommandService {
         Map<String, Object> filter = meta.toFilterMap();
 
         List<String> contexts = retrieveTopK(question,filter, 10);
-        
+
         if (contexts.isEmpty()) {
             return openAIClient.responses().create(
                     ResponseCreateParams.builder()

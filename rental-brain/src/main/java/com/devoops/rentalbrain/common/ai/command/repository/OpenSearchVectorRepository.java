@@ -39,27 +39,27 @@ public class OpenSearchVectorRepository {
         log.info("upsert done: {} ", id);
     }
 
-    public SearchResponse<Map> knnSearch(List<Float> queryVector, int k) throws IOException {
-        float[] queryVectorList = new float[queryVector.size()];
-        for (int i = 0; i < queryVector.size(); i++) {
-            queryVectorList[i] = queryVector.get(i);
-        }
-
-        KnnQuery knn = KnnQuery.of(q -> q
-                .field("embedding")
-                .vector(queryVectorList)
-                .k(k)
-        );
-
-        SearchRequest req = SearchRequest.of(s -> s
-                .index(indexName)
-                .source(SourceConfig.of(sc -> sc.filter(f -> f.includes("text", "chunkId", "metadata"))))
-                .query(q -> q.knn(knn))
-        );
-
-
-        return client.search(req, Map.class);
-    }
+//    public SearchResponse<Map> knnSearch(List<Float> queryVector, int k) throws IOException {
+//        float[] queryVectorList = new float[queryVector.size()];
+//        for (int i = 0; i < queryVector.size(); i++) {
+//            queryVectorList[i] = queryVector.get(i);
+//        }
+//
+//        KnnQuery knn = KnnQuery.of(q -> q
+//                .field("embedding")
+//                .vector(queryVectorList)
+//                .k(k)
+//        );
+//
+//        SearchRequest req = SearchRequest.of(s -> s
+//                .index(indexName)
+//                .source(SourceConfig.of(sc -> sc.filter(f -> f.includes("text", "chunkId", "metadata"))))
+//                .query(q -> q.knn(knn))
+//        );
+//
+//
+//        return client.search(req, Map.class);
+//    }
 
     public SearchResponse<Map> knnSearchWithFilter(
             float[] vector,
