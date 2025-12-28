@@ -1,10 +1,6 @@
-<<<<<<<< HEAD:rental-brain/src/main/java/com/devoops/rentalbrain/common/segmentrebuild/quartz/job/SegmentRebuildJob.java
 package com.devoops.rentalbrain.common.segmentrebuild.quartz.job;
-========
-package com.devoops.rentalbrain.common.segmentrebuild.batch;
->>>>>>>> feat/shs-dashboard:rental-brain/src/main/java/com/devoops/rentalbrain/common/segmentrebuild/batch/SegmentRebuildJob.java
 
-import com.devoops.rentalbrain.common.segmentrebuild.quartz.service.SegmentBatchCommandService;
+import com.devoops.rentalbrain.common.segmentrebuild.batch.SegmentBatchCommandService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.Job;

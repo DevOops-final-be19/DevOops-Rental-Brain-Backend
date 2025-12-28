@@ -1,9 +1,4 @@
-<<<<<<<< HEAD:rental-brain/src/main/java/com/devoops/rentalbrain/common/segmentrebuild/quartz/service/SegmentBatchCommandService.java
-package com.devoops.rentalbrain.common.segmentrebuild.quartz.service;
-========
 package com.devoops.rentalbrain.common.segmentrebuild.batch;
->>>>>>>> feat/shs-dashboard:rental-brain/src/main/java/com/devoops/rentalbrain/common/segmentrebuild/batch/SegmentBatchCommandService.java
-
 
 import com.devoops.rentalbrain.customer.customerlist.command.repository.CustomerlistCommandRepository;
 import jakarta.transaction.Transactional;

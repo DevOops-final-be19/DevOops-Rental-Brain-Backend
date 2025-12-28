@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:rental-brain/src/main/java/com/devoops/rentalbrain/common/segmentrebuild/quartz/common/QuartzConfig.java
-package com.devoops.rentalbrain.common.segmentrebuild.quartz.common;
-========
 package com.devoops.rentalbrain.common.segmentrebuild.batch;
->>>>>>>> feat/shs-dashboard:rental-brain/src/main/java/com/devoops/rentalbrain/common/segmentrebuild/batch/QuartzConfig.java
 
 import com.devoops.rentalbrain.common.segmentrebuild.quartz.job.SegmentRebuildJob;
 import org.quartz.*;

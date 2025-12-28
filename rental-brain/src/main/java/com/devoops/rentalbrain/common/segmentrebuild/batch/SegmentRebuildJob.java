@@ -1,10 +1,7 @@
-<<<<<<<< HEAD:rental-brain/src/main/java/com/devoops/rentalbrain/common/segmentrebuild/quartz/job/SegmentRebuildJob.java
-package com.devoops.rentalbrain.common.segmentrebuild.quartz.job;
-========
 package com.devoops.rentalbrain.common.segmentrebuild.batch;
->>>>>>>> feat/shs-dashboard:rental-brain/src/main/java/com/devoops/rentalbrain/common/segmentrebuild/batch/SegmentRebuildJob.java
 
-import com.devoops.rentalbrain.common.segmentrebuild.quartz.service.SegmentBatchCommandService;
+
+import com.devoops.rentalbrain.common.segmentrebuild.command.service.SegmentRebuildBatchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.Job;
@@ -18,12 +15,18 @@ import org.springframework.stereotype.Component;
 public class SegmentRebuildJob implements Job {
 
     private final SegmentBatchCommandService segmentBatchCommandService;
+    private final SegmentRebuildBatchService segmentRebuildBatchService;
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
         try {
             int a = segmentBatchCommandService.fixPotentialToNew();
             int b = segmentBatchCommandService.promoteNewToNormal();
+
+            int u1 = segmentRebuildBatchService.fixPotentialToNew();
+            int u2 = segmentRebuildBatchService.fixNewToNormalWithHistory();
+
+            log.info("[QUARTZ][SEGMENT] done potential->new={}, new->normal={}", u1, u2);
 
             log.info("[QUARTZ][SEGMENT] potential->new updated={}", a);
             log.info("[QUARTZ][SEGMENT] new->normal updated={}", b);

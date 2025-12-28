@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class SegmentTransitionCommandServiceImpl implements SegmentTransitionCommandService {
 
-    private final SegmentTransitionCommandMapper segmentTransitionCommandMapper;
     private final SegmentRebuildBatchRepository segmentRebuildBatchRepository;
 
     private static final long SEG_POTENTIAL = 1L; // 잠재
