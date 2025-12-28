@@ -1,4 +1,4 @@
-package com.devoops.rentalbrain.common.segmentrebuild.quartz;
+package com.devoops.rentalbrain.common.segmentrebuild.batch;
 
 import org.quartz.*;
 import org.springframework.context.annotation.Bean;

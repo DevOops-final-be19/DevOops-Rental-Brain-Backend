@@ -1,4 +1,4 @@
-package com.devoops.rentalbrain.common.segmentrebuild.quartz;
+package com.devoops.rentalbrain.common.segmentrebuild.batch;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
