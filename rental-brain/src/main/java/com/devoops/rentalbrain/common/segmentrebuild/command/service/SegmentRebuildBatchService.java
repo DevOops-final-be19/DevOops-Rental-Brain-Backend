@@ -26,8 +26,7 @@ public class SegmentRebuildBatchService {
 
     /**
      * 잠재 -> 신규 보정 (벌크)
-     * - 이력은 "이미 afterCommit에서 남기는 구조"를 쓰고 있으니
-     *   배치에서는 일단 segment만 보정 (필요하면 나중에 BATCH 이력도 추가 가능)
+     * - 이력은 afterCommit(AUTO)에서 이미 남기는 구조면 여기선 segment만 보정해도 OK
      */
     @Transactional
     public int fixPotentialToNew() {
@@ -38,25 +37,24 @@ public class SegmentRebuildBatchService {
 
     /**
      * 신규 -> 일반 승격 (벌크 + 이력 저장)
-     * 규칙:
-     * - 신규(2)
-     * - (해지 제외) 첫 계약 start_date 3개월 경과
-     * - 활성 계약 존재( start_date <= today <= start_date + period )
+     * - triggerType = BATCH
+     * - referenceId는 MVP에서는 null (필요하면 다음 단계에서 계약 id 조회 추가)
      */
     @Transactional
     public int fixNewToNormalWithHistory() {
-        // 1) 대상 customerId 목록 먼저 확보 (누가 바뀌는지 알아야 이력 남김)
+
+        // 1) 이력 저장을 위해 대상 목록을 먼저 확보
         List<Long> targets = segmentRebuildBatchRepository.findNewToNormalTargetCustomerIds();
         if (targets.isEmpty()) {
             log.info("[BATCH][SEGMENT] fixNewToNormalWithHistory targets=0");
             return 0;
         }
 
-        // 2) 실제 벌크 업데이트
+        // 2) 벌크 UPDATE
         int updated = segmentRebuildBatchRepository.bulkPromoteNewToNormal();
         log.info("[BATCH][SEGMENT] fixNewToNormalWithHistory updated={} targets={}", updated, targets.size());
 
-        // 3) 이력 저장 (trigger=BATCH)
+        // 3) 이력 저장 (BATCH)
         for (Long customerId : targets) {
             historyCommandRepository.save(
                     HistoryCommandEntity.builder()
@@ -66,7 +64,7 @@ public class SegmentRebuildBatchService {
                             .reason("첫 계약 후 3개월 경과")
                             .triggerType(SegmentChangeTriggerType.BATCH)
                             .referenceType(SegmentChangeReferenceType.CONTRACT)
-                            .referenceId(null) // MVP: 계약 id까지 꼭 필요하면 다음 단계에서 추가 조회
+                            .referenceId(null)
                             .build()
             );
         }
