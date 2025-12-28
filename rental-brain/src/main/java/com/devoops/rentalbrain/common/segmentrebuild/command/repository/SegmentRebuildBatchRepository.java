@@ -10,7 +10,13 @@ import java.util.List;
 
 public interface SegmentRebuildBatchRepository extends JpaRepository<CustomerlistCommandEntity, Long> {
 
-    // (A) 신규 -> 일반 대상 고객 목록
+    /*
+     * 신규(2) -> 일반(3) 대상 customer_id 목록 (이력 저장용)
+     * 규칙:
+     * - 신규(2)
+     * - (해지 제외) 첫 계약 start_date 3개월 경과
+     * - 활성 계약 존재 (end_date 없음 → start_date + contract_period)
+     */
     @Query(value = """
         SELECT c.id
         FROM customer c
@@ -33,7 +39,9 @@ public interface SegmentRebuildBatchRepository extends JpaRepository<Customerlis
         """, nativeQuery = true)
     List<Long> findNewToNormalTargetCustomerIds();
 
-    // 잠재 -> 신규 (보정)
+    /*
+     * 잠재(1) -> 신규(2) 보정 (계약 1건 이상 존재)
+     */
     @Transactional
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(value = """
@@ -48,7 +56,9 @@ public interface SegmentRebuildBatchRepository extends JpaRepository<Customerlis
         """, nativeQuery = true)
     int bulkPromotePotentialToNew();
 
-    // 신규 -> 일반 (승격)
+    /*
+     * 신규(2) -> 일반(3) 승격 (대상 쿼리와 동일 조건)
+     */
     @Transactional
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(value = """

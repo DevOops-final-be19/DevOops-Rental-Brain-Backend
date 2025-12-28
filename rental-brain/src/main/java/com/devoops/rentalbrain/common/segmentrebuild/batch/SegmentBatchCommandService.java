@@ -13,7 +13,6 @@ public class SegmentBatchCommandService {
 
     //insertHistoryNewToNormal -> 이력남기는것
 
-
     // 이건 이벤트로 처리해서 이력 알아서 남음
     @Transactional
     public int fixPotentialToNew() {

@@ -1,6 +1,5 @@
 package com.devoops.rentalbrain.common.segmentrebuild.batch;
 
-import com.devoops.rentalbrain.common.segmentrebuild.quartz.job.SegmentRebuildJob;
 import org.quartz.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
