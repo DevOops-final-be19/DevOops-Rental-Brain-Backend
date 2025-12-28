@@ -61,4 +61,8 @@ public class PayOverdue {
         return entity;
     }
 
+    public void setPayOverdueCode(String payOverdueCode) {
+        this.payOverdueCode = payOverdueCode;
+    }
+
 }

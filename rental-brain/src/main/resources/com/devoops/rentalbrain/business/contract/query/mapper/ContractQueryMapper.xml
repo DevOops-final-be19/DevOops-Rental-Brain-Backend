@@ -105,15 +105,12 @@
         WHERE STATUS = 'I'
     </select>
 
-    <!-- 이번 달 신규 계약 수 (진행중) -->
+    <!-- 이번 달 신규 계약 수 -->
     <select id="countThisMonthContracts" resultType="long">
         SELECT COUNT(*)
-        FROM contract
-    <![CDATA[
-        WHERE start_date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
-          AND start_date < DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL 1 MONTH)
-    ]]>
-    AND STATUS = 'P'
+        FROM approval
+        WHERE approval_date <![CDATA[ >= ]]>DATE_FORMAT(CURDATE(), '%Y-%m-01')
+        AND approval_date <![CDATA[ < ]]> DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL 1 MONTH)
     </select>
     <!-- 렌탈 중인 상품 리스트 조회 -->
     <select id="selectRentalProductList"
