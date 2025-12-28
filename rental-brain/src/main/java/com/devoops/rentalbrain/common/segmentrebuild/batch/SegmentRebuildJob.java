@@ -18,21 +18,32 @@ public class SegmentRebuildJob implements Job {
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
 
-        log.info("세그먼트 배치 시작: 고객 세그먼트 자동 보정 작업을 시작합니다.");
+        log.info("[세그먼트 배치 시작] 고객 세그먼트 자동 보정 작업을 시작합니다.");
 
         try {
-            int potentialToNew = segmentRebuildBatchService.fixPotentialToNew();
-            int newToNormal    = segmentRebuildBatchService.fixNewToNormalWithHistory();
-            int normalToVip    = segmentRebuildBatchService.fixNormalToVipWithHistory();
-            int toRiskUpdated = segmentRebuildBatchService.fixToRiskWithHistory();
+            int potentialToNew   = segmentRebuildBatchService.fixPotentialToNew();
+            int newToNormal      = segmentRebuildBatchService.fixNewToNormalWithHistory();
+            int normalToVip      = segmentRebuildBatchService.fixNormalToVipWithHistory();
 
+            // 위험/블랙이 확장보다 우선순위 UP
+            int toRiskUpdated    = segmentRebuildBatchService.fixToRiskWithHistory();
+            int riskToBlacklist  = segmentRebuildBatchService.fixRiskToBlacklistWithHistory();
+
+            // 확장 의사 고객
+            int toExpansion      = segmentRebuildBatchService.fixToExpansionWithHistory();
+
+            // 일반 복귀
+            int riskToNormal = segmentRebuildBatchService.fixRiskToNormalWithHistory();
 
             log.info(
-                    "[세그먼트 배치 완료] 잠재→신규: {}건, 신규→일반: {}건, 일반→VIP: {}건, 이탈위험: {}건",
+                    "[세그먼트 배치 완료] 잠재→신규: {}건, 신규→일반: {}건, 일반→VIP: {}건, 이탈위험: {}건, 블랙리스트: {}건, 확장 의사: {}건, 일반 복귀: {}건",
                     potentialToNew,
                     newToNormal,
                     normalToVip,
-                    toRiskUpdated
+                    toRiskUpdated,
+                    riskToBlacklist,
+                    toExpansion,
+                    riskToNormal
             );
 
         } catch (Exception e) {
