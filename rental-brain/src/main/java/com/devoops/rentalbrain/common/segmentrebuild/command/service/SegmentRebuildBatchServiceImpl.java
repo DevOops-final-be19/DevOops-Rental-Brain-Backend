@@ -259,20 +259,20 @@ public class SegmentRebuildBatchServiceImpl implements SegmentRebuildBatchServic
                             .build()
             );
 
-            // (B) 리스크 전이 이력도 남김(리스크 해제)
-            riskTransitionCommandRepository.save(
-                    RiskTransitionCommandEntity.builder()
-                            .customerId(t.getCustomerId())
-                            .fromSegmentId(SEG_RISK)
-                            .toSegmentId(SEG_NORMAL)
-                            .reasonCode(t.getReasonCode())  // 'RISK_CLEARED'
-                            .reason("이탈 위험 해제(복귀)")
-                            .triggerType("BATCH")
-                            .referenceType("RULE")
-                            .referenceId(null)
-                            .changedAt(LocalDateTime.now())
-                            .build()
-            );
+//            // (B) 리스크 전이 이력도 남김(리스크 해제)
+//            riskTransitionCommandRepository.save(
+//                    RiskTransitionCommandEntity.builder()
+//                            .customerId(t.getCustomerId())
+//                            .fromSegmentId(SEG_RISK)
+//                            .toSegmentId(SEG_NORMAL)
+//                            .reasonCode(t.getReasonCode())  // 'RISK_CLEARED'
+//                            .reason("이탈 위험 해제(복귀)")
+//                            .triggerType("BATCH")
+//                            .referenceType("RULE")
+//                            .referenceId(null)
+//                            .changedAt(LocalDateTime.now())
+//                            .build()
+//            );
         }
 
         return updated;
