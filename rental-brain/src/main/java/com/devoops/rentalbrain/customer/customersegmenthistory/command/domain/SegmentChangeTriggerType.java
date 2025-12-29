@@ -7,5 +7,6 @@ public enum SegmentChangeTriggerType {
     SYSTEM,        // 시스템 정책에 의한 변경 (배치 안쓸꺼임, 룰 엔진)
     MANUAL,        // 관리자 수동 변경
     CAMPAIGN,      // 캠페인/프로모션/쿠폰 영향
+    BATCH,
     CONTRACT       // 계약 생성/종료로 인한 변경
 }
