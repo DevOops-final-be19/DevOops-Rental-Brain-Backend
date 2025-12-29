@@ -34,17 +34,14 @@ public class ApprovalCommandServiceImpl implements ApprovalCommandService {
 
     private final ApprovalMappingCommandRepository approvalMappingCommandRepository;
     private final PaymentDetailCommandRepository paymentDetailCommandRepository;
-    private final NotificationPublisher notificationPublisher;
     private final ItemRepository itemRepository;
 
     @Autowired
     public ApprovalCommandServiceImpl(ApprovalMappingCommandRepository approvalMappingCommandRepository,
                                       PaymentDetailCommandRepository paymentDetailCommandRepository,
-                                      NotificationPublisher notificationPublisher,
                                       ItemRepository itemRepository) {
         this.approvalMappingCommandRepository = approvalMappingCommandRepository;
         this.paymentDetailCommandRepository = paymentDetailCommandRepository;
-        this.notificationPublisher = notificationPublisher;
         this.itemRepository = itemRepository;
     }
 
@@ -82,7 +79,6 @@ public class ApprovalCommandServiceImpl implements ApprovalCommandService {
             approval.setStatus("A");
             contract.setStatus("P");
             insertPaymentDetailsForContract(contract);
-            notificationPublisher.publish(new ContractApprovedEvent(approval.getEmployee().getId()));
         } else {
             // 아직 전부 Y가 아니면: current_step 업데이트
             contract.setCurrentStep(approvedStep);
