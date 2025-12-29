@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:rental-brain/src/main/java/com/devoops/rentalbrain/common/segmentrebuild/quartz/job/SegmentRebuildJob.java
 package com.devoops.rentalbrain.common.segmentrebuild.quartz.job;
+========
+package com.devoops.rentalbrain.common.segmentrebuild.batch;
+>>>>>>>> 5294e0d (세그먼트 상태변경 쿼츠 진행중 #69):rental-brain/src/main/java/com/devoops/rentalbrain/common/segmentrebuild/batch/SegmentRebuildJob.java
 
 import com.devoops.rentalbrain.common.segmentrebuild.quartz.service.SegmentBatchCommandService;
 import lombok.RequiredArgsConstructor;
