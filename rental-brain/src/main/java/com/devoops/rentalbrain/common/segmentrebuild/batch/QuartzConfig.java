@@ -1,10 +1,5 @@
-<<<<<<<< HEAD:rental-brain/src/main/java/com/devoops/rentalbrain/common/segmentrebuild/quartz/common/QuartzConfig.java
-package com.devoops.rentalbrain.common.segmentrebuild.quartz.common;
-========
 package com.devoops.rentalbrain.common.segmentrebuild.batch;
->>>>>>>> 5294e0d (세그먼트 상태변경 쿼츠 진행중 #69):rental-brain/src/main/java/com/devoops/rentalbrain/common/segmentrebuild/batch/QuartzConfig.java
 
-import com.devoops.rentalbrain.common.segmentrebuild.quartz.job.SegmentRebuildJob;
 import org.quartz.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
