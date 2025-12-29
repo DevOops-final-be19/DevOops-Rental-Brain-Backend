@@ -85,34 +85,6 @@ public class ContractCommandServiceImpl implements ContractCommandService {
         this.couponCommandService = couponCommandService;
     }
 
-    /**
-     * 계약 상태 자동 변경 스케줄러
-     *
-     * 상태 흐름:
-     * P(진행중) → I(만료임박, 1개월 전) → C(계약만료)
-     */
-    @Override
-    @Scheduled(cron = "0 0 6 * * *")
-    @Transactional
-    public void updateContractStatus() {
-
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime oneMonthLater = now.plusMonths(1);
-
-        int imminent =
-                contractCommandRepository.updateToExpireImminent(
-                        now, oneMonthLater
-                );
-
-        int closed =
-                contractCommandRepository.updateToClosed(now);
-
-        log.info(
-                "[계약 상태 스케줄러] 만료임박(I): {}, 계약만료(C): {}",
-                imminent, closed
-        );
-    }
-
     @Override
     @Transactional
     public void createContract(ContractCreateDTO dto) {

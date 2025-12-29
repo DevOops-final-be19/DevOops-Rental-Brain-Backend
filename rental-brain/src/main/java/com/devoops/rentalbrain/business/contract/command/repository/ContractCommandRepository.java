@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public interface ContractCommandRepository extends JpaRepository<ContractCommandEntity, Long> {
 
@@ -28,21 +29,27 @@ public interface ContractCommandRepository extends JpaRepository<ContractCommand
             LocalDateTime now,
             LocalDateTime oneMonthLater
     );
-
     /**
      * 진행중(P), 만료임박(I) → 만료(C)
      * 만료일이 지난 계약
      */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
-        UPDATE ContractCommandEntity c
-        SET c.status = 'C'
-        WHERE c.status IN ('P', 'I')
-        AND FUNCTION(
-            'DATE_ADD',
-            c.startDate,
-            CONCAT(c.contractPeriod, ' MONTH')
-        ) < :now
+    UPDATE ContractCommandEntity c
+    SET c.status = 'C'
+    WHERE c.id IN :contractIds
     """)
-    int updateToClosed(LocalDateTime now);
+    int updateToClosedByIds(List<Long> contractIds);
+
+    @Query("""
+    SELECT c.id
+    FROM ContractCommandEntity c
+    WHERE c.status IN ('P','I')
+      AND FUNCTION(
+        'DATE_ADD',
+        c.startDate,
+        CONCAT(c.contractPeriod, ' MONTH')
+      ) < :now
+    """)
+    List<Long> findExpiredContractIds(LocalDateTime now);
 }
