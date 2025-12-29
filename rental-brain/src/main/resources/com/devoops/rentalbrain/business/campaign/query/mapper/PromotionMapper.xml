@@ -27,6 +27,7 @@
                A.END_DATE
           FROM promotion A
           LEFT JOIN segment B ON A.SEGMENT_ID = B.ID
+         ORDER BY A.PROMOTION_CODE DESC
          LIMIT #{limit} OFFSET #{offset}
     </select>
     <select id="countPromotionList">
@@ -48,6 +49,7 @@
           FROM promotion A
           LEFT JOIN segment B ON A.SEGMENT_ID = B.ID
          WHERE A.PROMOTION_CODE LIKE CONCAT('%', #{keyword}, '%') OR A.NAME LIKE CONCAT('%', #{keyword}, '%')
+         ORDER BY A.PROMOTION_CODE DESC
          LIMIT #{limit} OFFSET #{offset}
     </select>
     <select id="countSearchedPromotion" parameterType="string">
@@ -70,6 +72,7 @@
           FROM promotion A
           LEFT JOIN segment B ON A.SEGMENT_ID = B.ID
          WHERE A.TYPE = #{type}
+         ORDER BY A.PROMOTION_CODE DESC
          LIMIT #{limit} OFFSET #{offset}
     </select>
     <select id="countFliteringPromotion" parameterType="string">
@@ -92,6 +95,7 @@
           FROM promotion A
           LEFT JOIN segment B ON A.SEGMENT_ID = B.ID
          WHERE A.STATUS = #{status}
+         ORDER BY A.PROMOTION_CODE DESC
          LIMIT #{limit} OFFSET #{offset}
     </select>
     <select id="countFliterPromotionByStatus" parameterType="string">
@@ -118,7 +122,7 @@
                END_DATE,
                TRIGGER_VAL
           FROM promotion A
-         WHERE SEGMENT_ID = #{segment}
+         WHERE SEGMENT_ID = #{segment} AND STATUS = 'A' AND TYPE = 'M'
     </select>
     <select id="selectEachPromotion" resultMap="getPromotionMap" parameterType="string">
         SELECT

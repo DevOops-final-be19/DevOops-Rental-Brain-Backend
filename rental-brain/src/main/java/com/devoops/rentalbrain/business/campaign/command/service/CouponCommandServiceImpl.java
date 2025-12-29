@@ -142,14 +142,23 @@ public class CouponCommandServiceImpl implements CouponCommandService {
 
         IssuedCoupon issued = new IssuedCoupon();
         issued.setIssuedDate(start);
-        issued.setIsUsed("Y");
-        issued.setUsedDate(start);
+        issued.setIsUsed("N");
         issued.setEndDate(end);
         issued.setCouponId(couponId);
         issued.setCumId(contract.getCustomer().getId());
 
         issuedCouponRepository.save(issued);
         return "issued coupon created successfully";
+    }
+
+    @Override
+    @Transactional
+    public String updateIssuedCoupon(Long IssuedCouponId) {
+        IssuedCoupon issued = issuedCouponRepository.findById(IssuedCouponId).get();
+
+        issued.setIsUsed("Y");
+        issued.setUsedDate(LocalDateTime.now());
+        return "issued coupon updated successfully";
     }
 
 }
