@@ -13,6 +13,7 @@
         <result property="status" column="STATUS"/>
         <result property="startDate" column="START_DATE"/>
         <result property="endDate" column="END_DATE"/>
+        <result property="datePeriod" column="DATE_PERIOD"/>
         <result property="content" column="CONTENT"/>
         <result property="issued" column="ISSUED"/>
         <result property="used" column="USED"/>
@@ -72,7 +73,7 @@
           FROM coupon A
          WHERE A.COUPON_CODE LIKE CONCAT('%', #{keyword}, '%') OR A.NAME LIKE CONCAT('%', #{keyword}, '%')
     </select>
-    <select id="filteringCouponByType" resultMap="getCouponMap" parameterType="string">
+    <select id="filteringCouponByType" resultMap="getCouponMap" parameterType="map">
         SELECT
                A.COUPON_CODE,
                A.NAME,
@@ -100,7 +101,7 @@
           FROM coupon A
          WHERE A.TYPE = #{type}
     </select>
-    <select id="filteringCouponByStatus" resultMap="getCouponMap" parameterType="string">
+    <select id="filteringCouponByStatus" resultMap="getCouponMap" parameterType="map">
         SELECT
                A.COUPON_CODE,
                A.NAME,
@@ -158,6 +159,7 @@
                A.STATUS,
                A.START_DATE,
                A.END_DATE,
+               A.DATE_PERIOD,
                A.CONTENT,
                COUNT(C.ID) AS ISSUED,
                COUNT(CASE WHEN C.IS_USED = 'Y' THEN 1 END) AS USED,
