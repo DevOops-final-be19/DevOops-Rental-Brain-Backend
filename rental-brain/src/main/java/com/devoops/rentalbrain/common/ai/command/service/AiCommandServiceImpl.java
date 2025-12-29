@@ -1,7 +1,9 @@
 package com.devoops.rentalbrain.common.ai.command.service;
 
 import com.devoops.rentalbrain.common.ai.command.dto.KeywordCountDTO;
+import com.devoops.rentalbrain.common.ai.command.dto.KeywordsDTO;
 import com.devoops.rentalbrain.common.ai.command.dto.MetaDataDTO;
+import com.devoops.rentalbrain.common.ai.common.CsWordDocumentDTO;
 import com.devoops.rentalbrain.common.ai.common.EmbeddingDTO;
 import com.devoops.rentalbrain.common.ai.command.repository.OpenSearchVectorRepository;
 import com.devoops.rentalbrain.common.ai.common.SentimentDTO;
@@ -24,6 +26,8 @@ import com.openai.models.responses.ResponseOutputText;
 
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,8 +63,9 @@ public class AiCommandServiceImpl implements AiCommandService {
     }
 
     @Transactional
-    public void csWordDocument() throws IOException{
-        for(WordDTO wordDTO : aiQueryService.getCs()){
+    public void csWordDocument() throws IOException {
+        for (WordDTO wordDTO : aiQueryService.getCs()) {
+            log.info("wordDTO: {}",wordDTO.toString());
             String prompt = promptCommandService.keywordExtractPrompt(wordDTO.getKeywordText());
 
             Response response = openAIClient.responses().create(
@@ -71,12 +76,28 @@ public class AiCommandServiceImpl implements AiCommandService {
                             .build()
             );
 
+//            List<String> keywords = llmResult.getKeywords();
+//
+//            List<CsWordDocument> documents = keywords.stream()
+//                    .map(keyword -> CsWordDocument.builder()
+//                            .docId(docId)
+//                            .chunkId(chunkId)
+//                            .keyword(keyword)
+//                            .keywordText(keyword)
+//                            .count(1) // 기본값, 필요 시 후처리 가능
+//                            .createdAt(LocalDateTime.now())
+//                            .build()
+//                    )
+//                    .toList();
+
             String outputText = response.output().stream()
                     .flatMap(item -> item.message().stream())
                     .flatMap(message -> message.content().stream())
                     .flatMap(content -> content.outputText().stream())
                     .map(ResponseOutputText::text)
                     .reduce("", (a, b) -> a + b);
+
+            log.info("outputText: {}", outputText);
 
             String json = outputText.trim();
             if (!json.startsWith("{")) {
@@ -85,15 +106,40 @@ public class AiCommandServiceImpl implements AiCommandService {
 
             ObjectMapper mapper = new ObjectMapper();
 
-            wordDTO = mapper.readValue(outputText, WordDTO.class);
-
-            Map<String, Object> doc = new HashMap<>();
-            doc.put("keyword", wordDTO.getKeyword());
-            doc.put("keywordText", wordDTO.getKeywordText());
-            doc.put("createdAt", wordDTO.getCreatedAt());
+            KeywordsDTO keywordsDTO = mapper.readValue(outputText, KeywordsDTO.class);
+//            log.info("keywordsDTO: {}", keywordsDTO);
+            String docId = String.valueOf(wordDTO.getId());
+            String chunkId = "C_" + String.valueOf(wordDTO.getId());
 
 
-
+            keywordsDTO.getKeywords().stream()
+                    .map(keyword -> CsWordDocumentDTO.builder()
+                            .docId(docId)
+                            .chunkId(chunkId)
+                            .keyword(keyword)
+                            .keywordText(keyword)
+                            .count(1)
+                            .createdAt(wordDTO.getCreatedAt())
+                            .build()
+                    )
+                    .map(dto -> {
+                        Map<String, Object> map = new HashMap<>();
+                        map.put("docId", dto.getDocId());
+                        map.put("chunkId", dto.getChunkId());
+                        map.put("keyword", dto.getKeyword());
+                        map.put("keywordText", dto.getKeywordText());
+                        map.put("count", dto.getCount());
+                        map.put("createdAt", dto.getCreatedAt());
+                        log.info("map: {}",map);
+                        return map;
+                    })
+                    .forEach(doc -> {
+                        try {
+                            openSearchVectorRepository.upsertWords(doc);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
         }
     }
 
@@ -185,7 +231,7 @@ public class AiCommandServiceImpl implements AiCommandService {
         log.info("meta: {}", meta);
         Map<String, Object> filter = meta.toFilterMap();
 
-        List<String> contexts = retrieveTopK(question,filter, 10);
+        List<String> contexts = retrieveTopK(question, filter, 10);
 
         if (contexts.isEmpty()) {
             return openAIClient.responses().create(
@@ -196,7 +242,7 @@ public class AiCommandServiceImpl implements AiCommandService {
             );
         }
 
-        String input = promptCommandService.buildPrompt(contexts,question,meta.getResponseStyle());
+        String input = promptCommandService.buildPrompt(contexts, question, meta.getResponseStyle());
 
         log.info("input: {}", input);
 
@@ -210,13 +256,18 @@ public class AiCommandServiceImpl implements AiCommandService {
         return openAIClient.responses().create(params);
     }
 
-    public List<KeywordCountDTO> getTop3NegativeKeywords() throws IOException {
+    public List<KeywordCountDTO> getTopNegativeKeywords() throws IOException {
         return openSearchVectorRepository.getTopKeywords("부정", 5);
     }
 
-    public List<KeywordCountDTO> getTop3PositiveKeywords() throws IOException {
+    public List<KeywordCountDTO> getTopPositiveKeywords() throws IOException {
         return openSearchVectorRepository.getTopKeywords("긍정", 5);
     }
+
+    public List<KeywordCountDTO> getTopCsKeywords() throws IOException {
+        return openSearchVectorRepository.getTopCsKeywords(10);
+    }
+
 
     public MetaDataDTO extract(String question) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
@@ -238,7 +289,6 @@ public class AiCommandServiceImpl implements AiCommandService {
 
         return objectMapper.readValue(json, MetaDataDTO.class);
     }
-
 
 
 }

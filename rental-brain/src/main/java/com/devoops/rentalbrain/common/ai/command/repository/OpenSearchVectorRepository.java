@@ -6,6 +6,7 @@ import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.FieldValue;
 import org.opensearch.client.opensearch._types.query_dsl.Query;
 import org.opensearch.client.opensearch.core.IndexRequest;
+import org.opensearch.client.opensearch.core.SearchRequest;
 import org.opensearch.client.opensearch.core.SearchResponse;
 import org.springframework.stereotype.Repository;
 import org.opensearch.client.opensearch._types.aggregations.Aggregate;
@@ -35,6 +36,15 @@ public class OpenSearchVectorRepository {
         );
         client.index(req);
         log.info("upsert done: {} ", id);
+    }
+
+    public void upsertWords(Map<String, Object> doc) throws IOException {
+        IndexRequest req = IndexRequest.of(i -> i
+                .index(csKeywordIndex)
+                .document(doc)
+        );
+        client.index(req);
+        log.info("upsert done: {} ", req);
     }
 
 //    public SearchResponse<Map> knnSearch(List<Float> queryVector, int k) throws IOException {
@@ -144,4 +154,34 @@ public class OpenSearchVectorRepository {
                 .toList();
     }
 
+    public List<KeywordCountDTO> getTopCsKeywords(int size) throws IOException {
+        SearchResponse<Void> response = client.search(s -> s
+                        .index(csKeywordIndex)
+                        .size(0)
+                        .aggregations("top_keywords", a -> a
+                                .terms(t -> t
+                                        .field("keyword")
+                                        .size(size)
+                                )
+                                .aggregations("total_count", sub -> sub
+                                        .sum(sm -> sm.field("count"))
+                                )
+                        ),
+                Void.class
+        );
+
+        Aggregate agg =
+                response.aggregations()
+                        .get("top_keywords");
+
+        return agg.sterms().buckets().array().stream()
+                .map(b -> new KeywordCountDTO(
+                        b.key(),
+                        (long) b.aggregations()
+                                .get("total_count")
+                                .sum()
+                                .value()
+                ))
+                .toList();
+    }
 }

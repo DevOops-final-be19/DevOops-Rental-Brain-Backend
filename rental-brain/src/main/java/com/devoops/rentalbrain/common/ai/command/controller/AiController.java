@@ -29,8 +29,12 @@ public class AiController {
 
     @GetMapping("/init/index")
     public void initIndex() throws IOException {
-
         aiCommandService.indexDocument();
+    }
+
+    @GetMapping("/init/index/words")
+    public void initIndexWords() throws IOException {
+        aiCommandService.csWordDocument();
     }
 
     @GetMapping("/ask")
@@ -45,12 +49,17 @@ public class AiController {
     }
 
     @GetMapping("/keyword/negative")
-    public List<KeywordCountDTO> top3Negative() throws IOException {
-        return aiCommandService.getTop3NegativeKeywords();
+    public List<KeywordCountDTO> topNegative() throws IOException {
+        return aiCommandService.getTopNegativeKeywords();
     }
 
     @GetMapping("/keyword/positive")
-    public List<KeywordCountDTO> top3Positive() throws IOException {
-        return aiCommandService.getTop3PositiveKeywords();
+    public List<KeywordCountDTO> topPositive() throws IOException {
+        return aiCommandService.getTopPositiveKeywords();
+    }
+
+    @GetMapping("/keyword/cs")
+    public List<KeywordCountDTO> topCsKeywords() throws IOException {
+        return aiCommandService.getTopCsKeywords();
     }
 }

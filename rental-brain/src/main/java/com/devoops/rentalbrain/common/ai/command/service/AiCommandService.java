@@ -10,11 +10,15 @@ import java.util.List;
 public interface AiCommandService {
     List<Float> embed(String input);
 
+    void csWordDocument() throws IOException;
+
     void indexDocument() throws IOException;
 
     Response answer(String q) throws IOException;
 
-    List<KeywordCountDTO> getTop3NegativeKeywords() throws IOException;
+    List<KeywordCountDTO> getTopNegativeKeywords() throws IOException;
 
-    List<KeywordCountDTO> getTop3PositiveKeywords() throws IOException;
+    List<KeywordCountDTO> getTopPositiveKeywords() throws IOException;
+
+    List<KeywordCountDTO> getTopCsKeywords() throws IOException;
 }

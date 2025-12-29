@@ -11,7 +11,6 @@ import java.util.List;
 @ToString
 public class WordDTO {
     private Long id;
-    private List<String> keyword;
     private String keywordText;
     private String createdAt;
 }

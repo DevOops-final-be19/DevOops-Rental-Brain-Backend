@@ -44,12 +44,12 @@
                  JOIN support_category d ON a.category_id = d.id
     </select>
 
-    <select id="getCsContents" resultType="string">
+    <select id="getCsContents" resultMap="getCsContentsResultMap">
         SELECT
                a.id
              , a.content
              , a.create_date
-          FROM customer_support
+          FROM customer_support a
     </select>
 
 </mapper>
