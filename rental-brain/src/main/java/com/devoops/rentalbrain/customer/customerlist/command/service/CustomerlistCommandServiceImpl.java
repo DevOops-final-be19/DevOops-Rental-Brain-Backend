@@ -65,9 +65,11 @@ public class CustomerlistCommandServiceImpl implements CustomerlistCommandServic
         if (dto.getEmail() != null) customer.setEmail(dto.getEmail());
         if (dto.getAddr() != null) customer.setAddr(dto.getAddr());
         if (dto.getMemo() != null) customer.setMemo(dto.getMemo());
-
-        // 필요시 ID 업데이트 로직
-        // if (dto.getSegmentId() != null) customer.setSegmentId(dto.getSegmentId());
+        // 세그먼트 ID 업데이트
+        // (프론트에서 null을 보낼 수도 있으니, 값이 있을 때만 업데이트하거나 정책에 따라 처리)
+        if (dto.getSegmentId() != null) {
+            customer.setSegmentId(dto.getSegmentId());
+        }
     }
 
     @Override

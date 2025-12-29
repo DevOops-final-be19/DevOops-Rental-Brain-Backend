@@ -221,6 +221,7 @@
             A.addr,
             A.memo,
             A.is_deleted AS isDeleted,
+            A.segment_id AS segmentId,
             C.name AS segmentName,
             B.name AS channelName,
             (SELECT MIN(start_date) FROM contract WHERE cum_id = A.id) AS firstContractDate,
