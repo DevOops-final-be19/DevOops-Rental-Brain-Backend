@@ -86,13 +86,4 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 """, nativeQuery = true)
     int updateItemsToInspection(@Param("contractId") Long contractId);
 
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query(value = """
-    UPDATE item
-    SET status = 'P'
-    WHERE status = 'O'
-      AND last_inspect_date < :yesterday
-""", nativeQuery = true)
-    int restoreInspectedItems(@Param("yesterday") LocalDateTime yesterday);
-
 }

@@ -4,6 +4,6 @@ import com.devoops.rentalbrain.business.contract.command.dto.PaymentDetailReques
 
 public interface PaymentDetailCommandService {
     void completePayment(Long paymentDetailId, PaymentDetailRequestDTO dto);
-    void markAsNonPayment(Long paymentDetailId);
+    void autoMarkAsNonPayment();
     void increaseOverdueDays();
 }
