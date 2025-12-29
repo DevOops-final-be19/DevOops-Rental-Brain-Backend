@@ -1,4 +1,4 @@
-package com.devoops.rentalbrain.common.ai.common;
+package com.devoops.rentalbrain.common.ai.query.dto;
 
 import lombok.*;
 

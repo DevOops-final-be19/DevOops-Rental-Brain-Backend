@@ -3,7 +3,7 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.devoops.rentalbrain.common.ai.query.mapper.EmbeddingQueryMapper">
-    <resultMap id="getFeedBacksResultMap" type="com.devoops.rentalbrain.common.ai.common.FeedBackEmbeddingDTO">
+    <resultMap id="getFeedBacksResultMap" type="com.devoops.rentalbrain.common.ai.query.dto.FeedBackEmbeddingDTO">
         <id property="id" column="id"/>
         <result property="feedBackCode" column="feedback_code"/>
         <result property="title" column="title"/>
@@ -16,6 +16,12 @@
         <result property="channelId" column="channel_id"/>
         <result property="createDate" column="create_date"/>
         <result property="segmentName" column="segment_name"/>
+    </resultMap>
+
+    <resultMap id="getCsContentsResultMap" type="com.devoops.rentalbrain.common.ai.common.WordDTO">
+        <id property="id" column="id"/>
+        <result property="keywordText" column="content"/>
+        <result property="createdAt" column="create_date"/>
     </resultMap>
 
     <select id="getFeedBacks" resultMap="getFeedBacksResultMap">
@@ -36,6 +42,14 @@
                  JOIN customer b ON a.cum_id = b.id
                  JOIN segment c ON b.segment_id = c.id
                  JOIN support_category d ON a.category_id = d.id
+    </select>
+
+    <select id="getCsContents" resultType="string">
+        SELECT
+               a.id
+             , a.content
+             , a.create_date
+          FROM customer_support
     </select>
 
 </mapper>

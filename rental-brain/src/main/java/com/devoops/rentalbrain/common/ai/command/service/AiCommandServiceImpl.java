@@ -5,7 +5,8 @@ import com.devoops.rentalbrain.common.ai.command.dto.MetaDataDTO;
 import com.devoops.rentalbrain.common.ai.common.EmbeddingDTO;
 import com.devoops.rentalbrain.common.ai.command.repository.OpenSearchVectorRepository;
 import com.devoops.rentalbrain.common.ai.common.SentimentDTO;
-import com.devoops.rentalbrain.common.ai.query.service.AiQueryService;
+import com.devoops.rentalbrain.common.ai.common.WordDTO;
+import com.devoops.rentalbrain.common.ai.query.service.AiQueryServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.openai.client.OpenAIClient;
 import com.openai.models.ChatModel;
@@ -19,13 +20,10 @@ import org.opensearch.client.opensearch.core.SearchResponse;
 import org.opensearch.client.opensearch.core.search.Hit;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.openai.models.responses.Response;
-import com.openai.models.responses.ResponseOutputItem;
 import com.openai.models.responses.ResponseOutputText;
 
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,12 +33,12 @@ import java.util.Map;
 public class AiCommandServiceImpl implements AiCommandService {
     private final OpenAIClient openAIClient;
     private final OpenSearchVectorRepository openSearchVectorRepository;
-    private final AiQueryService aiQueryService;
+    private final AiQueryServiceImpl aiQueryService;
     private final PromptCommandService promptCommandService;
 
     public AiCommandServiceImpl(OpenAIClient openAIClient,
                                 OpenSearchVectorRepository openSearchVectorRepository,
-                                AiQueryService aiQueryService,
+                                AiQueryServiceImpl aiQueryService,
                                 PromptCommandService promptCommandService) {
         this.openAIClient = openAIClient;
         this.openSearchVectorRepository = openSearchVectorRepository;
@@ -58,6 +56,45 @@ public class AiCommandServiceImpl implements AiCommandService {
         log.info("Embedding created: {}", res);
         // 첫 번째 벡터만 사용(단일 input)
         return res.data().get(0).embedding();
+    }
+
+    @Transactional
+    public void csWordDocument() throws IOException{
+        for(WordDTO wordDTO : aiQueryService.getCs()){
+            String prompt = promptCommandService.keywordExtractPrompt(wordDTO.getKeywordText());
+
+            Response response = openAIClient.responses().create(
+                    ResponseCreateParams.builder()
+                            .model(ChatModel.GPT_5_1)
+                            .input(prompt)
+                            .temperature(0)
+                            .build()
+            );
+
+            String outputText = response.output().stream()
+                    .flatMap(item -> item.message().stream())
+                    .flatMap(message -> message.content().stream())
+                    .flatMap(content -> content.outputText().stream())
+                    .map(ResponseOutputText::text)
+                    .reduce("", (a, b) -> a + b);
+
+            String json = outputText.trim();
+            if (!json.startsWith("{")) {
+                throw new IllegalStateException("LLM JSON malformed: " + json);
+            }
+
+            ObjectMapper mapper = new ObjectMapper();
+
+            wordDTO = mapper.readValue(outputText, WordDTO.class);
+
+            Map<String, Object> doc = new HashMap<>();
+            doc.put("keyword", wordDTO.getKeyword());
+            doc.put("keywordText", wordDTO.getKeywordText());
+            doc.put("createdAt", wordDTO.getCreatedAt());
+
+
+
+        }
     }
 
     @Transactional(readOnly = true)
@@ -174,11 +211,11 @@ public class AiCommandServiceImpl implements AiCommandService {
     }
 
     public List<KeywordCountDTO> getTop3NegativeKeywords() throws IOException {
-        return openSearchVectorRepository.getTopKeywords("부정", 3);
+        return openSearchVectorRepository.getTopKeywords("부정", 5);
     }
 
     public List<KeywordCountDTO> getTop3PositiveKeywords() throws IOException {
-        return openSearchVectorRepository.getTopKeywords("긍정", 3);
+        return openSearchVectorRepository.getTopKeywords("긍정", 5);
     }
 
     public MetaDataDTO extract(String question) throws IOException {

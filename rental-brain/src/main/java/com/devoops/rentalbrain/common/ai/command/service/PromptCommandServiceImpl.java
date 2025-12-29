@@ -97,4 +97,30 @@ public class PromptCommandServiceImpl implements PromptCommandService {
                 \"\"\"
                 """.formatted(text);
     }
+
+    public String keywordExtractPrompt(String content){
+        return """
+                역할: 너는 한국어 고객문의 문장에서 "검색/집계용 키워드"를 추출하는 엔진이다.
+                
+                입력 문장:
+                %s
+                
+                규칙:
+                - 반드시 JSON만 출력한다. (설명/코드블록 금지)
+                - 키워드는 2~8개
+                - 각 키워드는 1~4단어의 짧은 구/명사형
+                - 불용어(가능/문의/부탁/궁금/관련/해요/있나요 등) 제거
+                - 의미 중복/동의어는 하나로 합치고 가장 일반적인 표현으로 통일
+                - 브랜드/제품/기술 용어(예: VPN, GPU, NAS, L3 스위치)는 그대로 유지
+                - 출력에 영어/숫자 포함 가능
+                - "keywords"는 배열, "keyword_text"는 공백으로 join한 문자열
+                
+                출력 JSON 스키마:
+                {
+                  "keywords": ["...", "..."],
+                  "keyword_text": "..."
+                }
+                
+                """.formatted(content);
+    }
 }

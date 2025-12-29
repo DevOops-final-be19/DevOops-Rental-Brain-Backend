@@ -1,7 +1,7 @@
 package com.devoops.rentalbrain.common.ai.query.mapper;
 
-import com.devoops.rentalbrain.common.ai.common.EmbeddingDTO;
-import com.devoops.rentalbrain.common.ai.common.FeedBackEmbeddingDTO;
+import com.devoops.rentalbrain.common.ai.common.WordDTO;
+import com.devoops.rentalbrain.common.ai.query.dto.FeedBackEmbeddingDTO;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -10,4 +10,7 @@ import java.util.List;
 public interface EmbeddingQueryMapper {
 
     List<FeedBackEmbeddingDTO> getFeedBacks();
+
+
+    List<WordDTO> getCsContents();
 }

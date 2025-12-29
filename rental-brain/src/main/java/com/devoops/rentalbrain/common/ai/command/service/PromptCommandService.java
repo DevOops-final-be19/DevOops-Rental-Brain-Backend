@@ -8,4 +8,6 @@ public interface PromptCommandService {
     String buildQueryMetadataPrompt(String question);
 
     String buildVocabSentimentPrompt(String text);
+
+    String keywordExtractPrompt(String content);
 }
