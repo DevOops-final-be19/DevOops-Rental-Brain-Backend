@@ -66,12 +66,12 @@
 
     <resultMap id="ContractListMap" type="com.devoops.rentalbrain.business.contract.query.dto.AllContractDTO">
         <id property="id" column="id"/>
-        <result property="contract_code" column="contract_code"/>
+        <result property="contractCode" column="contract_code"/>
         <result property="conName" column="conName"/>
         <result property="status" column="status"/>
-        <result property="start_date" column="start_date"/>
-        <result property="contract_period" column="contract_period"/>
-        <result property="monthly_payment" column="monthly_payment"/>
+        <result property="startDate" column="start_date"/>
+        <result property="contractPeriod" column="contract_period"/>
+        <result property="monthlyPayment" column="monthly_payment"/>
     </resultMap>
 
     <resultMap id="AsListMap" type="com.devoops.rentalbrain.product.maintenance.query.dto.AfterServiceDetailDTO">
