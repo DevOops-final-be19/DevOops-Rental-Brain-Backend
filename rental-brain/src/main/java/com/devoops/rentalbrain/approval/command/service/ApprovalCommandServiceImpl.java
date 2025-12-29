@@ -10,7 +10,13 @@ import com.devoops.rentalbrain.business.contract.command.entity.PaymentDetailCom
 import com.devoops.rentalbrain.business.contract.command.repository.PaymentDetailCommandRepository;
 import com.devoops.rentalbrain.common.error.ErrorCode;
 import com.devoops.rentalbrain.common.error.exception.BusinessException;
+import com.devoops.rentalbrain.common.notice.application.domain.PositionType;
+import com.devoops.rentalbrain.common.notice.application.facade.NotificationPublisher;
+import com.devoops.rentalbrain.common.notice.application.strategy.event.ContractApprovedEvent;
+import com.devoops.rentalbrain.common.notice.application.strategy.event.QuoteInsertedEvent;
 import com.devoops.rentalbrain.employee.command.dto.UserImpl;
+import com.devoops.rentalbrain.product.productlist.command.repository.ItemRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,16 +29,23 @@ import java.util.List;
 
 @Service
 @Transactional
+@Slf4j
 public class ApprovalCommandServiceImpl implements ApprovalCommandService {
 
     private final ApprovalMappingCommandRepository approvalMappingCommandRepository;
     private final PaymentDetailCommandRepository paymentDetailCommandRepository;
+    private final NotificationPublisher notificationPublisher;
+    private final ItemRepository itemRepository;
 
     @Autowired
     public ApprovalCommandServiceImpl(ApprovalMappingCommandRepository approvalMappingCommandRepository,
-                                      PaymentDetailCommandRepository paymentDetailCommandRepository) {
+                                      PaymentDetailCommandRepository paymentDetailCommandRepository,
+                                      NotificationPublisher notificationPublisher,
+                                      ItemRepository itemRepository) {
         this.approvalMappingCommandRepository = approvalMappingCommandRepository;
         this.paymentDetailCommandRepository = paymentDetailCommandRepository;
+        this.notificationPublisher = notificationPublisher;
+        this.itemRepository = itemRepository;
     }
 
     @Override
@@ -69,6 +82,7 @@ public class ApprovalCommandServiceImpl implements ApprovalCommandService {
             approval.setStatus("A");
             contract.setStatus("P");
             insertPaymentDetailsForContract(contract);
+            notificationPublisher.publish(new ContractApprovedEvent(approval.getEmployee().getId()));
         } else {
             // 아직 전부 Y가 아니면: current_step 업데이트
             contract.setCurrentStep(approvedStep);
@@ -100,6 +114,9 @@ public class ApprovalCommandServiceImpl implements ApprovalCommandService {
 
         approval.setStatus("R");
         contract.setStatus("R");
+
+        // 6. 결재 반려 → 아이템 상태 롤백
+        rollbackContractItems(contract.getId());
     }
     /**
      * 공통 조회 메서드
@@ -126,7 +143,7 @@ public class ApprovalCommandServiceImpl implements ApprovalCommandService {
                     PaymentDetailCommandEntity.builder()
                             .paymentDue(startDate.plusMonths(i))
                             .paymentActual(null)
-                            .overdueDays(null)
+                            .overdueDays(0)
                             .paymentStatus("P") // Pending
                             .contractId(contract.getId())
                             .build()
@@ -182,6 +199,20 @@ public class ApprovalCommandServiceImpl implements ApprovalCommandService {
         if (hasPrevNotApproved) {
             throw new BusinessException(
                     ErrorCode.APPROVAL_PREVIOUS_STEP_NOT_COMPLETED
+            );
+        }
+    }
+
+    private void rollbackContractItems(Long contractId) {
+
+        int rolledBackCount =
+                itemRepository.rollbackItemsToPending(contractId);
+
+        if (rolledBackCount == 0) {
+            // 데이터 이상 추적용 로그 (예외까지는 X)
+            log.warn(
+                    "[Approval Reject] No items rolled back. contractId={}",
+                    contractId
             );
         }
     }

@@ -37,6 +37,7 @@ public enum ErrorCode {
     CONTRACT_ITEM_STOCK_NOT_ENOUGH(HttpStatus.BAD_REQUEST,"CON001","대여 가능한 상품 수량이 부족합니다."),
     CONTRACT_INVALID_APPROVAL_REQUEST(HttpStatus.BAD_REQUEST,"CON002","결재 요청자를 지정할 수 없습니다."),
     INVALID_CONTRACT_PERIOD(HttpStatus.BAD_REQUEST,"CON003","계약 시작일 또는 계약 기간(개월 수)이 유효하지 않습니다." ),
+    CONTRACT_DUPLICATE_ITEM(HttpStatus.BAD_REQUEST,"CON004" , "계약 상품이 중복되었습니다" ),
 
     /* Approval */
     APPROVAL_MAPPING_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR,"APR001","승인 매핑 정보를 찾을 수 없습니다."),

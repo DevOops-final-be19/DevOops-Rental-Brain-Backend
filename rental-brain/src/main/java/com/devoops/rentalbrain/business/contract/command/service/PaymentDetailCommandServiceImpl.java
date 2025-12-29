@@ -1,8 +1,15 @@
 package com.devoops.rentalbrain.business.contract.command.service;
 
 import com.devoops.rentalbrain.business.contract.command.dto.PaymentDetailRequestDTO;
+import com.devoops.rentalbrain.business.contract.command.entity.ContractCommandEntity;
 import com.devoops.rentalbrain.business.contract.command.entity.PaymentDetailCommandEntity;
+import com.devoops.rentalbrain.business.contract.command.repository.ContractCommandRepository;
 import com.devoops.rentalbrain.business.contract.command.repository.PaymentDetailCommandRepository;
+import com.devoops.rentalbrain.common.codegenerator.CodeGenerator;
+import com.devoops.rentalbrain.common.codegenerator.CodeType;
+import com.devoops.rentalbrain.customer.overdue.command.entity.PayOverdue;
+import com.devoops.rentalbrain.customer.overdue.command.repository.PayOverdueRepository;
+import com.devoops.rentalbrain.product.productlist.command.repository.ItemRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,22 +25,50 @@ import java.time.temporal.ChronoUnit;
 public class PaymentDetailCommandServiceImpl implements PaymentDetailCommandService {
 
     private final PaymentDetailCommandRepository paymentDetailCommandRepository;
+    private final ItemRepository itemRepository;
+    private final PayOverdueRepository payOverdueRepository;
+    private final ContractCommandRepository contractCommandRepository;
+    private final CodeGenerator codeGenerator;
 
     @Autowired
-    public PaymentDetailCommandServiceImpl(PaymentDetailCommandRepository paymentDetailCommandRepository) {
+    public PaymentDetailCommandServiceImpl(PaymentDetailCommandRepository paymentDetailCommandRepository,
+                                           ItemRepository itemRepository,
+                                           PayOverdueRepository payOverdueRepository,
+                                           ContractCommandRepository contractCommandRepository,
+                                           CodeGenerator codeGenerator) {
         this.paymentDetailCommandRepository = paymentDetailCommandRepository;
-
+        this.itemRepository = itemRepository;
+        this.payOverdueRepository = payOverdueRepository;
+        this.contractCommandRepository = contractCommandRepository;
+        this.codeGenerator = codeGenerator;
     }
 
     @Override
     public void completePayment(Long paymentDetailId, PaymentDetailRequestDTO dto){
+
         PaymentDetailCommandEntity paymentDetail =
                 paymentDetailCommandRepository.findById(paymentDetailId)
                         .orElseThrow(() ->
                                 new EntityNotFoundException("결재 내역이 존재하지 않습니다. id=" + paymentDetailId));
+        // 중복 처리 방지 (아주 중요)
+        if ("C".equals(paymentDetail.getPaymentStatus())) {
+            throw new IllegalStateException("이미 완료된 결제입니다.");
+        }
 
+        // 1. 결제 완료 처리
         paymentDetail.setPaymentActual(dto.getPaymentActual());
         paymentDetail.setPaymentStatus("C");
+
+        // 2. 계약 ID 추출
+        Long contractId = paymentDetail.getContractId();
+
+        // 3. 아이템 매출 누적
+        int updated = itemRepository.addMonthlySalesByContract(contractId);
+
+        log.info(
+                "[Payment Complete] contractId={}, updatedItems={}",
+                contractId, updated
+        );
     }
 
     @Override
@@ -68,6 +103,23 @@ public class PaymentDetailCommandServiceImpl implements PaymentDetailCommandServ
 
         paymentDetail.setPaymentStatus("N");
         paymentDetail.setOverdueDays((int) overdueDays);
+
+        ContractCommandEntity contract =
+                contractCommandRepository.findById(paymentDetail.getContractId())
+                        .orElseThrow(() ->
+                                new EntityNotFoundException("계약이 존재하지 않습니다."));
+
+        PayOverdue overdue = PayOverdue.create(
+                paymentDetail.getContractId(),
+                contract.getCustomer().getId(),
+                paymentDetail.getPaymentDue(),
+                (int) overdueDays
+        );
+        overdue.setPayOverdueCode(
+                codeGenerator.generate(CodeType.PAY_OVERDUE)
+        );
+
+        payOverdueRepository.save(overdue);
 
         log.info("미납 처리 완료 - id={}, overdueDays={}", paymentDetailId, overdueDays);
     }

@@ -38,7 +38,9 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @Slf4j
@@ -81,34 +83,6 @@ public class ContractCommandServiceImpl implements ContractCommandService {
         this.segmentTransitionCommandService = segmentTransitionCommandService;
         this.promotionCommandService = promotionCommandService;
         this.couponCommandService = couponCommandService;
-    }
-
-    /**
-     * 계약 상태 자동 변경 스케줄러
-     *
-     * 상태 흐름:
-     * P(진행중) → I(만료임박, 1개월 전) → C(계약만료)
-     */
-    @Override
-    @Scheduled(cron = "0 0 6 * * *")
-    @Transactional
-    public void updateContractStatus() {
-
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime oneMonthLater = now.plusMonths(1);
-
-        int imminent =
-                contractCommandRepository.updateToExpireImminent(
-                        now, oneMonthLater
-                );
-
-        int closed =
-                contractCommandRepository.updateToClosed(now);
-
-        log.info(
-                "[계약 상태 스케줄러] 만료임박(I): {}, 계약만료(C): {}",
-                imminent, closed
-        );
     }
 
     @Override
@@ -283,11 +257,14 @@ public class ContractCommandServiceImpl implements ContractCommandService {
         /* =====================
        4. 제품 상태 update + 계약-제품 매핑 insert
        ===================== */
+
+        Set<Long> usedItemIds = new HashSet<>();
+
         for (ContractItemDTO item : dto.getItems()) {
 
             // 1) 대여 가능한 item id 조회
             List<Long> itemIds =
-                    itemRepository.findRentableItemIdsByName(
+                    itemRepository.findRentableItemIdsForContract(
                             item.getItemName(),
                             item.getQuantity()
                     );
@@ -296,7 +273,7 @@ public class ContractCommandServiceImpl implements ContractCommandService {
             int available = itemIds.size();       // 실제 가능 수량
             int shortage  = requested - available;
 
-            if (itemIds.size() < item.getQuantity()) {
+            if (available < requested) {
                 throw new BusinessException(
                         ErrorCode.CONTRACT_ITEM_STOCK_NOT_ENOUGH,
                         String.format(
@@ -307,6 +284,16 @@ public class ContractCommandServiceImpl implements ContractCommandService {
                                 shortage
                         )
                 );
+            }
+
+            // 계약 전체 기준 중복 방지
+            for (Long itemId : itemIds) {
+                if (!usedItemIds.add(itemId)) {
+                    throw new BusinessException(
+                            ErrorCode.CONTRACT_DUPLICATE_ITEM,
+                            "동일한 제품이 계약 내에서 중복 선택되었습니다."
+                    );
+                }
             }
 
             // 2) item 상태 변경 (P → S)
