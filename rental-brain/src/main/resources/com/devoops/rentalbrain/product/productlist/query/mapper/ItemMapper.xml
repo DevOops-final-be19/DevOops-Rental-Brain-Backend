@@ -20,8 +20,16 @@
                A.STATUS,
                A.SALES,
                A.REPAIR_COST,
-               E.NAME AS FIRM_NAME,
-               C.START_DATE,
+               CASE
+                 WHEN C.STATUS = 'W' AND A.STATUS = 'S' THEN '결재 대기 중'
+                 WHEN A.STATUS IN ('R', 'P') THEN NULL
+                 ELSE E.NAME
+               END AS FIRM_NAME,
+               CASE
+                 WHEN A.STATUS IN ('R', 'P') OR (C.STATUS = 'W' AND A.STATUS = 'S')
+                 THEN NULL
+                 ELSE C.START_DATE
+               END AS START_DATE,
                A.LAST_INSPECT_DATE
           FROM item A
           LEFT JOIN (
@@ -30,12 +38,13 @@
                       MAX(c.id) AS contract_id
                  FROM contract_with_item cwi
                  JOIN contract c ON c.id = cwi.contract_id
-                WHERE c.status IN ('P','I','C')
+                WHERE c.status IN ('P','I','C','T','W')
                 GROUP BY cwi.item_id
-          ) BC ON BC.item_id = A.ID
+                ) BC ON BC.item_id = A.ID
           LEFT JOIN contract C ON C.ID = BC.contract_id
           LEFT JOIN customer E ON E.ID = C.CUM_ID
-         WHERE A.NAME = #{itemName}
+         WHERE A.NAME = #{itemName};
+
     </select>
     <resultMap id="getItemNameMap" type="com.devoops.rentalbrain.product.productlist.query.dto.ItemNameDTO">
         <result property="itemName" column="ITEM_NAME"/>
