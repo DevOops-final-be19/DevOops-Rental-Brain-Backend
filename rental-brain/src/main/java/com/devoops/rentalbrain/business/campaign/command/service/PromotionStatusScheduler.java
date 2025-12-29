@@ -1,6 +1,6 @@
 package com.devoops.rentalbrain.business.campaign.command.service;
 
-import com.devoops.rentalbrain.business.campaign.command.repository.CouponRepository;
+import com.devoops.rentalbrain.business.campaign.command.repository.PromotionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -8,12 +8,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class CouponStatusScheduler {
-    private final CouponRepository couponRepository;
+public class PromotionStatusScheduler {
+    private final PromotionRepository promotionRepository;
 
-    @Scheduled(cron = "0/5 * * * * ?")
+    @Scheduled(cron = "0 0 6 * * *")
     @Transactional
-    public void updateCouponStatus() {
-        couponRepository.updateCouponStatus();
+    public void updatePromotionStatus() {
+        promotionRepository.updatePromotionStatus();
     }
 }
