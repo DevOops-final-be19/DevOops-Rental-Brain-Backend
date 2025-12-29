@@ -52,4 +52,16 @@ public interface ContractCommandRepository extends JpaRepository<ContractCommand
       ) < :now
     """)
     List<Long> findExpiredContractIds(LocalDateTime now);
+
+    @Query("""
+        SELECT c.id
+        FROM ContractCommandEntity c
+        WHERE c.status = 'C'
+            AND FUNCTION(
+            'DATE_ADD',
+            c.startDate,
+            CONCAT(c.contractPeriod + 1, ' MONTH')
+            ) < :now
+        """)
+    List<Long> findContractsExpiredOneDayAgo(LocalDateTime now);
 }
