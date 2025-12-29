@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PromotionStatusScheduler {
     private final PromotionRepository promotionRepository;
 
-    @Scheduled(cron = "5 * * * * ?")
+    @Scheduled(cron = "0 0 6 * * *")
     @Transactional
     public void updatePromotionStatus() {
         promotionRepository.updatePromotionStatus();
