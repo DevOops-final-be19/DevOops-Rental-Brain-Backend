@@ -19,6 +19,7 @@ public class CouponDTO {
     private String status;   // 컬럼에 없음(쿼리문으로 계산해서 값 넣기): AS STATUS
     private LocalDateTime startDate;
     private LocalDateTime endDate;
+    private Integer datePeriod;
     private String content;
     private Integer issued; // 발급받은 수 (issued_coupon에서 join 후 count)
     private Integer used; // 사용된 쿠폰 수 (issued_coupon에서 join 후 count)
