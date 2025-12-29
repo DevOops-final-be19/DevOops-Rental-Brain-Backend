@@ -38,6 +38,7 @@
           LEFT JOIN segment B ON A.SEGMENT_ID = B.ID
           LEFT JOIN issued_coupon C ON A.ID = C.COUPON_ID
          GROUP BY A.ID, A.NAME
+         ORDER BY A.COUPON_CODE DESC
          LIMIT #{limit} OFFSET #{offset}
     </select>
     <select id="countCouponList">
@@ -65,6 +66,7 @@
           LEFT JOIN issued_coupon C ON A.ID = C.COUPON_ID
          WHERE A.COUPON_CODE LIKE CONCAT('%', #{keyword}, '%') OR A.NAME LIKE CONCAT('%', #{keyword}, '%')
          GROUP BY A.ID, A.NAME
+         ORDER BY A.COUPON_CODE DESC
          LIMIT #{limit} OFFSET #{offset}
     </select>
     <select id="countSearchedCoupon" parameterType="string">
@@ -93,6 +95,7 @@
           LEFT JOIN issued_coupon C ON A.ID = C.COUPON_ID
          WHERE A.TYPE = #{type}
          GROUP BY A.ID, A.NAME
+         ORDER BY A.COUPON_CODE DESC
          LIMIT #{limit} OFFSET #{offset}
     </select>
     <select id="countFliteringCoupon" parameterType="string">
@@ -121,6 +124,7 @@
           LEFT JOIN issued_coupon C ON A.ID = C.COUPON_ID
          WHERE A.STATUS = #{status}
          GROUP BY A.ID, A.NAME
+         ORDER BY A.COUPON_CODE DESC
          LIMIT #{limit} OFFSET #{offset}
     </select>
     <select id="countFliterCouponByStatus" parameterType="string">
@@ -146,7 +150,7 @@
                RATE,
                END_DATE
           FROM coupon
-         WHERE SEGMENT_ID = #{segment}
+         WHERE SEGMENT_ID = #{segment} AND STATUS = 'A'
     </select>
     <select id="selectEachCoupon" resultMap="getCouponMap" parameterType="string">
         SELECT
