@@ -26,6 +26,7 @@ public class CustomerDTO {
     private String memo;
     private String isDeleted;
     private String segmentName; // 세그먼트
+    private Integer segmentId;
     private String channelName;
 
     // ▼ 추가된 필드 (목록 화면용)
