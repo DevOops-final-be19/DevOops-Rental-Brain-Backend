@@ -337,6 +337,41 @@ public class ContractCommandServiceImpl implements ContractCommandService {
         );
     }
 
+    @Transactional
+    @Override
+    public void terminateContract(Long contractId) {
+        ContractCommandEntity contract =
+                contractCommandRepository.findById(contractId)
+                        .orElseThrow(() ->
+                                new BusinessException(ErrorCode.CONTRACT_NOT_FOUND));
+
+        // 이미 종료된 계약 방지
+        if (List.of("C", "T").contains(contract.getStatus())) {
+            throw new BusinessException(
+                    ErrorCode.INVALID_CONTRACT_STATUS,
+                    "이미 종료된 계약입니다."
+            );
+        }
+
+        /* =========================
+       1. 계약 상태 → 해지(T)
+       ========================= */
+        contract.setStatus("T");
+        /* =========================
+       2. 렌탈중 상품 → 연체(O)
+          (수리중 R 제외)
+       ========================= */
+        int updated =
+                itemRepository.updateItemsToOverdueExceptRepairAndStatus(contractId);
+
+        log.info(
+                "[CONTRACT][TERMINATED] contractId={}, overdueItems={}",
+                contractId,
+                updated
+        );
+    }
+
+
     private void createApprovalMapping(
             ApprovalCommandEntity approval,
             Long leaderId,

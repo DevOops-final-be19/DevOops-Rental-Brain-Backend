@@ -16,6 +16,7 @@ public class ContractOverviewDTO {
     private Long totalAmount;
     private String payMethod;
     private String specialContent;
+    private String contractStatus;
 
     /* 고객 정보 */
     private Long customerId;
