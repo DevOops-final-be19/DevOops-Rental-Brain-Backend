@@ -165,4 +165,6 @@ public class CustomerSegmentAnalysisQueryController {
         return ResponseEntity.ok(customerSegmentAnalysisQueryservice.getSegmentDetailCard(segmentId));
     }
 
+
+    
 }

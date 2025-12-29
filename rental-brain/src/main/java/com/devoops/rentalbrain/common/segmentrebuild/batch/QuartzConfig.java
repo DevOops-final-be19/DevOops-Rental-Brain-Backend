@@ -1,4 +1,4 @@
-package com.devoops.rentalbrain.common.segmentrebuild.quartz;
+package com.devoops.rentalbrain.common.segmentrebuild.batch;
 
 import org.quartz.*;
 import org.springframework.context.annotation.Bean;
@@ -20,7 +20,7 @@ public class QuartzConfig {
     }
 
     /*
-     * 매일 새벽 2시 (Asia/Seoul)
+     * 매일 새벽 6시 (Asia/Seoul)
      * Cron: 초 분 시 일 월 요일
      */
     @Bean
@@ -31,8 +31,8 @@ public class QuartzConfig {
                 .forJob(segmentRebuildJobDetail)
                 .withIdentity("segmentRebuildDailyTrigger")
                 .withSchedule(
-                        CronScheduleBuilder.cronSchedule("0 0 2 * * ?")               // 새벽 2시에
-//                        CronScheduleBuilder.cronSchedule("0 0/1 * * * ?")   // 1분마다
+                        CronScheduleBuilder.cronSchedule("0 0 6 * * ?")   // 새벽 6시에
+//                        CronScheduleBuilder.cronSchedule("0 0/1 * * * ?")   // 1분마다 테스트용
                                 .inTimeZone(kst)
                 )
                 .build();

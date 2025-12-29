@@ -7,4 +7,7 @@ public interface SegmentTransitionCommandService {
      * - 잠재(1) → 신규(2)만 처리
      */
     void onContractCommitted(Long customerId, Long contractId);
+
+
+
 }
