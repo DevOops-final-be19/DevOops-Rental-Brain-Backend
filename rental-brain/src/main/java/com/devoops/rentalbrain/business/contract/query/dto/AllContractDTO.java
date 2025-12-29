@@ -7,13 +7,13 @@ import java.util.Date;
 @Data
 public class AllContractDTO {
     private Long id;
-    private String contract_code;
+    private String contractCode;
     private String cusName;
-    private String in_charge;
-    private String call_num;
+    private String inCharge;
+    private String callNum;
     private String conName;
-    private Date start_date;
-    private Integer contract_period;
-    private Integer monthly_payment;
+    private Date startDate;
+    private Integer contractPeriod;
+    private Integer monthlyPayment;
     private String status;
 }

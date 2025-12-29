@@ -5,17 +5,17 @@
     <select id="getContractList" resultType="com.devoops.rentalbrain.business.contract.query.dto.AllContractDTO"
     parameterType="com.devoops.rentalbrain.business.contract.query.dto.ContractSearchDTO">
         SELECT
-            T.id,
-            T.contract_code,
-            C.name AS cusName,
-            C.in_charge,
-            C.call_num,
-            T.name AS conName,
-            T.start_date,
-            T.contract_period,
-            T.monthly_payment,
-            T.status
-        FROM contract t LEFT JOIN customer c
+                T.id,
+                T.contract_code   AS contractCode,
+                C.name            AS cusName,
+                C.in_charge       AS inCharge,
+                C.call_num        AS callNum,
+                T.name            AS conName,
+                T.start_date      AS startDate,
+                T.contract_period AS contractPeriod,
+                T.monthly_payment AS monthlyPayment,
+                T.status          AS status
+                FROM contract t LEFT JOIN customer c
             ON t.cum_id = c.id
         <where>
             <if test="status != null and status != ''">
@@ -105,15 +105,12 @@
         WHERE STATUS = 'I'
     </select>
 
-    <!-- 이번 달 신규 계약 수 (진행중) -->
+    <!-- 이번 달 신규 계약 수 -->
     <select id="countThisMonthContracts" resultType="long">
         SELECT COUNT(*)
-        FROM contract
-    <![CDATA[
-        WHERE start_date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
-          AND start_date < DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL 1 MONTH)
-    ]]>
-    AND STATUS = 'P'
+        FROM approval
+        WHERE approval_date <![CDATA[ >= ]]>DATE_FORMAT(CURDATE(), '%Y-%m-01')
+        AND approval_date <![CDATA[ < ]]> DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL 1 MONTH)
     </select>
     <!-- 렌탈 중인 상품 리스트 조회 -->
     <select id="selectRentalProductList"

@@ -78,7 +78,7 @@
     <!-- 검색 + 페이징 조회 -->
     <select id="getQuoteListWithPaging" resultMap="QuoteQueryMap">
         <include refid="quoteBaseSelect"/>
-        ORDER BY A.counseling_date DESC
+        ORDER BY A.quote_code DESC
         LIMIT #{limit} OFFSET #{offset}
     </select>
 
@@ -137,17 +137,28 @@
     <!-- KPI 카드용 집계 쿼리  -->
     <select id="getQuoteKpi" resultType="com.devoops.rentalbrain.business.quote.query.dto.QuoteKpiResponseDTO">
         SELECT
-            COUNT(*) AS totalCount,         -- 전체 상담 건수
-            SUM(CASE
-                    WHEN DATE(A.counseling_date) = CURDATE() THEN 1
-                ELSE 0
-                END) AS todayCount,         -- 오늘 상담 건수
-            AVG(A.processing_time) AS avgProcessingAll,   -- 전체 평균 처리시간(분)
-            AVG(CASE
-                    WHEN A.counseling_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
-                        THEN A.processing_time
-                    ELSE NULL
-                END) AS avgProcessing7Days  -- 최근 7일 평균 처리시간(분)
+        COUNT(*) AS totalCount,
+
+        SUM(
+        CASE
+        WHEN A.counseling_date >= CURDATE()
+        AND A.counseling_date <![CDATA[<]]> DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+        THEN 1 ELSE 0
+        END
+        ) AS todayCount,
+
+        /* 전체 평균 처리시간(분) */
+        ROUND(AVG(A.processing_time), 1) AS avgProcessingAll,
+
+        /* 최근 7일(오늘 포함 7일) */
+        ROUND(AVG(
+        CASE
+        WHEN A.counseling_date >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
+        AND A.counseling_date <![CDATA[<]]>  DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+        THEN A.processing_time
+        ELSE NULL
+        END
+        ), 1) AS avgProcessing7Days
         FROM quote A
     </select>
 </mapper>

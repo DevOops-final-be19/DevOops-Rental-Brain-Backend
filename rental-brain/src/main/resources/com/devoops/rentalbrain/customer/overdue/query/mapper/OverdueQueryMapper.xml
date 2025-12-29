@@ -225,4 +225,31 @@
         WHERE cwi.contract_id = #{contractId}
     </select>
 
+    <select id="findItemOverdueCandidates"
+            resultType="com.devoops.rentalbrain.customer.overdue.query.dto.ItemOverdueCandidateDTO">
+
+        SELECT
+        c.id AS contractId,
+        c.cum_id AS customerId,
+        DATE_ADD(c.start_date, INTERVAL c.contract_period MONTH) AS dueDate,
+        COUNT(cwi.item_id) AS itemCount,
+        DATEDIFF(
+        CURDATE(),
+        DATE_ADD(c.start_date, INTERVAL c.contract_period MONTH)
+        ) AS overduePeriod
+        FROM contract c
+        JOIN contract_with_item cwi ON c.id = cwi.contract_id
+        WHERE c.status = 'C'
+          <![CDATA[
+          AND DATE_ADD(c.start_date, INTERVAL c.contract_period MONTH) < NOW() ]]>
+        AND NOT EXISTS (
+        SELECT 1
+        FROM item_overdue io
+        WHERE io.contract_id = c.id
+        AND io.status = 'P'
+        )
+        GROUP BY c.id, c.cum_id;
+    </select>
+
+
 </mapper>

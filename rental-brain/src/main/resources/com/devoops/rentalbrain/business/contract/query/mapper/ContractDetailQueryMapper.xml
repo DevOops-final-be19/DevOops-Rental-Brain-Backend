@@ -51,13 +51,19 @@
             id AS contractId,
             start_date AS startDate,
             contract_period AS contractPeriod,
-            LEAST(
+            CASE
+                WHEN <![CDATA[ NOW() < start_date ]]> THEN 0
+
+                WHEN <![CDATA[
+                NOW() >= DATE_ADD(start_date, INTERVAL contract_period MONTH)
+            ]]> THEN 100
+
+                ELSE
                     ROUND(
                             TIMESTAMPDIFF(MONTH, start_date, NOW())
                                 / contract_period * 100
-                    ),
-                    100
-            ) AS progressRate
+                    )
+                END AS progressRate
         FROM contract
         WHERE id = #{contractId}
     </select>
@@ -84,7 +90,7 @@
             i.name AS itemName,
             COUNT(cwi.id) AS quantity
         FROM contract_with_item cwi
-                 JOIN item i ON cwi.item_id = i.id
+                RIGHT JOIN item i ON cwi.item_id = i.id
         WHERE cwi.contract_id = #{contractId}
         GROUP BY i.name
     </select>
@@ -101,7 +107,7 @@
             i.name              AS name,
             i.last_inspect_date AS latelyInspectDate
         FROM contract_with_item cwi
-                 JOIN item i ON cwi.item_id = i.id
+                 RIGHT JOIN item i ON cwi.item_id = i.id
         WHERE cwi.contract_id = #{contractId}
     </select>
     <!-- =========================

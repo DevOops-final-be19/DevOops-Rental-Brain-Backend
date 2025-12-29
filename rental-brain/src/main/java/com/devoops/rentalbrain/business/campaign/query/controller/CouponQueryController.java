@@ -110,7 +110,7 @@ public class CouponQueryController {
             }
     )
     @GetMapping("/use-contract/{segment}")
-    public ResponseEntity<List<CouponWithContractDTO>> useContract(@PathVariable String segment) {
+    public ResponseEntity<List<CouponWithContractDTO>> useContract(@PathVariable Integer segment) {
         List<CouponWithContractDTO> couponList = couponQueryService.useContractCoupon(segment);
         return ResponseEntity.ok().body(couponList);
     }

@@ -1,5 +1,6 @@
 package com.devoops.rentalbrain.customer.overdue.command.service;
 
+import com.devoops.rentalbrain.customer.overdue.command.dto.ItemOverdueCommandDTO;
 import com.devoops.rentalbrain.customer.overdue.command.dto.PayOverdueCommandDTO;
 import com.devoops.rentalbrain.customer.overdue.command.entity.ItemOverdue;
 import com.devoops.rentalbrain.customer.overdue.command.entity.PayOverdue;
@@ -43,8 +44,32 @@ public class OverdueCommandServiceImpl implements OverdueCommandService {
         // 수납 연체 해결
         entity.resolve(paidDate.atStartOfDay());
 
-        // 같은 계약의 제품 연체도 함께 해결
-        itemRepo.findByContractIdAndStatus(
-                entity.getContractId(), "P").ifPresent(ItemOverdue::resolve);
+    }
+
+    public void updateItemOverdue(Long overdueId, ItemOverdueCommandDTO dto) {
+
+        ItemOverdue entity = itemRepo.findById(overdueId)
+                .orElseThrow(() -> new IllegalArgumentException("제품 연체 정보 없음"));
+
+        if ("C".equals(entity.getStatus())) {
+            throw new IllegalStateException("이미 해결된 제품 연체입니다.");
+        }
+
+        if (dto.getCount() != null) {
+            if (dto.getCount() < 0) {
+                throw new IllegalArgumentException("수량은 0 이상이어야 합니다.");
+            }
+            entity.changeCount(dto.getCount());
+        }
+
+        // 해결 처리
+        if (Boolean.TRUE.equals(dto.getResolved())) {
+            entity.resolve();
+        }
+
+        // count가 0이면 자동 해결
+        if (dto.getCount() != null && dto.getCount() == 0) {
+            entity.resolve();
+        }
     }
 }

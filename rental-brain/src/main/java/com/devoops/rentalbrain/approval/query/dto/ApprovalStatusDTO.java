@@ -4,9 +4,8 @@ import lombok.Data;
 
 @Data
 public class ApprovalStatusDTO {
-    private Long my_approved;
-    private Long my_rejected;
     private Long my_pending;
-    private Long fully_approved_count;
-    private Long not_fully_approved_count;
+    private Long total_approved;
+    private Long total_rejected;
+    private Long in_progress;
 }

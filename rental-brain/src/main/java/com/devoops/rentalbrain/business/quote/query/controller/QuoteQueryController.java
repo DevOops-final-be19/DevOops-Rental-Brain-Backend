@@ -81,7 +81,6 @@ public class QuoteQueryController {
             @ApiResponse(responseCode = "404", description = "해당 견적 없음"),
             @ApiResponse(responseCode = "500", description = "서버 오류")
     })
-    // 견적 상세 조회
     @GetMapping("/{quoteId}")
     public ResponseEntity<QuoteDetailQueryResponseDTO> getQuote(
                                                                 @PathVariable("quoteId") Long quoteId

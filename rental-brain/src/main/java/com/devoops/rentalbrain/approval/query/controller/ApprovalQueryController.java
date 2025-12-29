@@ -44,11 +44,9 @@ public class ApprovalQueryController {
             description = "승인 상태 조회 성공",
             content = @Content(schema = @Schema(implementation = ApprovalStatusDTO.class))
     )
-    @GetMapping("/status/{empId}")
-    public ResponseEntity<ApprovalStatusDTO> getApprovalStatus(
-            @PathVariable Long empId
-    ){
-        return ResponseEntity.ok(approvalQueryService.getApprovalStatus(empId));
+    @GetMapping("/status")
+    public ResponseEntity<ApprovalStatusDTO> getApprovalStatus(){
+        return ResponseEntity.ok(approvalQueryService.getApprovalStatus());
     }
 
     @Operation(
@@ -64,12 +62,11 @@ public class ApprovalQueryController {
             responseCode = "200",
             description = "승인 대기 목록 조회 성공"
     )
-    @GetMapping("/pending/{empId}")
+    @GetMapping("/pending")
     public PageResponseDTO<PendingApprovalDTO> getPendingApprovals(
-            @PathVariable Long empId,
             @ModelAttribute Criteria criteria
     ) {
-        return approvalQueryService.getPendingApprovals(empId, criteria);
+        return approvalQueryService.getPendingApprovals(criteria);
     }
 
     @Operation(
@@ -86,12 +83,11 @@ public class ApprovalQueryController {
             responseCode = "200",
             description = "승인 진행 목록 조회 성공"
     )
-    @GetMapping("/progress/{empId}")
+    @GetMapping("/progress")
     public PageResponseDTO<ApprovalProgressDTO> getApprovalProgress(
-            @PathVariable Long empId,
             @ModelAttribute Criteria criteria
     ) {
-        return approvalQueryService.getApprovalProgress(empId, criteria);
+        return approvalQueryService.getApprovalProgress(criteria);
     }
 
     @Operation(
@@ -108,11 +104,10 @@ public class ApprovalQueryController {
             responseCode = "200",
             description = "승인 완료 목록 조회 성공"
     )
-    @GetMapping("/completed/{empId}")
+    @GetMapping("/completed")
     public PageResponseDTO<ApprovalCompletedDTO> getApprovalCompleted(
-            @PathVariable Long empId,
             @ModelAttribute Criteria criteria
     ){
-        return approvalQueryService.getApprovalCompleted(empId, criteria);
+        return approvalQueryService.getApprovalCompleted(criteria);
     }
 }
