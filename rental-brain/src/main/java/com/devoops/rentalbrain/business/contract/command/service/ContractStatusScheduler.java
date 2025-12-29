@@ -31,7 +31,7 @@ public class ContractStatusScheduler {
      *
      * 흐름:
      * P → I → C
-     * 계약 만료 시 아이템 S → O (점검중)
+     * 계약 만료 시 하루 지난 후 해당 아이템 S → O (연체중)
      */
     @Scheduled(cron = "0 0 6 * * *")
     @Transactional
@@ -55,16 +55,20 @@ public class ContractStatusScheduler {
             contractCommandRepository.updateToClosedByIds(
                     expiredContractIds
             );
+        }
 
-            // 4. 아이템 → 점검중(O)
-            for (Long contractId : expiredContractIds) {
-                itemRepository.updateItemsToInspection(contractId);
-            }
+        // 4. 만료 후 하루 지난 계약의 아이템만 점검중(O)으로
+        List<Long> inspectionTargets =
+                contractCommandRepository.findContractsExpiredOneDayAgo(now);
+
+        for (Long contractId : inspectionTargets) {
+            itemRepository.updateItemsToInspection(contractId);
         }
 
         log.info(
-                "[BATCH][CONTRACT_STATUS] expiredCount={}",
-                expiredContractIds.size()
+                "[BATCH][CONTRACT_STATUS] expired={}, inspectionTargets={}",
+                expiredContractIds.size(),
+                inspectionTargets.size()
         );
     }
 }

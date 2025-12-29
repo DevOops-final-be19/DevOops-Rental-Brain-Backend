@@ -26,9 +26,4 @@ public class PaymentDetailCommandController {
         return ResponseEntity.ok().build();
     }
 
-    @PatchMapping("/{id}/non-payment")
-    public ResponseEntity<Void> markAsNonPayment(@PathVariable Long id) {
-        paymentDetailCommandService.markAsNonPayment(id);
-        return ResponseEntity.noContent().build();
-    }
 }

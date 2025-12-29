@@ -14,9 +14,17 @@ public class PaymentOverdueScheduler {
         this.paymentDetailCommandService = paymentDetailCommandService;
     }
 
+
+
     @Scheduled(cron = "0 0 6 * * *")
     public void runDailyOverdueIncrease() {
+        log.info("[Scheduler] 자동 미납 처리 시작");
+        paymentDetailCommandService.autoMarkAsNonPayment();
+
         log.info("[Scheduler] 미납 연체일수 증가 시작");
         paymentDetailCommandService.increaseOverdueDays();
+
+        log.info("[Scheduler] 연체 처리 스케줄 종료");
     }
+
 }
