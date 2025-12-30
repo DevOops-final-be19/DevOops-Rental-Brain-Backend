@@ -1,6 +1,7 @@
 package com.devoops.rentalbrain.common.ai.command.service;
 
 import com.devoops.rentalbrain.common.ai.command.dto.KeywordCountDTO;
+import com.devoops.rentalbrain.common.ai.command.dto.KeywordInsightDTO;
 import com.devoops.rentalbrain.common.ai.command.dto.KeywordsDTO;
 import com.devoops.rentalbrain.common.ai.command.dto.MetaDataDTO;
 import com.devoops.rentalbrain.common.ai.common.CsWordDocumentDTO;
@@ -27,6 +28,8 @@ import com.openai.models.responses.ResponseOutputText;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
@@ -65,7 +68,7 @@ public class AiCommandServiceImpl implements AiCommandService {
     @Transactional
     public void csWordDocument() throws IOException {
         for (WordDTO wordDTO : aiQueryService.getCs()) {
-            log.info("wordDTO: {}",wordDTO.toString());
+            log.info("wordDTO: {}", wordDTO.toString());
             String prompt = promptCommandService.keywordExtractPrompt(wordDTO.getKeywordText());
 
             Response response = openAIClient.responses().create(
@@ -119,7 +122,12 @@ public class AiCommandServiceImpl implements AiCommandService {
                             .keyword(keyword)
                             .keywordText(keyword)
                             .count(1)
-                            .createdAt(wordDTO.getCreatedAt())
+                            .createdAt(
+                                    LocalDateTime.parse(wordDTO.getCreatedAt(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                                            .atZone(ZoneId.of("Asia/Seoul"))
+                                            .toOffsetDateTime()
+                                            .toString()
+                            )
                             .build()
                     )
                     .map(dto -> {
@@ -129,8 +137,8 @@ public class AiCommandServiceImpl implements AiCommandService {
                         map.put("keyword", dto.getKeyword());
                         map.put("keywordText", dto.getKeywordText());
                         map.put("count", dto.getCount());
-                        map.put("createdAt", dto.getCreatedAt());
-                        log.info("map: {}",map);
+                        map.put("created_at", dto.getCreatedAt());
+                        log.info("map: {}", map);
                         return map;
                     })
                     .forEach(doc -> {
@@ -256,18 +264,25 @@ public class AiCommandServiceImpl implements AiCommandService {
         return openAIClient.responses().create(params);
     }
 
-    public List<KeywordCountDTO> getTopNegativeKeywords() throws IOException {
-        return openSearchVectorRepository.getTopKeywords("부정", 5);
+    public List<KeywordCountDTO> getTopNegativeKeywords(String yearMonth) throws IOException {
+        return openSearchVectorRepository.getTopKeywords("부정", 5, yearMonth);
     }
 
-    public List<KeywordCountDTO> getTopPositiveKeywords() throws IOException {
-        return openSearchVectorRepository.getTopKeywords("긍정", 5);
+    public List<KeywordCountDTO> getTopPositiveKeywords(String yearMonth) throws IOException {
+        return openSearchVectorRepository.getTopKeywords("긍정", 5, yearMonth);
     }
 
-    public List<KeywordCountDTO> getTopCsKeywords() throws IOException {
-        return openSearchVectorRepository.getTopCsKeywords(10);
+    public List<KeywordCountDTO> getTopCsKeywords(String yearMonth) throws IOException {
+        return openSearchVectorRepository.getTopCsKeywords(5, yearMonth);
     }
 
+    public KeywordInsightDTO getKeywordInsight(String yearMonth) throws IOException {
+        return new KeywordInsightDTO(
+                openSearchVectorRepository.getTopCsKeywords(5, yearMonth),
+                openSearchVectorRepository.getTopKeywords("긍정", 5, yearMonth),
+                openSearchVectorRepository.getTopKeywords("부정", 5, yearMonth)
+        );
+    }
 
     public MetaDataDTO extract(String question) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();

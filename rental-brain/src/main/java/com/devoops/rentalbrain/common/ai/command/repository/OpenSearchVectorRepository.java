@@ -2,6 +2,7 @@ package com.devoops.rentalbrain.common.ai.command.repository;
 
 import com.devoops.rentalbrain.common.ai.command.dto.KeywordCountDTO;
 import lombok.extern.slf4j.Slf4j;
+import org.opensearch.client.json.JsonData;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.FieldValue;
 import org.opensearch.client.opensearch._types.query_dsl.Query;
@@ -13,6 +14,10 @@ import org.opensearch.client.opensearch._types.aggregations.Aggregate;
 
 
 import java.io.IOException;
+import java.time.YearMonth;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +27,7 @@ import java.util.Map;
 public class OpenSearchVectorRepository {
     private final OpenSearchClient client;
     private final String customerInteractionsIndex = "rag_customer_interactions_v1";
+    private final String customerInteractionsPipeLine = "rag_metadata_pipeline";
     private final String csKeywordIndex = "keyword_stats_v1";
 
     public OpenSearchVectorRepository(OpenSearchClient client) {
@@ -32,6 +38,7 @@ public class OpenSearchVectorRepository {
         IndexRequest req = IndexRequest.of(i -> i
                 .index(customerInteractionsIndex)
                 .id(id)
+                .pipeline(customerInteractionsPipeLine)
                 .document(doc)
         );
         client.index(req);
@@ -80,17 +87,18 @@ public class OpenSearchVectorRepository {
         return client.search(s -> s
                         .index(customerInteractionsIndex)
                         .size(k)
-                        .query(q -> q.bool(b -> b
-                                .filter(filters)
-                                .must(m -> m.knn(knn -> knn
-                                        .field("embedding")
-                                        .vector(vector)
-                                        .k(k)
+                        .query(q -> q
+                                .bool(b -> b
+                                        .filter(filters)
+                                        .must(m -> m.knn(knn -> knn
+                                                .field("embedding")
+                                                .vector(vector)
+                                                .k(k)
+                                        ))
                                 ))
-                        ))
                         .source(src -> src
                                 .filter(f -> f
-                                        .includes("text", "chunkId", "category", "sentiment", "segments","vocab","responseStyle")
+                                        .includes("text", "chunkId", "category", "sentiment", "segments", "vocab", "responseStyle")
                                 )
                         ),
                 Map.class
@@ -101,16 +109,35 @@ public class OpenSearchVectorRepository {
 
         List<Query> filters = new ArrayList<>();
 
+        // 날짜 범위
+        if (filter.containsKey("from") && filter.containsKey("to")) {
+            filters.add(Query.of(q -> q
+                    .range(r -> r
+                            .field("metadata.createdAt")
+                            .gte(JsonData.of(filter.get("from")))
+                            .lte(JsonData.of(filter.get("to")))
+                    )
+            ));
+        }
+
+        // sentiment 필터
         if (filter.containsKey("sentiment")) {
-            filters.add(term("sentiment.keyword", filter.get("sentiment")));
+            filters.add(Query.of(q -> q
+                    .term(t -> t
+                            .field("metadata.sentiment")
+                            .value(FieldValue.of(filter.get("sentiment").toString()))
+                    )
+            ));
         }
 
+        // category 필터 (있다면)
         if (filter.containsKey("category")) {
-            filters.add(term("category.keyword", filter.get("category")));
-        }
-
-        if (filter.containsKey("segments")) {
-            filters.add(term("segments.keyword", filter.get("segments")));
+            filters.add(Query.of(q -> q
+                    .term(t -> t
+                            .field("metadata.category")
+                            .value(FieldValue.of(filter.get("category").toString()))
+                    )
+            ));
         }
 
         return filters;
@@ -123,24 +150,50 @@ public class OpenSearchVectorRepository {
         ));
     }
 
-    public List<KeywordCountDTO> getTopKeywords(String sentiment, int size) throws IOException {
-        SearchResponse<Void> response = client.search(s -> s
-                        .index(customerInteractionsIndex)
-                        .size(0) // 문서 필요 없음
-                        .query(q -> q
-                                .term(t -> t
-                                        .field("sentiment.keyword")
-                                        .value(FieldValue.of(sentiment))
+    public List<KeywordCountDTO> getTopKeywords(String sentiment, int size, String yearMonth) throws IOException {
+        DateTimeFormatter formatter =
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        SearchResponse<Void> response =
+                client.search(s -> s
+                                .index(customerInteractionsIndex)
+                                .size(0)
+                                .query(q -> q
+                                        .bool(b -> b
+                                                .filter(f -> f
+                                                        .range(r -> r
+                                                                .field("metadata.createdAt")
+                                                                .gte(JsonData.of(
+                                                                                YearMonth.parse(yearMonth)
+                                                                                        .atDay(1)
+                                                                                        .atStartOfDay()
+                                                                                        .format(formatter)
+                                                                        )
+                                                                )
+                                                                .lte(JsonData.of(
+                                                                                YearMonth.parse(yearMonth)
+                                                                                        .atEndOfMonth()
+                                                                                        .atTime(23, 59, 59)
+                                                                                        .format(formatter)
+                                                                        )
+                                                                )
+                                                        )
+                                                )
+                                                .filter(f -> f
+                                                        .term(t -> t
+                                                                .field("metadata.sentiment")
+                                                                .value(FieldValue.of(sentiment))
+                                                        )
+                                                )
+                                        )
                                 )
-                        )
-                        .aggregations("top_vocab", a -> a
-                                .terms(t -> t
-                                        .field("vocab.keyword")
-                                        .size(size)
-                                )
-                        ),
-                Void.class
-        );
+                                .aggregations("top_vocab", a -> a
+                                        .terms(t -> t
+                                                .field("vocab")
+                                                .size(size)
+                                        )
+                                ),
+                        Void.class
+                );
 
         Aggregate agg =
                 response.aggregations()
@@ -154,17 +207,36 @@ public class OpenSearchVectorRepository {
                 .toList();
     }
 
-    public List<KeywordCountDTO> getTopCsKeywords(int size) throws IOException {
+    public List<KeywordCountDTO> getTopCsKeywords(int size, String yearMonth) throws IOException {
         SearchResponse<Void> response = client.search(s -> s
                         .index(csKeywordIndex)
                         .size(0)
+                        .query(q -> q
+                                .range(r -> r
+                                        .field("created_at")
+                                        .gte(JsonData.of(
+                                                        YearMonth.parse(yearMonth)
+                                                                .atDay(1)
+                                                                .atStartOfDay()
+                                                                .atOffset(ZoneOffset.of("+09:00"))
+                                                                .toString()
+                                                )
+                                        )
+                                        .lte(JsonData.of(
+                                                        YearMonth.parse(yearMonth)
+                                                                .atEndOfMonth()
+                                                                .atTime(23, 59, 59)
+                                                                .atOffset(ZoneOffset.of("+09:00"))
+                                                                .toString()
+                                                )
+                                        )
+
+                                )
+                        )
                         .aggregations("top_keywords", a -> a
                                 .terms(t -> t
                                         .field("keyword")
                                         .size(size)
-                                )
-                                .aggregations("total_count", sub -> sub
-                                        .sum(sm -> sm.field("count"))
                                 )
                         ),
                 Void.class
@@ -177,10 +249,7 @@ public class OpenSearchVectorRepository {
         return agg.sterms().buckets().array().stream()
                 .map(b -> new KeywordCountDTO(
                         b.key(),
-                        (long) b.aggregations()
-                                .get("total_count")
-                                .sum()
-                                .value()
+                        b.docCount()
                 ))
                 .toList();
     }

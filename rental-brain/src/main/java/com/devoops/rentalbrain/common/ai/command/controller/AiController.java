@@ -1,6 +1,7 @@
 package com.devoops.rentalbrain.common.ai.command.controller;
 
 import com.devoops.rentalbrain.common.ai.command.dto.KeywordCountDTO;
+import com.devoops.rentalbrain.common.ai.command.dto.KeywordInsightDTO;
 import com.devoops.rentalbrain.common.ai.common.EmbeddingDTO;
 import com.devoops.rentalbrain.common.ai.command.service.AiCommandService;
 import com.openai.models.responses.Response;
@@ -49,17 +50,22 @@ public class AiController {
     }
 
     @GetMapping("/keyword/negative")
-    public List<KeywordCountDTO> topNegative() throws IOException {
-        return aiCommandService.getTopNegativeKeywords();
+    public List<KeywordCountDTO> topNegative(String yearMonth) throws IOException {
+        return aiCommandService.getTopNegativeKeywords(yearMonth);
     }
 
     @GetMapping("/keyword/positive")
-    public List<KeywordCountDTO> topPositive() throws IOException {
-        return aiCommandService.getTopPositiveKeywords();
+    public List<KeywordCountDTO> topPositive(String yearMonth) throws IOException {
+        return aiCommandService.getTopPositiveKeywords(yearMonth);
     }
 
     @GetMapping("/keyword/cs")
-    public List<KeywordCountDTO> topCsKeywords() throws IOException {
-        return aiCommandService.getTopCsKeywords();
+    public List<KeywordCountDTO> topCsKeywords(String yearMonth) throws IOException {
+        return aiCommandService.getTopCsKeywords(yearMonth);
+    }
+
+    @GetMapping("/keyword")
+    public KeywordInsightDTO getKeywordInsight(String yearMonth) throws IOException {
+        return aiCommandService.getKeywordInsight(yearMonth);
     }
 }
