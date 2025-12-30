@@ -87,4 +87,10 @@ public class CouponCommandController {
         String result = couponCommandService.createIssuedCoupon(couponId, contractId);
         return result;
     }
+
+    @PutMapping("/log/{IssuedCouponId}")
+    public String updateIssuedCoupon(@PathVariable("IssuedCouponId") Long IssuedCouponId) {
+        String result = couponCommandService.updateIssuedCoupon(IssuedCouponId);
+        return result;
+    }
 }

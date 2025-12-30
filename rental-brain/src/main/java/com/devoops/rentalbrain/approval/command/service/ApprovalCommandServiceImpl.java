@@ -34,17 +34,14 @@ public class ApprovalCommandServiceImpl implements ApprovalCommandService {
 
     private final ApprovalMappingCommandRepository approvalMappingCommandRepository;
     private final PaymentDetailCommandRepository paymentDetailCommandRepository;
-    private final NotificationPublisher notificationPublisher;
     private final ItemRepository itemRepository;
 
     @Autowired
     public ApprovalCommandServiceImpl(ApprovalMappingCommandRepository approvalMappingCommandRepository,
                                       PaymentDetailCommandRepository paymentDetailCommandRepository,
-                                      NotificationPublisher notificationPublisher,
                                       ItemRepository itemRepository) {
         this.approvalMappingCommandRepository = approvalMappingCommandRepository;
         this.paymentDetailCommandRepository = paymentDetailCommandRepository;
-        this.notificationPublisher = notificationPublisher;
         this.itemRepository = itemRepository;
     }
 

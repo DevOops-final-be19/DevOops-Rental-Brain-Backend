@@ -116,7 +116,12 @@
     <select id="selectContractPaymentDetail"
             parameterType="long"
             resultType="com.devoops.rentalbrain.business.contract.query.dto.ContractPaymentDTO">
-        SELECT id, payment_due, payment_actual, overdue_days, payment_status, con_id
+        SELECT id,
+               payment_due AS paymentDue,
+               payment_actual AS paymentActual,
+               overdue_days AS overdueDays,
+               payment_status AS paymentStatus,
+               con_id AS conId
         FROM payment_details
         WHERE con_id = #{contractId}
     </select>
