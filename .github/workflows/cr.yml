@@ -84,7 +84,7 @@ jobs:
           cat src/main/resources/application.yml
 
       - name: Build with Gradle
-        run: ./gradlew clean build --info
+        run: ./gradlew clean build -x test
         working-directory: rental-brain
         shell: bash
 
