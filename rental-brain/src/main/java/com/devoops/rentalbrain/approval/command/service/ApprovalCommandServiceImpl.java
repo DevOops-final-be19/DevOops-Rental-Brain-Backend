@@ -79,10 +79,6 @@ public class ApprovalCommandServiceImpl implements ApprovalCommandService {
             approval.setStatus("A");
             contract.setStatus("P");
             insertPaymentDetailsForContract(contract);
-<<<<<<< HEAD
-//            notificationPublisher.publish(new ContractApprovedEvent(approval.getEmployee().getId()));
-=======
->>>>>>> develop
         } else {
             // 아직 전부 Y가 아니면: current_step 업데이트
             contract.setCurrentStep(approvedStep);
