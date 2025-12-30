@@ -85,6 +85,7 @@ jobs:
 
       - name: Build with Gradle
         run: ./gradlew clean build --info
+        working-directory: rental-brain
         shell: bash
 
       - name: Get current time
@@ -110,7 +111,7 @@ jobs:
       - name: Check Beanstalk Environment Status
         run: |
           STATUS=$(aws elasticbeanstalk describe-environments --region ap-northeast-2 \
-            --environment-names devoops-b-env --query "Environments[0].Status" \
+            --environment-names Devoops-b-env --query "Environments[0].Status" \
             --output text)
           if [ "$STATUS" != "Ready" ]; then
             echo "Environment is not Ready (current status: $STATUS)."
