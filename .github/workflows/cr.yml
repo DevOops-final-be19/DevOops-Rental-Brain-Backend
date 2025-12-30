@@ -31,7 +31,7 @@ jobs:
       - name: Create application.yml.template
         run: |
           mkdir -p src/main/resources
-          cat > src/main/resources/application.yml.template <<EOL
+          cat rental-brain/src/main/resources/application.yml.template <<EOL
           server:
             port: 5000
             servlet:
