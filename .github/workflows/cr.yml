@@ -31,7 +31,7 @@ jobs:
       - name: Create application.yml.template
         run: |
           mkdir -p src/main/resources
-          cat rental-brain/src/main/resources/application.yml.template <<EOL
+          cat > rental-brain/src/main/resources/application.yml.template <<'EOL'
           server:
             port: 5000
             servlet:
@@ -55,8 +55,6 @@ jobs:
               leak-detection-threshold: 10000
               connection-test-query: SELECT 1
               validation-timeout: 5000
-              keepalive-time: 30000
-              register-mbeans: true
           
             servlet:
               multipart:
@@ -66,7 +64,7 @@ jobs:
             jpa:
               generate-ddl: false
               show-sql: true
-              database: mysql
+              database-platform: org.hibernate.dialect.MySQLDialect
               properties:
                 hibernate:
                   '[format_sql]': true
