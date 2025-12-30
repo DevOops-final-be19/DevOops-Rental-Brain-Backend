@@ -10,9 +10,9 @@
         <result property="star" column="star"/>
         <result property="action" column="action"/>
         <result property="createDate" column="create_date_fmt"/>
-
         <result property="cumId" column="cum_id"/>
-        <result property="customerName" column="customer_name_alias"/> <result property="empId" column="emp_id"/>
+        <result property="customerName" column="customer_name"/>
+        <result property="empId" column="emp_id"/>
         <result property="empName" column="emp_name"/>
         <result property="categoryId" column="category_id"/>
         <result property="categoryName" column="category_name"/>
@@ -27,35 +27,39 @@
         f.title,
         f.content,
         f.star,
+        /* 날짜 포맷: 2025-12-29 14:28:06 형식으로 변환 */
         DATE_FORMAT(f.create_date, '%Y-%m-%d %H:%i:%s') as create_date_fmt,
         f.action,
         f.cum_id,
-        /* [수정] 테이블명을 customer로 변경하고, 컬럼이 name인지 customer_name인지 확인 필요. 안전하게 c.name을 사용 */
-        c.name as customer_name_alias,
+        c.name as customer_name,
         f.emp_id,
         e.name as emp_name,
         f.category_id,
-        CASE
-        WHEN f.category_id = 5 THEN '서비스 만족'
-        WHEN f.category_id = 6 THEN '제품 불량'
-        WHEN f.category_id = 7 THEN '제품 품질'
-        WHEN f.category_id = 8 THEN 'AS 관련'
-        ELSE '기타'
-        END as category_name,
+        sc.name as category_name, /* support_category 테이블 조인 */
         f.channel_id,
-        CASE
-        WHEN f.channel_id = 1 THEN '전화'
-        WHEN f.channel_id = 2 THEN '이메일'
-        WHEN f.channel_id = 3 THEN '웹'
-        WHEN f.channel_id = 4 THEN 'SNS'
-        WHEN f.channel_id = 5 THEN '방문'
-        ELSE '기타'
-        END as channel_name
+        ch.name as channel_name   /* channel 테이블 조인 */
         FROM feedback f
-        /* [핵심 수정] customer_list -> customer */
         LEFT JOIN customer c ON f.cum_id = c.id
         LEFT JOIN employee e ON f.emp_id = e.id
+        LEFT JOIN support_category sc ON f.category_id = sc.id
+        LEFT JOIN channel ch ON f.channel_id = ch.id
         <where>
+            <if test="keyword != null and keyword != ''">
+                AND (
+                c.name LIKE CONCAT('%', #{keyword}, '%')
+                OR f.title LIKE CONCAT('%', #{keyword}, '%')
+                OR f.content LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+
+            <if test="category != null">
+                AND f.category_id = #{category}
+            </if>
+
+            <if test="star != null">
+                AND f.star = #{star}
+            </if>
+
             <if test='status == "C"'>
                 AND f.action IS NOT NULL AND f.action != ''
             </if>
@@ -65,10 +69,9 @@
         </where>
         ORDER BY
         <choose>
-            <when test="sortBy == 'id'">f.id ${sortOrder}</when>
-            <when test="sortBy == 'star'">f.star ${sortOrder}</when>
+            <when test="sortBy == 'star'">f.star ${sortOrder}, f.create_date DESC</when>
             <when test="sortBy == 'feedbackCode'">f.feedback_code ${sortOrder}</when>
-            <otherwise>f.id DESC</otherwise>
+            <otherwise>f.create_date DESC</otherwise>
         </choose>
         LIMIT #{amount} OFFSET #{offset}
     </select>
@@ -76,9 +79,21 @@
     <select id="countFeedbackList" resultType="int">
         SELECT COUNT(*)
         FROM feedback f
-        /* [핵심 수정] customer_list -> customer */
         LEFT JOIN customer c ON f.cum_id = c.id
         <where>
+            <if test="keyword != null and keyword != ''">
+                AND (
+                c.name LIKE CONCAT('%', #{keyword}, '%')
+                OR f.title LIKE CONCAT('%', #{keyword}, '%')
+                OR f.content LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+            <if test="category != null">
+                AND f.category_id = #{category}
+            </if>
+            <if test="star != null">
+                AND f.star = #{star}
+            </if>
             <if test='status == "C"'>
                 AND f.action IS NOT NULL AND f.action != ''
             </if>
@@ -98,18 +113,18 @@
             DATE_FORMAT(f.create_date, '%Y-%m-%d %H:%i:%s') as create_date_fmt,
             f.action,
             f.cum_id,
-            /* [수정] */
-            c.name as customer_name_alias,
+            c.name as customer_name,
             f.emp_id,
             e.name as emp_name,
             f.category_id,
-            CASE WHEN f.category_id = 5 THEN '서비스 만족' WHEN f.category_id = 6 THEN '제품 불량' WHEN f.category_id = 7 THEN '제품 품질' WHEN f.category_id = 8 THEN 'AS 관련' ELSE '기타' END as category_name,
+            sc.name as category_name,
             f.channel_id,
-            CASE WHEN f.channel_id = 1 THEN '전화' WHEN f.channel_id = 2 THEN '이메일' WHEN f.channel_id = 3 THEN '웹' WHEN f.channel_id = 4 THEN 'SNS' WHEN f.channel_id = 5 THEN '방문' ELSE '기타' END as channel_name
+            ch.name as channel_name
         FROM feedback f
-                 /* [핵심 수정] customer_list -> customer */
                  LEFT JOIN customer c ON f.cum_id = c.id
                  LEFT JOIN employee e ON f.emp_id = e.id
+                 LEFT JOIN support_category sc ON f.category_id = sc.id
+                 LEFT JOIN channel ch ON f.channel_id = ch.id
         WHERE f.id = #{id}
     </select>
 

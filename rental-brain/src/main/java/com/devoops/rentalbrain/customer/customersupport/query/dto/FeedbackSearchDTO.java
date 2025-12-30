@@ -8,6 +8,8 @@ import lombok.*;
 public class FeedbackSearchDTO extends Criteria {
     private String status; // 'P' or 'C'
     private Integer category;
+    private Integer star; // 별점 필터
+    private String keyword;
     private String sortBy;
     private String sortOrder;
 
