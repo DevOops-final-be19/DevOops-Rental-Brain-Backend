@@ -22,6 +22,7 @@
 
             t.id                AS customerId,
             t.customer_code     AS customerCode,
+            t.name              AS customerName,
             t.in_charge         AS inCharge,
             t.call_num          AS callNum
         FROM contract c

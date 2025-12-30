@@ -21,6 +21,7 @@ public class ContractOverviewDTO {
     /* 고객 정보 */
     private Long customerId;
     private String customerCode;
+    private String customerName;
     private String inCharge;
     private String callNum;
 }
