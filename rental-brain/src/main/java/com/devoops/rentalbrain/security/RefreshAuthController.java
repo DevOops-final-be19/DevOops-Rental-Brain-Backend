@@ -75,7 +75,6 @@ public class RefreshAuthController {
         // 리프레쉬 토큰 검증
         try {
             sub = jwtUtil.validateRefreshToken(refreshToken);
-            log.info("sub: {}", sub);
         } catch (ExpiredJwtException e) {
             log.info("만료된 리프레쉬 토큰입니다.");
             return ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED).body("만료된 리프레쉬 토큰입니다.");
