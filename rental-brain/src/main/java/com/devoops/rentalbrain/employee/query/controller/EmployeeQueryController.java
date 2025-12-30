@@ -38,12 +38,12 @@ public class EmployeeQueryController {
     )
     @GetMapping("/mypage")
     public ResponseEntity<?> getEmpInfoPage() {
-        EmployeeInfoDTO employeeInfoDTO = employeeQueryService.getEmpInfoPage();
-//        log.info(employeeInfoDTO.toString());
-        if(employeeInfoDTO == null){
+        try {
+            EmployeeInfoDTO employeeInfoDTO = employeeQueryService.getEmpInfoPage();
+            return ResponseEntity.ok().body(employeeInfoDTO);
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("잘못된 접근입니다.");
         }
-        return ResponseEntity.ok().body(employeeInfoDTO);
     }
 
     @Operation(
@@ -56,28 +56,42 @@ public class EmployeeQueryController {
             }
     )
     @GetMapping("/admin/emplist")
-    public ResponseEntity<List<EmployeeInfoDTO>> getEmpList(){
-        List<EmployeeInfoDTO> employeeInfoDTO = employeeQueryService.getEmpList();
-        return ResponseEntity.ok().body(employeeInfoDTO);
+    public ResponseEntity<List<EmployeeInfoDTO>> getEmpList() {
+        try {
+            List<EmployeeInfoDTO> employeeInfoDTO = employeeQueryService.getEmpList();
+            return ResponseEntity.ok().body(employeeInfoDTO);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
     }
 
     @GetMapping("/admin/empauthlist")
-    public ResponseEntity<List<EmpAuthListDTO>> getEmpAuthList(){
-        List<EmpAuthListDTO> empAuthListDTO = employeeQueryService.getEmpAuthList();
-        return ResponseEntity.ok().body(empAuthListDTO);
+    public ResponseEntity<List<EmpAuthListDTO>> getEmpAuthList() {
+        try {
+            List<EmpAuthListDTO> empAuthListDTO = employeeQueryService.getEmpAuthList();
+            return ResponseEntity.ok().body(empAuthListDTO);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
     }
 
     @GetMapping("/admin/positionlist")
-    public ResponseEntity<List<PositionDTO>> getPositionList(){
-        List<PositionDTO> positionDTO = employeeQueryService.getPositionList();
-        return ResponseEntity.ok().body(positionDTO);
+    public ResponseEntity<List<PositionDTO>> getPositionList() {
+        try {
+            List<PositionDTO> positionDTO = employeeQueryService.getPositionList();
+            return ResponseEntity.ok().body(positionDTO);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
     }
 
     @GetMapping("/incharge/list") // 직원 목록(admin X)
-    public ResponseEntity<List<InChargeDTO>> getInChargeList(){
-        List<InChargeDTO> inChargeDTO = employeeQueryService.getInChargeList();
-        return ResponseEntity.ok().body(inChargeDTO);
+    public ResponseEntity<List<InChargeDTO>> getInChargeList() {
+        try {
+            List<InChargeDTO> inChargeDTO = employeeQueryService.getInChargeList();
+            return ResponseEntity.ok().body(inChargeDTO);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
     }
-
-
 }

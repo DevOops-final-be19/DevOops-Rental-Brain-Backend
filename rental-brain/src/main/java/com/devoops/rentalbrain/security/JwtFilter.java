@@ -20,10 +20,10 @@ import java.io.IOException;
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
-    private final RedisTemplate<String,String> redisTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
 
     public JwtFilter(JwtUtil jwtUtil,
-                     RedisTemplate<String,String> redisTemplate) {
+                     RedisTemplate<String, String> redisTemplate) {
         this.jwtUtil = jwtUtil;
         this.redisTemplate = redisTemplate;
     }
@@ -31,7 +31,7 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String path = request.getRequestURI();
-        if (path.equals("/auth/validate")) {
+        if (path.equals("/auth/validate")||path.equals("/login")) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -39,12 +39,11 @@ public class JwtFilter extends OncePerRequestFilter {
         // 헤더에서 Authorization Token 추출
         String authorizationHeader = request.getHeader("Authorization");
 
-        log.info("Authorization header: {}", authorizationHeader);
-
         // 토큰 존재하는지 검사
-        if(authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")){
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
             log.info("토큰 인증 실패");
-            filterChain.doFilter(request,response);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+//            filterChain.doFilter(request, response);
             return;
         }
 
@@ -52,26 +51,27 @@ public class JwtFilter extends OncePerRequestFilter {
         log.info("엑세스 토큰: {}", accessToken);
 
         // 토큰 유효성 검사
-        try{
+        try {
             jwtUtil.validateToken(accessToken);
 
             // 토큰에 있는 권한 추출
             Authentication authentication = jwtUtil.getAuthentication(accessToken);
-            log.info("authentication 내용 : {}",authentication.toString());
+            log.info("authentication 내용 : {}", authentication.toString());
             // 토큰 서버측 검사(redis), 나중에 넣음
-            try{
-            if(redisTemplate.opsForValue().get("BL:"+accessToken) != null){
-                log.info("유효하지 않은 JWT Token(BL)");
-                filterChain.doFilter(request,response);
-                return;
-            }
-            }catch (Exception e){
-                log.info("오류, {}",e.getMessage());
+            try {
+                if (redisTemplate.opsForValue().get("BL:" + accessToken) != null) {
+                    log.info("유효하지 않은 JWT Token(BL)");
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+//                    filterChain.doFilter(request, response);
+                    return;
+                }
+            } catch (Exception e) {
+                log.info("오류, {}", e.getMessage());
             }
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        }catch(ExpiredJwtException e){
+        } catch (ExpiredJwtException e) {
             log.info("세션 만료");
 
             // 프론트로 엑세스 토큰 만료 메세지 전송
@@ -79,14 +79,20 @@ public class JwtFilter extends OncePerRequestFilter {
             response.setContentType("application/json;charset=UTF-8");
             response.getWriter().write("{\"message\":\"access token expired\"}");
             return;
-        } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e){
+        } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             log.info("유효하지 않은 JWT Token(값이 없음)");
-        }  catch(UnsupportedJwtException e){
+            return;
+        } catch (UnsupportedJwtException e) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             log.info("지원하지 않는 JWT Token");
-        } catch(IllegalArgumentException e){
+            return;
+        } catch (IllegalArgumentException e) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             log.info("토큰의 클레임이 없음");
+            return;
         }
 
-        filterChain.doFilter(request,response);
+        filterChain.doFilter(request, response);
     }
 }
