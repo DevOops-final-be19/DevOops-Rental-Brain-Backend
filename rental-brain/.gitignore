@@ -36,6 +36,11 @@ out/
 ### VS Code ###
 .vscode/
 
-### apllication-* ###
-application-*.yml
-application-*.properties
+*.yml
+*.yaml
+
+# ---- GitHub Actions는 예외로 허용 ----
+!.github/
+!.github/workflows/
+!.github/workflows/*.yml
+!.github/workflows/*.yaml

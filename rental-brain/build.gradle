@@ -20,6 +20,11 @@ configurations {
     }
 }
 
+// githubactions가 인지할 수 있는 하나의 jar 파일만 빌드 되도록 설정
+jar {
+    enabled = false
+}
+
 repositories {
     mavenCentral()
 }
