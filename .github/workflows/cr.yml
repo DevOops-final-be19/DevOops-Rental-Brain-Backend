@@ -70,19 +70,18 @@ jobs:
                   '[format_sql]': true
 
       - name: Set Yaml
-        run: |
-          envsubst < rental-brain/src/main/resources/application.yml.template \
-          > rental-brain/src/main/resources/application.yml
-          echo "Generated application.yml:"
-          cat src/main/resources/application.yml
+        working-directory: rental-brain
         env:
           RDS_HOSTNAME: ${{ secrets.RDS_HOSTNAME }}
           RDS_PORT: ${{ secrets.RDS_PORT }}
           RDS_DB_NAME: ${{ secrets.RDS_DB_NAME }}
           RDS_USERNAME: ${{ secrets.RDS_USERNAME }}
           RDS_PASSWORD: ${{ secrets.RDS_PASSWORD }}
-          REDIS_HOST: ${{ secrets.REDIS_HOST }}
-          REDIS_PORT: ${{ secrets.REDIS_PORT }}
+        run: |
+          envsubst < src/main/resources/application.yml.template \
+                   > src/main/resources/application.yml
+          echo "Generated application.yml:"
+          cat src/main/resources/application.yml
 
       - name: Build with Gradle
         run: ./gradlew clean build --info
