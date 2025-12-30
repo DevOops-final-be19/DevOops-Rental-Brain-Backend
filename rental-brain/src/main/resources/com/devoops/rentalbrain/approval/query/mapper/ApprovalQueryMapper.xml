@@ -8,18 +8,29 @@
 
         SELECT
             /* =========================
-               1. 내가 대기 중인 결재
+               1. 내가 현재 승인해야 할 결재
                ========================= */
             (
                 SELECT COUNT(DISTINCT m.approval_id)
                 FROM approval_mapping m
                 WHERE m.emp_id = #{empId}
                   AND m.is_approved = 'U'
+
+                  -- ❌ 반려가 하나라도 있으면 제외
                   AND NOT EXISTS (
                     SELECT 1
                     FROM approval_mapping x
                     WHERE x.approval_id = m.approval_id
                       AND x.is_approved = 'N'
+                )
+
+                  -- ✅ 내 앞 단계 결재자가 모두 승인(Y) 상태
+                  AND NOT EXISTS (
+                    SELECT 1
+                    FROM approval_mapping p
+                    WHERE p.approval_id = m.approval_id
+                      AND p.step <![CDATA[ < ]]> m.step
+                      AND p.is_approved <![CDATA[ != ]]> 'Y'
                 )
             ) AS my_pending,
 

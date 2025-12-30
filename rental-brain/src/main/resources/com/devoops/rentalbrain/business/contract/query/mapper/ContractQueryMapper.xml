@@ -5,16 +5,16 @@
     <select id="getContractList" resultType="com.devoops.rentalbrain.business.contract.query.dto.AllContractDTO"
     parameterType="com.devoops.rentalbrain.business.contract.query.dto.ContractSearchDTO">
         SELECT
-                T.id,
-                T.contract_code   AS contractCode,
-                C.name            AS cusName,
-                C.in_charge       AS inCharge,
-                C.call_num        AS callNum,
-                T.name            AS conName,
-                T.start_date      AS startDate,
-                T.contract_period AS contractPeriod,
-                T.monthly_payment AS monthlyPayment,
-                T.status          AS status
+                t.id,
+                t.contract_code   AS contractCode,
+                c.name            AS cusName,
+                c.in_charge       AS inCharge,
+                c.call_num        AS callNum,
+                t.name            AS conName,
+                t.start_date      AS startDate,
+                t.contract_period AS contractPeriod,
+                t.monthly_payment AS monthlyPayment,
+                t.status          AS status
                 FROM contract t LEFT JOIN customer c
             ON t.cum_id = c.id
         <where>
