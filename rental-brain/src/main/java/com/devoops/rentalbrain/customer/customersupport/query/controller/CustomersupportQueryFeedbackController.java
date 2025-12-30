@@ -32,6 +32,7 @@ public class CustomersupportQueryFeedbackController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) Integer category,
+            @RequestParam(required = false) Integer star,
             @RequestParam(required = false) String sortBy,
             @RequestParam(required = false) String sortOrder,
             @RequestParam(defaultValue = "1") int page,
@@ -41,6 +42,7 @@ public class CustomersupportQueryFeedbackController {
         criteria.setKeyword(keyword);
         criteria.setStatus(status);
         criteria.setCategory(category);
+        criteria.setStar(star);
         criteria.setSortBy(sortBy);
         criteria.setSortOrder(sortOrder);
 

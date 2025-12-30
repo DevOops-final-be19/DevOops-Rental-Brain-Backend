@@ -5,6 +5,8 @@ import lombok.*;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
+@AllArgsConstructor
 public class FeedbackSearchDTO extends Criteria {
     private String status; // 'P' or 'C'
     private Integer category;
