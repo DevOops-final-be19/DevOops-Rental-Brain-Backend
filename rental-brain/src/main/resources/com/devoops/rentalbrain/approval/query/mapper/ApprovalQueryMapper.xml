@@ -5,68 +5,88 @@
     <select id="getApprovalStatus"
             parameterType="long"
             resultType="com.devoops.rentalbrain.approval.query.dto.ApprovalStatusDTO">
+
         SELECT
             /* =========================
-               1. 내가 대기 중인 결재
+               1. 내가 현재 승인해야 할 결재
                ========================= */
             (
                 SELECT COUNT(DISTINCT m.approval_id)
                 FROM approval_mapping m
                 WHERE m.emp_id = #{empId}
                   AND m.is_approved = 'U'
+
+                  -- ❌ 반려가 하나라도 있으면 제외
                   AND NOT EXISTS (
                     SELECT 1
                     FROM approval_mapping x
                     WHERE x.approval_id = m.approval_id
                       AND x.is_approved = 'N'
                 )
+
+                  -- ✅ 내 앞 단계 결재자가 모두 승인(Y) 상태
+                  AND NOT EXISTS (
+                    SELECT 1
+                    FROM approval_mapping p
+                    WHERE p.approval_id = m.approval_id
+                      AND p.step <![CDATA[ < ]]> m.step
+                      AND p.is_approved <![CDATA[ != ]]> 'Y'
+                )
             ) AS my_pending,
 
             /* =========================
-               2. 총 승인된 결재 (모두 Y)
+               2. 내가 참여한 승인 완료 결재
                ========================= */
             (
-                SELECT COUNT(*)
-                FROM (
-                         SELECT approval_id
-                         FROM approval_mapping
-                         GROUP BY approval_id
-                         HAVING SUM(
-                                        CASE WHEN is_approved != 'Y' THEN 1 ELSE 0 END
-                                ) = 0
-                     ) t
+                SELECT COUNT(DISTINCT m.approval_id)
+                FROM approval_mapping m
+                WHERE m.emp_id = #{empId}
+                  AND NOT EXISTS (
+                    SELECT 1
+                    FROM approval_mapping x
+                    WHERE x.approval_id = m.approval_id
+                      AND x.is_approved != 'Y'
+                )
             ) AS total_approved,
 
             /* =========================
-               3. 총 반려된 결재 (N 하나라도)
+               3. 내가 참여한 반려 결재
                ========================= */
             (
-                SELECT COUNT(*)
-                FROM (
-                         SELECT approval_id
-                         FROM approval_mapping
-                         GROUP BY approval_id
-                         HAVING SUM(
-                                        CASE WHEN is_approved = 'N' THEN 1 ELSE 0 END
-                                ) > 0
-                     ) t
+                SELECT COUNT(DISTINCT m.approval_id)
+                FROM approval_mapping m
+                WHERE m.emp_id = #{empId}
+                  AND EXISTS (
+                    SELECT 1
+                    FROM approval_mapping x
+                    WHERE x.approval_id = m.approval_id
+                      AND x.is_approved = 'N'
+                )
             ) AS total_rejected,
 
             /* =========================
-               4. 결재 진행 중 (R 없음 + P 존재)
+               4. 내가 참여한 진행 중 결재
                ========================= */
             (
-                SELECT COUNT(*)
-                FROM (
-                         SELECT approval_id
-                         FROM approval_mapping
-                         GROUP BY approval_id
-                         HAVING
-                             SUM(CASE WHEN is_approved = 'N' THEN 1 ELSE 0 END) = 0
-                            AND SUM(CASE WHEN is_approved = 'U' THEN 1 ELSE 0 END) > 0
-                     ) t
+                SELECT COUNT(DISTINCT m.approval_id)
+                FROM approval_mapping m
+                WHERE m.emp_id = #{empId}
+                  AND NOT EXISTS (
+                    SELECT 1
+                    FROM approval_mapping x
+                    WHERE x.approval_id = m.approval_id
+                      AND x.is_approved = 'N'
+                )
+                  AND EXISTS (
+                    SELECT 1
+                    FROM approval_mapping x
+                    WHERE x.approval_id = m.approval_id
+                      AND x.is_approved = 'U'
+                )
             ) AS in_progress
+
     </select>
+
 
     <select id="selectPendingApprovalsByEmpIdWithPaging"
             parameterType="map"
@@ -79,6 +99,7 @@
         v.is_approved           AS isApproved,
         v.approval_code         AS approvalCode,
         v.approval_title        AS approvalTitle,
+        v.contract_id           AS contractId,
         v.request_date          AS requestDate,
         v.request_emp_id        AS requestEmpId,
         v.employee_code         AS employeeCode,
@@ -137,8 +158,9 @@
             resultType="com.devoops.rentalbrain.approval.query.dto.ApprovalProgressDTO">
 
         SELECT
-        approval_code,
-        approval_title,
+        approval_code AS approvalCode,
+        approval_title AS approvalTitle,
+        contract_id AS contractId,
         MIN(request_date) AS requestDate,
 
         /* 진행률 */
@@ -239,8 +261,8 @@
             resultType="com.devoops.rentalbrain.approval.query.dto.ApprovalCompletedDTO">
         SELECT
         a.approval_code        AS approvalCode,
+        a.contract_id          AS contractId,
         a.title                AS approvalTitle,
-
         a.request_date         AS requestDate,
 
         /* ⭐ 최신 정렬 기준 (승인/반려 공통) */

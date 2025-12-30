@@ -6,8 +6,9 @@ import java.time.LocalDateTime;
 
 @Data
 public class ApprovalProgressDTO {
-    private String approval_code;
-    private String approval_title;
+    private String approvalCode;
+    private String approvalTitle;
+    private long contractId;
     private LocalDateTime requestDate;
 
     private int totalStep;
