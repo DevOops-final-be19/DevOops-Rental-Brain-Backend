@@ -18,9 +18,11 @@
             c.total_amount      AS totalAmount,
             c.pay_method        AS payMethod,
             c.special_content   AS specialContent,
+            c.status            AS contractStatus,
 
             t.id                AS customerId,
             t.customer_code     AS customerCode,
+            t.name              AS customerName,
             t.in_charge         AS inCharge,
             t.call_num          AS callNum
         FROM contract c

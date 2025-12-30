@@ -62,7 +62,12 @@ public class ContractStatusScheduler {
                 contractCommandRepository.findContractsExpiredOneDayAgo(now);
 
         for (Long contractId : inspectionTargets) {
-            itemRepository.updateItemsToInspection(contractId);
+            int updated = itemRepository.updateItemsToOverdueExceptRepair(contractId);
+            log.info(
+                    "[BATCH][ITEM_OVERDUE] contractId={}, updatedItems={}",
+                    contractId,
+                    updated
+            );
         }
 
         log.info(

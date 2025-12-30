@@ -11,10 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/contract")
@@ -28,14 +25,14 @@ public class ContractCommandController {
     @Operation(
             summary = "계약 생성",
             description = """
-            새로운 계약을 생성합니다.
-            
-            - 고객 정보
-            - 계약 기간
-            - 계약 상품 목록
-            - 결제 정보
-            를 포함하여 계약을 생성합니다.
-            """
+                    새로운 계약을 생성합니다.
+                    
+                    - 고객 정보
+                    - 계약 기간
+                    - 계약 상품 목록
+                    - 결제 정보
+                    를 포함하여 계약을 생성합니다.
+                    """
     )
     @ApiResponse(
             responseCode = "200",
@@ -54,10 +51,25 @@ public class ContractCommandController {
     @PostMapping
     public ResponseEntity<Void> createContract(
             @RequestBody ContractCreateDTO dto
-            ) {
+    ) {
         log.info("[계약 생성 요청] {}", dto);
 
         contractCommandService.createContract(dto);
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/{contractId}/terminate")
+    public ResponseEntity<Void> terminateContract(
+            @PathVariable Long contractId
+    ) {
+
+        contractCommandService.terminateContract(contractId);
+
+        log.info(
+                "[API][CONTRACT_TERMINATE] contractId={}",
+                contractId
+        );
+
         return ResponseEntity.ok().build();
     }
 }

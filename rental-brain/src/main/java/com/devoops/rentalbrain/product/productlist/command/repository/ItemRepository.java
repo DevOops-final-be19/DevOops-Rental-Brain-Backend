@@ -74,16 +74,27 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 """, nativeQuery = true)
     int addMonthlySalesByContract(@Param("contractId") Long contractId);
 
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Modifying
     @Query(value = """
     UPDATE item i
     JOIN contract_with_item cwi ON cwi.item_id = i.id
-    SET 
-        i.status = 'O',
-        i.last_inspect_date = NOW()
+    SET i.status = 'O'
+    WHERE cwi.contract_id = :contractId
+      AND i.status <> 'R'
+""", nativeQuery = true)
+    int updateItemsToOverdueExceptRepair(
+            @Param("contractId") Long contractId
+    );
+
+    @Modifying
+    @Query(value = """
+    UPDATE item i
+    JOIN contract_with_item cwi ON cwi.item_id = i.id
+    SET i.status = 'O'
     WHERE cwi.contract_id = :contractId
       AND i.status = 'S'
 """, nativeQuery = true)
-    int updateItemsToInspection(@Param("contractId") Long contractId);
-
+    int updateItemsToOverdueExceptRepairAndStatus(
+            @Param("contractId") Long contractId
+    );
 }
