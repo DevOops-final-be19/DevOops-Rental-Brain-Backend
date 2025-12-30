@@ -19,14 +19,14 @@ public class SwaggerConfig {
                         .description("Rental Brain 백엔드 API 문서")
                         .version("v0.0.1"))
                 .components(new Components()
-                        .addSecuritySchemes("Authentication",
+                        .addSecuritySchemes("bearerAuth",
                                 new SecurityScheme()
                                         .type(SecurityScheme.Type.HTTP)
                                         .scheme("bearer")
                                         .bearerFormat("JWT")))
                 .addSecurityItem(
                         new SecurityRequirement()
-                                .addList("Authentication")
+                                .addList("bearerAuth")
                 );
     }
 }
