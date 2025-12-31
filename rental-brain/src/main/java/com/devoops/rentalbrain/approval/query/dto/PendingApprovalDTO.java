@@ -15,6 +15,7 @@ public class PendingApprovalDTO {
     // approval
     private String approvalCode;
     private String approvalTitle;
+    private Long contractId;
     private LocalDateTime requestDate;
     private Long requestEmpId;
 
