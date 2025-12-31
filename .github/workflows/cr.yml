@@ -33,7 +33,7 @@ jobs:
           mkdir -p src/main/resources
           cat > rental-brain/src/main/resources/application.yml.template <<'EOL'
           server:
-            port: 5000
+            port: ${SERVER_PORT}
             servlet:
               encoding:
                 charset: UTF-8
@@ -42,7 +42,7 @@ jobs:
           spring:
             datasource:
               driver-class-name: org.mariadb.jdbc.Driver
-              url: jdbc:mariadb://\${RDS_HOSTNAME}:\${RDS_PORT}/\${RDS_DB_NAME}
+              url: jdbc:mariadb://\${RDS_HOSTNAME}:\${RDS_PORT}/\${RDS_DB_NAME}?useUnicode=true&characterEncoding=utf8&connectionCollation=utf8mb4_unicode_ci
               username: \${RDS_USERNAME}
               password: \${RDS_PASSWORD}
           
