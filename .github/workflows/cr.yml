@@ -35,6 +35,7 @@ jobs:
           server:
             port: ${PORT:5000}
             servlet:
+              context-path: /api
               encoding:
                 charset: UTF-8
                 force: true
