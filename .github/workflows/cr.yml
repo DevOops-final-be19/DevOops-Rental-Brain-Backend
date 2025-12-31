@@ -78,6 +78,7 @@ jobs:
             port: ${OPENSEARCH_PORT:9200}
             scheme: http
 
+
       - name: Set Yaml
         working-directory: rental-brain
         env:
