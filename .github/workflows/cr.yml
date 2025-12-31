@@ -33,7 +33,7 @@ jobs:
           mkdir -p src/main/resources
           cat > rental-brain/src/main/resources/application.yml.template <<'EOL'
           server:
-            port: ${SERVER_PORT}
+            port: ${PORT:5000}
             servlet:
               encoding:
                 charset: UTF-8
