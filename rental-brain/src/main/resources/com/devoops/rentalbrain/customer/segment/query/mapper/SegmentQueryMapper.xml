@@ -15,7 +15,7 @@
                A.ID   AS SEGMENT_ID
              , A.NAME AS SEGMENT_NAME
              , A.CONTENT AS SEGMENT_CONTENT
-         FROM SEGMENT A
+         FROM segment A
          WHERE (#{segmentName} IS NULL OR A.NAME LIKE CONCAT('%', #{segmentName}, '%'))
     </select>
 
@@ -49,7 +49,7 @@
              , A.SEGMENT_PERIOD AS SEGMENT_PERIOD
              , A.IS_CONTRACTED AS SEGMENT_IS_CONTRACTED
              , A.OVERDUED AS SEGMENT_OVERDUED
-        FROM SEGMENT A
+        FROM segment A
         WHERE A.ID = #{segmentId}
     </select>
 
@@ -65,7 +65,7 @@
              , A.CALL_NUM      AS callNum
              , A.STAR          AS star
              , A.IS_DELETED    AS isDeleted
-        FROM CUSTOMER A
+        FROM customer A
         WHERE A.SEGMENT_ID = #{segmentId}
           AND A.IS_DELETED = 'N'
         ORDER BY A.ID DESC

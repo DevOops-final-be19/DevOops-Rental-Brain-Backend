@@ -8,32 +8,49 @@
     <!-- 전체 고객수 -->
     <select id="countTotalCustomers" resultType="int">
         SELECT
-              COUNT(*)
-         FROM customer
+               COUNT(*)
+        FROM customer
+        WHERE is_deleted='N'
     </select>
 
     <!-- 세그먼트별 고객 수 -->
     <select id="countCustomersBySegmentId" resultType="int">
         SELECT COUNT(*)
         FROM customer
-        WHERE segment_id = #{segmentId}
+        WHERE is_deleted='N'
+        AND segment_id = #{segmentId}
     </select>
 
     <!-- 거래 고객 수(잠재+블랙리스트 제외) -->
     <select id="countTradeCustomers" resultType="int">
         SELECT COUNT(*)
         FROM customer
-        WHERE segment_id IN (2, 3, 5, 7)
+        WHERE is_deleted='N'
+        AND segment_id IN (2, 3, 5, 7)
     </select>
 
     <!--  스냅샷 이탈 위험 고객(월별)  -->
     <select id="countMonthRiskCustomers" resultType="int">
-        SELECT
-              COUNT(DISTINCT customer_id)
-         FROM customer_churn_snapshot
+        SELECT COUNT(DISTINCT customer_id)
+        FROM customer_churn_snapshot
         WHERE snapshot_month = #{snapshotMonth}
-          AND is_churn_risk = 'Y'
+        AND is_churn_risk = 'Y'
     </select>
+
+    <!-- 이걸로 써야할듯 -->
+    <select id="countCurrentRiskCustomers" resultType="int">
+        SELECT COUNT(*)
+        FROM customer
+        WHERE is_deleted='N'
+        AND segment_id = 4
+    </select>
+
+    <select id="countSnapshotCustomers" resultType="int">
+        SELECT COUNT(DISTINCT customer_id)
+        FROM customer_churn_snapshot
+        WHERE snapshot_month = #{snapshotMonth}
+    </select>
+
 
     <!-- 차트 X축 월 목록 (스냅샷이 존재하는 월만 뽑음) -->
     <!-- <![CDATA[ ~~ ]]> [] 안의 기호를 그대로 받아내는 것  -->
@@ -66,13 +83,47 @@
     </select>
 
     <!-- 월 활동 고객 수 (이번달 계약 시작한 고객 distinct) -->
+<!--    <select id="countActiveCustomersByMonth" resultType="int">-->
+<!--        SELECT-->
+<!--               COUNT(DISTINCT A.cum_id)-->
+<!--          FROM contract A-->
+<!--         WHERE A.start_date <![CDATA[>=]]> #{from}-->
+<!--           AND A.start_date <![CDATA[<]]>  #{to}-->
+<!--    </select>-->
+
     <select id="countActiveCustomersByMonth" resultType="int">
-        SELECT
-               COUNT(DISTINCT A.cum_id)
-          FROM contract A
-         WHERE A.start_date <![CDATA[>=]]> #{from}
-           AND A.start_date <![CDATA[<]]>  #{to}
+        SELECT COUNT(DISTINCT c.cum_id)
+        FROM contract c
+        WHERE c.start_date <![CDATA[<]]> #{to}
+        AND DATE_ADD(c.start_date, INTERVAL c.contract_period MONTH) <![CDATA[>=]]> #{from}
+        AND c.status != 'T'
     </select>
+
+    <!-- 월말 기준 세그먼트별 고객 수 -->
+    <select id="countCustomersBySegmentAtMonth" resultType="int">
+        SELECT COUNT(*)
+        FROM (
+        SELECT h.customer_id,
+        h.current_segment_id
+        FROM customer_segment_history h
+        JOIN (
+        SELECT customer_id, MAX(changed_at) AS max_dt
+        FROM customer_segment_history
+        WHERE changed_at <![CDATA[<]]> #{monthEndExclusive}
+        GROUP BY customer_id
+        ) x
+        ON h.customer_id = x.customer_id
+        AND h.changed_at = x.max_dt
+        ) t
+        WHERE t.current_segment_id = #{segmentId}
+    </select>
+
+    <select id="countTotalCustomersAtMonth" resultType="int">
+        SELECT COUNT(DISTINCT customer_id)
+        FROM customer_segment_history
+        WHERE changed_at <![CDATA[<]]> #{monthEndExclusive}
+    </select>
+
 
     <!--  이번달 잠재 -> 신규 고객 수, 신규 유입 -->
     <select id="countFirstContractCustomersByMonth" resultType="int">
