@@ -36,4 +36,7 @@ public class IssuedCoupon {
 
     @Column(name = "cum_id")
     private Long cumId;
+
+    @Column(name = "con_id")
+    private Long conId;
 }
