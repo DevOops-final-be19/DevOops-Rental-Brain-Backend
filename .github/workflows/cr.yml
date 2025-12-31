@@ -78,6 +78,11 @@ jobs:
             port: ${OPENSEARCH_PORT:9200}
             scheme: http
 
+          token:
+            access_secret: ${TOKEN_ACCESS_SECRET}
+            refresh_secret: ${TOKEN_REFRESH_SECRET}
+            access_expiration_time: ${TOKEN_ACCESS_EXPIRATION_TIME}
+            refresh_expiration_time: ${TOKEN_REFRESH_EXPIRATION_TIME}
 
       - name: Set Yaml
         working-directory: rental-brain
