@@ -42,9 +42,9 @@ jobs:
           spring:
             datasource:
               driver-class-name: org.mariadb.jdbc.Driver
-              url: jdbc:mariadb://\${RDS_HOSTNAME}:\${RDS_PORT}/\${RDS_DB_NAME}?useUnicode=true&characterEncoding=utf8&connectionCollation=utf8mb4_unicode_ci
-              username: \${RDS_USERNAME}
-              password: \${RDS_PASSWORD}
+              url: jdbc:mariadb://${RDS_HOSTNAME}:${RDS_PORT}/${RDS_DB_NAME}?useUnicode=true&characterEncoding=utf8&connectionCollation=utf8mb4_unicode_ci
+              username: ${RDS_USERNAME}
+              password: ${RDS_PASSWORD}
           
             hikari:
               maximum-pool-size: 10
