@@ -6,6 +6,10 @@ import java.time.LocalDateTime;
 
 @Data
 public class ApprovalCompletedDTO {
+
+    /** 결재 계약 아이디 */
+    private long contractId;
+
     /** 승인 코드 (APP-2025-001) */
     private String approvalCode;
 
