@@ -27,7 +27,6 @@
         f.title,
         f.content,
         f.star,
-        /* 날짜 포맷: 2025-12-29 14:28:06 형식으로 변환 */
         DATE_FORMAT(f.create_date, '%Y-%m-%d %H:%i:%s') as create_date_fmt,
         f.action,
         f.cum_id,
@@ -69,11 +68,18 @@
         </where>
         ORDER BY
         <choose>
-            <when test="sortBy == 'star'">f.star ${sortOrder}, f.create_date DESC</when>
-            <when test="sortBy == 'feedbackCode'">f.feedback_code ${sortOrder}</when>
-            <otherwise>f.create_date DESC</otherwise>
+            <when test="sortBy == 'star'">
+                f.star ${sortOrder}
+            </when>
+            <when test="sortBy == 'feedbackCode'">
+                f.feedback_code ${sortOrder}
+            </when>
+            <otherwise>
+                f.feedback_code DESC
+            </otherwise>
         </choose>
-        LIMIT #{amount} OFFSET #{offset}
+
+        LIMIT #{offset}, #{amount}
     </select>
 
     <select id="countFeedbackList" resultType="int">

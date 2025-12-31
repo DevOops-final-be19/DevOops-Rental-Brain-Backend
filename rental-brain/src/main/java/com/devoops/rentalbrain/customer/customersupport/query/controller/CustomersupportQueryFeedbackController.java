@@ -36,9 +36,9 @@ public class CustomersupportQueryFeedbackController {
             @RequestParam(required = false) String sortBy,
             @RequestParam(required = false) String sortOrder,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int amount) {
 
-        FeedbackSearchDTO criteria = new FeedbackSearchDTO(page, size);
+        FeedbackSearchDTO criteria = new FeedbackSearchDTO(page, amount);
         criteria.setKeyword(keyword);
         criteria.setStatus(status);
         criteria.setCategory(category);
