@@ -71,12 +71,12 @@ jobs:
 
             redis:
               host: ${REDIS_HOST}
-              port: ${REDIS_PORT}
+              port: ${REDIS_PORT:6379}
               password: ${REDIS_PASSWORD}
             
           opensearch: 
             host: ${OPENSEARCH_HOST}
-            port: ${OPENSEARCH_PORT}
+            port: ${OPENSEARCH_PORT:9200}
             scheme: http
 
 
