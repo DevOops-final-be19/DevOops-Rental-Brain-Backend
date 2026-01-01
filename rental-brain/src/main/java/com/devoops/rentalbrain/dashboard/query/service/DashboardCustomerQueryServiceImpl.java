@@ -26,7 +26,7 @@ public class DashboardCustomerQueryServiceImpl implements DashboardCustomerQuery
                 .build();
     }
 
-    // kpi
+    // KPI
     @Override
     public DashboardKpiResponseDTO getDashboardKpi(String month) {
 
@@ -36,11 +36,12 @@ public class DashboardCustomerQueryServiceImpl implements DashboardCustomerQuery
 
         YearMonth prevYm = ym.minusMonths(1);
 
+        // ✅ [start, endExclusive) 방식 (끝은 다음달 1일 00:00)
         LocalDateTime start = ym.atDay(1).atStartOfDay();
-        LocalDateTime end = ym.atEndOfMonth().atTime(23, 59, 59);
+        LocalDateTime endExclusive = ym.plusMonths(1).atDay(1).atStartOfDay();
 
         LocalDateTime prevStart = prevYm.atDay(1).atStartOfDay();
-        LocalDateTime prevEnd = prevYm.atEndOfMonth().atTime(23, 59, 59);
+        LocalDateTime prevEndExclusive = prevYm.plusMonths(1).atDay(1).atStartOfDay();
 
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime until = now.plusDays(60);
@@ -49,9 +50,11 @@ public class DashboardCustomerQueryServiceImpl implements DashboardCustomerQuery
         int overdue = mapper.countPayOverdueInProgress();
         int waiting = mapper.countWaitingInquiries();
 
-        long revenue = mapper.sumRevenueBetween(start, end);
-        long prevRevenue = mapper.sumRevenueBetween(prevStart, prevEnd);
+        // ✅ LocalDateTime 그대로 전달 (문자열 포맷 제거)
+        long revenue = mapper.sumMonthlyRevenueBetween(start, endExclusive);
+        long prevRevenue = mapper.sumMonthlyRevenueBetween(prevStart, prevEndExclusive);
 
+        long diff = revenue - prevRevenue;
         double momRate = calcMomRate(revenue, prevRevenue);
 
         return DashboardKpiResponseDTO.builder()
@@ -59,13 +62,17 @@ public class DashboardCustomerQueryServiceImpl implements DashboardCustomerQuery
                 .expiringContractCount(expiring)
                 .payOverdueCount(overdue)
                 .waitingInquiryCount(waiting)
+
                 .mtdRevenue(revenue)
+                .prevMtdRevenue(prevRevenue)
+                .momRevenueDiff(diff)
                 .momRevenueRate(round1(momRate))
                 .build();
     }
 
     private double calcMomRate(long current, long previous) {
         if (previous <= 0) {
+            // 전월 0이면 "신규" 성격 → 기존 유지
             return (current > 0) ? 100.0 : 0.0;
         }
         return ((double) (current - previous) / previous) * 100.0;

@@ -21,7 +21,6 @@ public class CustomerSegmentDetailCardDTO {
 
     private String topItemName;         // 인기 품목 (없으면 "-")
 
-    // AI 사용 예정
     private String topSupport;          // 주요 문의사항 (없으면 "-")
     private String topFeedback;         // 주요 피드백 (없으면 "-")
 }
