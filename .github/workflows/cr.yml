@@ -72,6 +72,7 @@ jobs:
             redis:
               host: ${REDIS_HOST}
               port: ${REDIS_PORT:6379}
+              password: ${REDIS_PASSWORD}
             
           opensearch: 
             host: ${OPENSEARCH_HOST}
