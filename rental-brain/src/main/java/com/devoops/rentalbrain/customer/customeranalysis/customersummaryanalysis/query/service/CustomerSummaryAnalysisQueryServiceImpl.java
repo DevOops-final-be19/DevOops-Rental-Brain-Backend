@@ -38,89 +38,90 @@ public class CustomerSummaryAnalysisQueryServiceImpl implements CustomerSummaryA
 
         YearMonth curYm = YearMonth.parse(month);
         YearMonth prevYm = curYm.minusMonths(1);
-
         String prevMonth = prevYm.toString();
 
-        String curFrom = curYm.atDay(1).atStartOfDay().toString();
-        String curTo = curYm.plusMonths(1).atDay(1).atStartOfDay().toString();
-
+        // 월 범위 (거래액/만족도용)
+        String curFrom  = curYm.atDay(1).atStartOfDay().toString();
+        String curTo    = curYm.plusMonths(1).atDay(1).atStartOfDay().toString();
         String prevFrom = prevYm.atDay(1).atStartOfDay().toString();
-        String prevTo = prevYm.plusMonths(1).atDay(1).atStartOfDay().toString();
+        String prevTo   = prevYm.plusMonths(1).atDay(1).atStartOfDay().toString();
 
+    /* =========================================================
+       1️⃣ 전체 고객 기준 분모 (customer 테이블 기준)
+       ========================================================= */
+        int totalCustomers = customerSummaryAnalysisQueryMapper.countTotalCustomers(); // ← 61명
+        int curPotential   = customerSummaryAnalysisQueryMapper.countCustomersBySegmentId(POTENTIAL_SEGMENT_ID);
+        int curBlacklist   = customerSummaryAnalysisQueryMapper.countCustomersBySegmentId(BLACKLIST_SEGMENT_ID);
 
-        int totalCustomers = customerSummaryAnalysisQueryMapper.countTotalCustomers();
-
-        // segment_id별 고객 수
-        int curPotential = customerSummaryAnalysisQueryMapper.countCustomersBySegmentId(POTENTIAL_SEGMENT_ID);
-        int curBlacklist = customerSummaryAnalysisQueryMapper.countCustomersBySegmentId(BLACKLIST_SEGMENT_ID);
-
-        // 거래 고객 수 = 전체 - 잠재 - 블랙리스트
+        // 거래 고객 = 전체 - 잠재 - 블랙
         int curTradeCustomers = Math.max(totalCustomers - curPotential - curBlacklist, 0);
 
-
-        // 임시(스냅샷이 없을 때): 전월 대비는 0으로 두고, 추후 스냅샷 도입 시 교체
-        int prevTradeCustomers = 0;
-        int tradeMomDiff = curTradeCustomers - prevTradeCustomers;
+        // 전월 비교는 "거래 고객 기준" 문구 유지용 → 현재 기준으로 동일 값 사용
+        int prevTradeCustomers = curTradeCustomers;
+        int tradeMomDiff = 0;
         double tradeMomRate = 0.0;
 
-        // KPI 2) 평균 거래액(월) - monthly_payment 기반
-        long curAvgTrade = safeLong(customerSummaryAnalysisQueryMapper.avgMonthlyPaymentByMonth(curFrom, curTo));
+    /* =========================================================
+       2️⃣ 평균 거래액 (월 기준)
+       ========================================================= */
+        long curAvgTrade  = safeLong(customerSummaryAnalysisQueryMapper.avgMonthlyPaymentByMonth(curFrom, curTo));
         long prevAvgTrade = safeLong(customerSummaryAnalysisQueryMapper.avgMonthlyPaymentByMonth(prevFrom, prevTo));
         double avgTradeMomRate = momRate(prevAvgTrade, curAvgTrade);
 
-        // KPI 3) 평균 만족도(월)
-        double curStar = safeDouble(customerSummaryAnalysisQueryMapper.avgStarByMonth(curFrom, curTo));
+    /* =========================================================
+       3️⃣ 평균 만족도 (월 기준)
+       ========================================================= */
+        double curStar  = safeDouble(customerSummaryAnalysisQueryMapper.avgStarByMonth(curFrom, curTo));
         double prevStar = safeDouble(customerSummaryAnalysisQueryMapper.avgStarByMonth(prevFrom, prevTo));
         double avgStarMomDiff = round1(curStar - prevStar);
 
-        // KPI 4/5) 안정/위험 (거래 고객 기준으로 계산)
-
-        // 위험 고객 수는 snapshot 기반(월별 비교 가능)
-        int curRisk = customerSummaryAnalysisQueryMapper.countMonthRiskCustomers(month);
+    /* =========================================================
+       4️⃣ 이탈 위험 / 안정 고객 (월별 snapshot 기준)
+       ========================================================= */
+        int curRisk  = customerSummaryAnalysisQueryMapper.countMonthRiskCustomers(month);
         int prevRisk = customerSummaryAnalysisQueryMapper.countMonthRiskCustomers(prevMonth);
 
-        // 위험률 분모 = 거래 고객 수
-        double curRiskRate = rate(curRisk, curTradeCustomers);
-
-        double prevRiskRate = rate(prevRisk, curTradeCustomers);
-
+        // ⚠️ 분모는 반드시 전체 고객 기준
+        double curRiskRate  = rate(curRisk, totalCustomers);
+        double prevRiskRate = rate(prevRisk, totalCustomers);
         double riskMomDiffRate = round1(curRiskRate - prevRiskRate); // %p
 
-        // 안정 고객은 거래 고객 안에서 위험을 제외한 고객
-        int stableCount = Math.max(curTradeCustomers - curRisk, 0);
-        double stableRate = rate(stableCount, curTradeCustomers); // 안정 비율(%)
+        int stableCount = Math.max(totalCustomers - curRisk - curBlacklist, 0);
+        double stableRate = rate(stableCount, totalCustomers);
 
+    /* =========================================================
+       5️⃣ DTO 반환
+       ========================================================= */
         return CustomerSummaryAnalysisQueryKPIDTO.builder()
                 .currentMonth(month)
                 .previousMonth(prevMonth)
 
-                // KPI 1
-                .tradeCustomerCount(curTradeCustomers)
+                // 고객 수
                 .totalCustomerCount(totalCustomers)
+                .tradeCustomerCount(curTradeCustomers)
                 .potentialCustomerCount(curPotential)
                 .blacklistCustomerCount(curBlacklist)
 
-                // 전월 대비 (스냅샷 없으면 임시 0 처리)
+                // 거래 고객 증감
                 .prevTradeCustomerCount(prevTradeCustomers)
                 .tradeCustomerMomDiff(tradeMomDiff)
                 .tradeCustomerMomRate(tradeMomRate)
 
-                // KPI 2
+                // 거래액
                 .avgTradeAmount(curAvgTrade)
                 .avgTradeMomRate(avgTradeMomRate)
 
-                // KPI 3
+                // 만족도
                 .avgStar(curStar)
                 .avgStarMomDiff(avgStarMomDiff)
 
-                // KPI 4
+                // 안정 / 위험
                 .stableCustomerCount(stableCount)
                 .stableCustomerRate(stableRate)
-
-                // KPI 5
                 .riskCustomerCount(curRisk)
                 .riskRate(curRiskRate)
                 .riskMomDiffRate(riskMomDiffRate)
+
                 .build();
     }
 
@@ -129,31 +130,30 @@ public class CustomerSummaryAnalysisQueryServiceImpl implements CustomerSummaryA
     @Override
     public ChurnKpiCardResponseDTO getRiskKpi(String month) {
 
-        // 전체 수 조회
-        int total = customerSummaryAnalysisQueryMapper.countTotalCustomers();
+        YearMonth ym = YearMonth.parse(month);
+        String prevMonth = ym.minusMonths(1).toString();
 
-
-        YearMonth yearMonth = YearMonth.parse(month);
-        String prevMonth = yearMonth.minusMonths(1).toString();
+        int curTotal = customerSummaryAnalysisQueryMapper.countSnapshotCustomers(month);
+        int prevTotal = customerSummaryAnalysisQueryMapper.countSnapshotCustomers(prevMonth);
 
         int curRisk = customerSummaryAnalysisQueryMapper.countMonthRiskCustomers(month);
         int prevRisk = customerSummaryAnalysisQueryMapper.countMonthRiskCustomers(prevMonth);
 
-        double curRiskRate = rate(curRisk, total);
-        double prevRiskRate = rate(prevRisk, total);
+        double curRiskRate = rate(curRisk, curTotal);
+        double prevRiskRate = rate(prevRisk, prevTotal);
 
-        int retained = Math.max(total - curRisk, 0);
+        int retained = Math.max(curTotal - curRisk, 0);
         double retentionRate = round1(100.0 - curRiskRate);
 
         return ChurnKpiCardResponseDTO.builder()
                 .snapshotMonth(month)
                 .prevMonth(prevMonth)
-                .totalCustomerCount(total)
+                .totalCustomerCount(curTotal)
                 .curRiskCustomerCount(curRisk)
                 .curRiskRate(curRiskRate)
                 .prevRiskCustomerCount(prevRisk)
                 .prevRiskRate(prevRiskRate)
-                .momDiffRate(round1(curRiskRate - prevRiskRate)) // %p
+                .momDiffRate(round1(curRiskRate - prevRiskRate))
                 .curRetainedCustomerCount(retained)
                 .curRetentionRate(retentionRate)
                 .build();
@@ -163,16 +163,16 @@ public class CustomerSummaryAnalysisQueryServiceImpl implements CustomerSummaryA
     // 차트 (월별 위험률 차트)
     @Override
     public List<MonthlyRiskRateResponseDTO> getMonthlyRiskRate(String fromMonth, String toMonth) {
-        int total = customerSummaryAnalysisQueryMapper.countTotalCustomers();
 
         List<String> months = customerSummaryAnalysisQueryMapper.findMonthsBetween(fromMonth, toMonth);
         List<MonthlyRiskRateResponseDTO> result = new ArrayList<>();
 
-        for (String month : months) {
-            int risk = customerSummaryAnalysisQueryMapper.countMonthRiskCustomers(month);
+        for (String m : months) {
+            int total = customerSummaryAnalysisQueryMapper.countSnapshotCustomers(m);
+            int risk  = customerSummaryAnalysisQueryMapper.countMonthRiskCustomers(m);
 
             result.add(MonthlyRiskRateResponseDTO.builder()
-                    .snapshotMonth(month)
+                    .snapshotMonth(m)
                     .riskCustomerCount(risk)
                     .riskRate(rate(risk, total))
                     .build());

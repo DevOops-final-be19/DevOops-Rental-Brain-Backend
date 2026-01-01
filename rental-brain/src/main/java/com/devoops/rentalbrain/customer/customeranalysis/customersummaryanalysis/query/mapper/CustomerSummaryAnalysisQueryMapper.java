@@ -54,4 +54,15 @@ public interface CustomerSummaryAnalysisQueryMapper {
 
     // 고객 요약 분석 세그먼트 원형 차트
     List<CustomerSegmentDistributionDTO> selectCustomerSegmentDistribution();
+
+    int countTotalCustomersAtMonth(
+            @Param("monthEndExclusive") String monthEndExclusive
+    );
+
+    int countCustomersBySegmentAtMonth(
+            @Param("segmentId") int segmentId,
+            @Param("monthEndExclusive") String monthEndExclusive
+    );
+
+    int countSnapshotCustomers(String month);
 }
