@@ -40,6 +40,12 @@ jobs:
                 force: true
 
           spring:
+            redis:
+              host: ${REDIS_HOST}
+              port: ${REDIS_PORT:6379}
+              password: ${REDIS_PASSWORD}
+              timeout: 5000ms
+
             datasource:
               driver-class-name: org.mariadb.jdbc.Driver
               url: jdbc:mariadb://${RDS_HOSTNAME}:${RDS_PORT}/${RDS_DB_NAME}?useUnicode=true&characterEncoding=utf8&connectionCollation=utf8mb4_unicode_ci
@@ -68,17 +74,12 @@ jobs:
               properties:
                 hibernate:
                   '[format_sql]': true
-
-            data: 
-              redis:
-                host: ${REDIS_HOST}
-                port: ${REDIS_PORT:6379}
-                password: ${REDIS_PASSWORD}
-                timeout: 5000ms
             
           opensearch: 
             host: ${OPENSEARCH_HOST}
             port: ${OPENSEARCH_PORT:9200}
+            username: ${OPENSEARCH_USERNAME}
+            password: ${OPENSEARCH_PASSWORD}
             scheme: http
 
           token:
