@@ -40,12 +40,6 @@ jobs:
                 force: true
 
           spring:
-            redis:
-              host: ${REDIS_HOST}
-              port: ${REDIS_PORT:6379}
-              password: ${REDIS_PASSWORD}
-              timeout: 5000ms
-
             datasource:
               driver-class-name: org.mariadb.jdbc.Driver
               url: jdbc:mariadb://${RDS_HOSTNAME}:${RDS_PORT}/${RDS_DB_NAME}?useUnicode=true&characterEncoding=utf8&connectionCollation=utf8mb4_unicode_ci
@@ -66,6 +60,12 @@ jobs:
               multipart:
                 max-file-size: 20MB
                 max-request-size: 20MB
+            data:
+              redis:
+                host: ${SPRING_DATA_REDIS_HOST}
+                port: ${SPRING_DATA_REDIS_PORT:6379}
+                password: ${SPRING_DATA_REDIS_PASSWORD}
+                timeout: 5000ms
 
             jpa:
               generate-ddl: false
