@@ -245,8 +245,20 @@
             SELECT 'AS/점검', contents, due_date, engineer, status FROM after_service WHERE cum_id = #{customerId}
             UNION ALL
             SELECT '피드백', title, create_date, (SELECT name FROM employee WHERE id = emp_id), CAST(star AS CHAR) FROM feedback WHERE cum_id = #{customerId}
+            UNION ALL
+            SELECT
+            '세그먼트' AS type,
+            CONCAT(PS.name, ' -> ', CS.name, ' (', H.reason, ')') AS content,
+            H.changed_at AS date,
+            'System' AS performer,
+            H.trigger_type AS status
+            FROM customer_segment_history H
+            LEFT JOIN segment PS ON H.previous_segment_id = PS.id
+            LEFT JOIN segment CS ON H.current_segment_id = CS.id
+            WHERE H.customer_id = #{customerId}
             ) combined_history
         ORDER BY date DESC
+            LIMIT #{amount} OFFSET #{offset}
     </select>
 
     <select id="selectSupportList" resultMap="SupportListMap">
@@ -283,18 +295,21 @@
         ORDER BY Q.counseling_date DESC
     </select>
 
-    <select id="selectContractList" resultMap="ContractListMap">
+    <select id="selectContractList" parameterType="Long" resultType="com.devoops.rentalbrain.business.contract.query.dto.AllContractDTO">
         SELECT
-            id,
-            contract_code,
-            name AS conName,
-            status,
-            start_date,
-            contract_period,
-            monthly_payment
-        FROM contract
-        WHERE cum_id = #{customerId}
-        ORDER BY start_date DESC
+            C.id AS id,
+            C.contract_code AS contractCode,
+            C.name AS conName,
+            C.start_date AS startDate,
+            C.contract_period AS contractPeriod,
+            C.monthly_payment AS monthlyPayment,
+            C.status AS status
+        FROM
+            contract C
+        WHERE
+            C.cum_id = #{customerId}
+        ORDER BY
+            C.start_date DESC
     </select>
 
     <select id="selectAsList" resultMap="AsListMap">
