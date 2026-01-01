@@ -39,8 +39,9 @@ public interface CustomerlistQueryMapper {
     CustomerDetailResponseDTO selectCustomerDetail(@Param("id") Long id);
 
     // 4. 통합 히스토리 조회 (신규 추가)
-    List<CustomerHistoryDTO> selectCustomerHistory(@Param("customerId") Long customerId);
-
+    List<CustomerHistoryDTO> selectCustomerHistory(@Param("customerId") Long customerId,
+                                                   @Param("offset") int offset,
+                                                   @Param("amount") int amount);
     // 5. 탭별 상세 내역 조회 (반환 타입 변경 및 메서드명 XML id와 일치)
 
     // 문의 내역
