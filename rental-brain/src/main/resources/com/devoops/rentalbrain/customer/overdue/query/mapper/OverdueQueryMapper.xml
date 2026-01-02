@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.devoops.rentalbrain.customer.overdue.query.mapper.OverdueQueryMapper">
+
+    <!-- 수납 연체 목록 -->
+    <select id="findPayOverdueList" resultType="com.devoops.rentalbrain.customer.overdue.query.dto.PayOverdueListDTO">
+        SELECT
+            po.id                    AS overdueId,
+            po.pay_overdue_code      AS payOverdueCode,
+            c.name                   AS customerName,
+            c.in_charge              AS inCharge,
+            c.call_num               AS callNum,
+            con.contract_code        AS contractCode,
+            con.monthly_payment      AS monthlyPayment,
+            po.due_date              AS dueDate,
+            po.overdue_period        AS overduePeriod,
+            po.status                AS status
+        FROM pay_overdue po
+                 JOIN customer c ON c.id = po.cum_id
+                 JOIN contract con ON con.id = po.contract_id
+        <where>
+            <!-- 상태 필터 -->
+            <if test="status != null and status != ''">
+                AND po.status = #{status}
+            </if>
+
+            <!-- Criteria 기반 검색 -->
+            <if test="criteria.keyword != null and criteria.keyword != ''">
+                <choose>
+                    <when test="criteria.type == 'customer'">
+                        AND c.name LIKE CONCAT('%', #{criteria.keyword}, '%')
+                    </when>
+                    <when test="criteria.type == 'contract'">
+                        AND con.contract_code LIKE CONCAT('%', #{criteria.keyword}, '%')
+                    </when>
+                    <when test="criteria.type == 'overdue'">
+                        AND po.pay_overdue_code LIKE CONCAT('%', #{criteria.keyword}, '%')
+                    </when>
+                </choose>
+            </if>
+        </where>
+        ORDER BY po.pay_overdue_code DESC
+        LIMIT #{criteria.amount}
+        OFFSET #{criteria.offset}
+    </select>
+
+    <!-- 수납 연체 전체 건수 -->
+    <select id="countPayOverdueList" resultType="long">
+
+        SELECT COUNT(*)
+        FROM pay_overdue po
+                 JOIN customer c ON c.id = po.cum_id
+                 JOIN contract con ON con.id = po.contract_id
+        <where>
+            <if test="status != null and status != ''">
+                AND po.status = #{status}
+            </if>
+
+            <if test="criteria.keyword != null and criteria.keyword != ''">
+                <choose>
+                    <when test="criteria.type == 'customer'">
+                        AND c.name LIKE CONCAT('%', #{criteria.keyword}, '%')
+                    </when>
+                    <when test="criteria.type == 'contract'">
+                        AND con.contract_code LIKE CONCAT('%', #{criteria.keyword}, '%')
+                    </when>
+                    <when test="criteria.type == 'overdue'">
+                        AND po.pay_overdue_code LIKE CONCAT('%', #{criteria.keyword}, '%')
+                    </when>
+                </choose>
+            </if>
+        </where>
+    </select>
+
+    <!-- 수납 연체 상세 -->
+    <select id="findPayOverdueDetail"
+            parameterType="long"
+            resultType="com.devoops.rentalbrain.customer.overdue.query.dto.PayOverdueDetailDTO">
+        SELECT
+            po.id                    AS overdueId,
+            po.pay_overdue_code      AS payOverdueCode,
+            c.name                   AS customerName,
+            c.in_charge              AS inCharge,
+            c.call_num               AS callNum,
+            con.contract_code        AS contractCode,
+            con.monthly_payment      AS monthlyPayment,
+            po.due_date              AS dueDate,
+            po.overdue_period        AS overduePeriod,
+            po.status                AS status,
+            po.paid_date             AS paidDate
+        FROM pay_overdue po
+                 JOIN customer c
+                      ON c.id = po.cum_id
+                 JOIN contract con
+                      ON con.id = po.contract_id
+        WHERE po.id = #{overdueId}
+    </select>
+
+    <!-- 제품 연체 목록 -->
+    <select id="findItemOverdueList" resultType="com.devoops.rentalbrain.customer.overdue.query.dto.ItemOverdueListDTO">
+
+        SELECT
+        io.id                AS overdueId,
+        io.item_overdue_code AS itemOverdueCode,
+        c.name               AS customerName,
+        c.in_charge          AS inCharge,
+        c.call_num           AS callNum,
+        con.contract_code    AS contractCode,
+        io.count             AS count,
+        io.due_date          AS dueDate,
+        io.overdue_period    AS overduePeriod,
+        io.status            AS status
+        FROM item_overdue io
+        JOIN customer c ON c.id = io.cum_id
+        JOIN contract con ON con.id = io.contract_id
+
+        <where>
+            <if test="status != null and status != ''">
+                AND io.status = #{status}
+            </if>
+
+            <if test="criteria.keyword != null and criteria.keyword != ''">
+                <choose>
+                    <when test="criteria.type == 'customer'">
+                        AND c.name LIKE CONCAT('%', #{criteria.keyword}, '%')
+                    </when>
+                    <when test="criteria.type == 'contract'">
+                        AND con.contract_code LIKE CONCAT('%', #{criteria.keyword}, '%')
+                    </when>
+                    <when test="criteria.type == 'overdue'">
+                        AND io.item_overdue_code LIKE CONCAT('%', #{criteria.keyword}, '%')
+                    </when>
+                </choose>
+            </if>
+        </where>
+
+        ORDER BY io.id DESC
+        LIMIT #{criteria.amount}
+        OFFSET #{criteria.offset}
+    </select>
+
+    <!-- 제품 연체 전체 건수 -->
+    <select id="countItemOverdueList" resultType="long">
+
+        SELECT COUNT(*)
+        FROM item_overdue io
+        JOIN customer c ON c.id = io.cum_id
+        JOIN contract con ON con.id = io.contract_id
+
+        <where>
+            <!-- 상태 필터 -->
+            <if test="status != null and status != ''">
+                AND io.status = #{status}
+            </if>
+
+            <!-- 검색 조건 -->
+            <if test="criteria.keyword != null and criteria.keyword != ''">
+                <choose>
+                    <when test="criteria.type == 'customer'">
+                        AND c.name LIKE CONCAT('%', #{criteria.keyword}, '%')
+                    </when>
+
+                    <when test="criteria.type == 'contract'">
+                        AND con.contract_code LIKE CONCAT('%', #{criteria.keyword}, '%')
+                    </when>
+
+                    <when test="criteria.type == 'overdue'">
+                        AND io.item_overdue_code LIKE CONCAT('%', #{criteria.keyword}, '%')
+                    </when>
+                </choose>
+            </if>
+        </where>
+    </select>
+
+    <!-- 제품 연체 상세   -->
+    <select id="findItemOverdueDetail"
+            parameterType="long"
+            resultType="com.devoops.rentalbrain.customer.overdue.query.dto.ItemOverdueDetailDTO">
+
+        SELECT
+            io.id                AS overdueId,
+            io.item_overdue_code AS itemOverdueCode,
+            c.name               AS customerName,
+            c.in_charge          AS inCharge,
+            c.call_num           AS callNum,
+            io.contract_id       AS contractId,
+            con.contract_code    AS contractCode,
+            io.count             AS count,
+            io.due_date          AS dueDate,
+            io.overdue_period    AS overduePeriod,
+            io.status            AS status
+            FROM item_overdue io
+                JOIN customer c ON c.id = io.cum_id
+                JOIN contract con ON con.id = io.contract_id
+            WHERE io.id = #{overdueId}
+    </select>
+
+    <select id="findOverdueItemsByContract"
+            parameterType="long"
+            resultType="com.devoops.rentalbrain.customer.overdue.query.dto.OverdueItemDTO">
+
+        SELECT
+            i.item_code AS itemCode,
+            i.name      AS itemName,
+            i.status    AS itemStatus
+        FROM contract_with_item ci
+                 JOIN item i ON i.id = ci.item_id
+        WHERE ci.contract_id = #{contractId}
+    </select>
+
+    <!-- 제품 연체 상세 - 연체된 제품 목록 -->
+    <select id="findOverdueItemsByContractId"
+            parameterType="long"
+            resultType="com.devoops.rentalbrain.customer.overdue.query.dto.OverdueItemDTO">
+        SELECT
+        i.item_code    AS itemCode,
+        i.name         AS itemName,
+        i.status       AS itemStatus
+        FROM contract_with_item cwi
+        JOIN item i
+        ON i.id = cwi.item_id
+        WHERE cwi.contract_id = #{contractId}
+    </select>
+
+    <select id="findItemOverdueCandidates"
+            resultType="com.devoops.rentalbrain.customer.overdue.query.dto.ItemOverdueCandidateDTO">
+
+        SELECT
+        c.id AS contractId,
+        c.cum_id AS customerId,
+        DATE_ADD(c.start_date, INTERVAL c.contract_period MONTH) AS dueDate,
+        COUNT(cwi.item_id) AS itemCount,
+        DATEDIFF(
+        CURDATE(),
+        DATE_ADD(c.start_date, INTERVAL c.contract_period MONTH)
+        ) AS overduePeriod
+        FROM contract c
+        JOIN contract_with_item cwi ON c.id = cwi.contract_id
+        WHERE c.status = 'C'
+          <![CDATA[
+          AND DATE_ADD(c.start_date, INTERVAL c.contract_period MONTH) < NOW() ]]>
+        AND NOT EXISTS (
+        SELECT 1
+        FROM item_overdue io
+        WHERE io.contract_id = c.id
+        AND io.status = 'P'
+        )
+        GROUP BY c.id, c.cum_id;
+    </select>
+
+
+</mapper>

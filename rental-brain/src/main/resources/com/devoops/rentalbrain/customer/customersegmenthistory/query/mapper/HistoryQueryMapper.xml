@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.devoops.rentalbrain.customer.customersegmenthistory.query.mapper.HistoryQueryMapper">
+
+    <resultMap id="HistoryListMap" type="com.devoops.rentalbrain.customer.customersegmenthistory.query.dto.HistoryQueryDTO">
+        <id     property="historyId"                column="history_id"/>
+        <result property="historyPreviousSegmentId" column="history_previous_segment_id"/>
+        <result property="historyCurrentSegmentId"  column="history_current_segment_id"/>
+        <result property="historyReason"            column="history_reason"/>
+        <result property="historyTriggerType"       column="history_trigger_type"/>
+        <result property="historyReferenceType"     column="history_reference_type"/>
+        <result property="historyReferenceId"       column="history_reference_id"/>
+        <result property="historyChangedAt"         column="history_changed_at"/>
+        <result property="customerName"             column="customer_name"/>
+        <result property="segmentName"              column="segment_name"/>
+
+        <!--   이전 세그먼트, 현재 세그먼트 이름 추가함     -->
+        <result property="previousSegmentName"      column="previous_segment_name"/>
+        <result property="currentSegmentName"       column="current_segment_name"/>
+
+    </resultMap>
+
+    <select id="getByCustomer" resultMap="HistoryListMap">
+        SELECT
+                A.id AS history_id,
+                B.name AS customer_name,
+                A.changed_at AS history_changed_at,
+                A.previous_segment_id AS history_previous_segment_id,
+                A.current_segment_id AS history_current_segment_id,
+                D.name AS previous_segment_name,
+                C.name AS current_segment_name,
+                A.reason AS history_reason,
+                A.trigger_type AS history_trigger_type,
+                A.reference_type AS history_reference_type,
+                A.reference_id AS history_reference_id
+        FROM customer_segment_history A
+        JOIN customer B ON B.id = A.customer_id
+        LEFT JOIN segment D ON D.id = A.previous_segment_id
+        JOIN segment C ON C.id = A.current_segment_id
+        WHERE A.customer_id = #{customerId}
+        ORDER BY A.id DESC
+    </select>
+
+    <select id="getHistory" resultMap="HistoryListMap">
+        SELECT
+                A.id AS history_id,
+                B.name AS customer_name,
+                A.changed_at AS history_changed_at,
+                A.previous_segment_id AS history_previous_segment_id,
+                A.current_segment_id AS history_current_segment_id,
+                D.name AS previous_segment_name,
+                C.name AS current_segment_name,
+                A.reason AS history_reason,
+                A.trigger_type AS history_trigger_type,
+                A.reference_type AS history_reference_type,
+                A.reference_id AS history_reference_id
+        FROM customer_segment_history A
+        JOIN customer B ON B.id = A.customer_id
+        LEFT JOIN segment D ON D.id = A.previous_segment_id
+        JOIN segment C ON C.id = A.current_segment_id
+        WHERE A.id = #{id}
+    </select>
+</mapper>

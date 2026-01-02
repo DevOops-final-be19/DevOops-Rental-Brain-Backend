@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  IdSequenceMapper
+  비즈니스 코드(PREFIX-YYYY-NNN) 채번 전용 Mapper
+
+  채번 전략:
+  - INSERT ... ON DUPLICATE KEY UPDATE
+  - LAST_INSERT_ID(last_number + 1) 사용
+  - 동시성 환경에서도 안전하게 증가값 확보
+
+  전제:
+  - id_sequence(domain, year) UNIQUE 제약 존재
+-->
+<mapper namespace="com.devoops.rentalbrain.common.codegenerator.IdSequenceMapper">
+
+    <!--
+      시퀀스 생성 또는 증가 (한 방 처리)
+
+      동작:
+      - (domain, year) row가 없으면 INSERT (0 → 1)
+      - 있으면 UPDATE (+1)
+      - 증가된 값은 현재 커넥션의 LAST_INSERT_ID()에 저장됨
+    -->
+    <update id="nextSequence">
+        INSERT INTO id_sequence (domain, year, last_number)
+        VALUES (#{domain}, #{year}, 0)
+        ON DUPLICATE KEY UPDATE
+        last_number = LAST_INSERT_ID(last_number + 1)
+    </update>
+
+    <!--
+      직전에 증가된 시퀀스 값 조회
+      - 반드시 nextSequence와 같은 트랜잭션/커넥션에서 호출
+    -->
+    <select id="selectLastInsertId" resultType="int">
+        SELECT LAST_INSERT_ID()
+    </select>
+
+</mapper>

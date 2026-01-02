@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.devoops.rentalbrain.common.notice.query.mapper.NoticeQueryMapper">
+    <resultMap id="getNewNoticeListResultMap" type="com.devoops.rentalbrain.common.notice.query.dto.NoticeReceiveDTO">
+        <id property="id" column="id"/>
+        <result property="isRead" column="is_read"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="readAt" column="read_at"/>
+        <result property="empId" column="emp_id"/>
+        <association property="notice" javaType="com.devoops.rentalbrain.common.notice.query.dto.NoticeDTO">
+            <id property="id" column="notice_id"/>
+            <result property="type" column="type"/>
+            <result property="title" column="title"/>
+            <result property="message" column="message"/>
+            <result property="linkUrl" column="link_url"/>
+        </association>
+    </resultMap>
+
+    <select id="getEmployeeIds" resultType="long">
+        SELECT
+               a.id
+          FROM employee a JOIN emp_position b
+            ON a.position_id = b.id
+         WHERE b.id=#{id}
+           AND a.status = 'W'
+    </select>
+
+    <select id="getNewNoticeList" resultMap="getNewNoticeListResultMap">
+        SELECT
+               a.id
+             , a.is_read
+             , a.created_at
+             , a.read_at
+             , a.emp_id
+             , b.id as notice_id
+             , b.type
+             , b.title
+             , b.message
+             , b.link_url
+         FROM notification_receiver a JOIN notification b
+           ON a.noti_id = b.id
+        WHERE emp_id = #{empId}
+          AND a.is_read = 'N'
+        ORDER BY a.created_at
+        LIMIT 100
+    </select>
+
+    <select id="getAllNoticeList" resultMap="getNewNoticeListResultMap">
+        SELECT
+            a.id
+             , a.is_read
+             , a.created_at
+             , a.read_at
+             , a.emp_id
+             , b.id as notice_id
+             , b.type
+             , b.title
+             , b.message
+             , b.link_url
+        FROM notification_receiver a JOIN notification b
+                                          ON a.noti_id = b.id
+        WHERE a.emp_id = #{empId}
+        <if test="type != null and type != 'ALL'">
+            AND b.type = #{type}
+        </if>
+        ORDER BY a.is_read ASC, a.created_at DESC
+        LIMIT #{size}
+        OFFSET #{offset}
+    </select>
+    <select id="noticeCount">
+        SELECT COUNT(*)
+          FROM notification_receiver a
+                 JOIN notification b ON a.noti_id = b.id
+         WHERE a.emp_id = #{empId}
+        <if test="type != null and type != 'ALL'">
+            AND b.type = #{type}
+        </if>
+    </select>
+</mapper>

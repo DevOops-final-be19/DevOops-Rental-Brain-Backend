@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.devoops.rentalbrain.product.productlist.query.mapper.ItemMapper">
+    <resultMap id="getEachItemMap" type="com.devoops.rentalbrain.product.productlist.query.dto.EachItemDTO">
+        <id property="id" column="ID"/>
+        <result property="itemCode" column="ITEM_CODE"/>
+        <result property="status" column="STATUS"/>
+        <result property="sales" column="SALES"/>
+        <result property="repairCost" column="REPAIR_COST"/>
+        <result property="firmName" column="FIRM_NAME"/>
+        <result property="startDate" column="START_DATE"/>
+        <result property="lastInspectDate" column="LAST_INSPECT_DATE"/>
+    </resultMap>
+    <select id="selectAllItems" resultMap="getEachItemMap" parameterType="string">
+        SELECT
+               A.ID,
+               A.ITEM_CODE,
+               A.STATUS,
+               A.SALES,
+               A.REPAIR_COST,
+               CASE
+                 WHEN C.STATUS = 'W' AND A.STATUS = 'S' THEN '결재 대기 중'
+                 WHEN A.STATUS IN ('R', 'P') THEN NULL
+                 ELSE E.NAME
+               END AS FIRM_NAME,
+               CASE
+                 WHEN A.STATUS IN ('R', 'P') OR (C.STATUS = 'W' AND A.STATUS = 'S')
+                 THEN NULL
+                 ELSE C.START_DATE
+               END AS START_DATE,
+               A.LAST_INSPECT_DATE
+          FROM item A
+          LEFT JOIN (
+               SELECT
+                      cwi.item_id,
+                      MAX(c.id) AS contract_id
+                 FROM contract_with_item cwi
+                 JOIN contract c ON c.id = cwi.contract_id
+                WHERE c.status IN ('P','I','C','T','W')
+                GROUP BY cwi.item_id
+                ) BC ON BC.item_id = A.ID
+          LEFT JOIN contract C ON C.ID = BC.contract_id
+          LEFT JOIN customer E ON E.ID = C.CUM_ID
+         WHERE A.NAME = #{itemName};
+
+    </select>
+    <resultMap id="getItemNameMap" type="com.devoops.rentalbrain.product.productlist.query.dto.ItemNameDTO">
+        <result property="itemName" column="ITEM_NAME"/>
+        <result property="categoryName" column="CATEGORY_NAME"/>
+        <result property="monthlyPrice" column="MONTHLY_PRICE"/>
+        <result property="stockAmount" column="STOCK_AMOUNT"/>
+        <result property="rentalAmount" column="RENTAL_AMOUNT"/>
+        <result property="possibleAmount" column="POSSIBLE_AMOUNT"/>
+        <result property="repairAmount" column="REPAIR_AMOUNT"/>
+        <result property="overdueAmount" column="OVERDUE_AMOUNT"/>
+        <result property="wholeSales" column="WHOLE_SALES"/>
+        <result property="wholeRepairCost" column="WHOLE_REPAIR_COST"/>
+        <result property="utilizationRate" column="UTILIZATION_RATE"/>
+    </resultMap>
+    <select id="selectItemsByName" resultMap="getItemNameMap">
+        SELECT
+               A.ITEM_NAME,
+               A.CATEGORY_NAME,
+               A.MONTHLY_PRICE,
+               SUM(A.ITEM_COUNT) AS STOCK_AMOUNT,
+               SUM(CASE WHEN A.STATUS = 'S'    THEN A.ITEM_COUNT ELSE 0 END) AS RENTAL_AMOUNT,
+               SUM(CASE WHEN A.STATUS = 'P'    THEN A.ITEM_COUNT ELSE 0 END) AS POSSIBLE_AMOUNT,
+               SUM(CASE WHEN A.STATUS = 'R'    THEN A.ITEM_COUNT ELSE 0 END) AS REPAIR_AMOUNT,
+               SUM(CASE WHEN A.STATUS = 'O'    THEN A.ITEM_COUNT ELSE 0 END) AS OVERDUE_AMOUNT,
+               SUM(A.WHOLE_SALES) AS WHOLE_SALES,
+               SUM(A.WHOLE_REPAIR_COST) AS WHOLE_REPAIR_COST,
+               SUM(CASE WHEN A.STATUS = 'S'    THEN A.ITEM_COUNT ELSE 0 END)/SUM(A.ITEM_COUNT)*100 AS UTILIZATION_RATE
+          FROM stocked_item A
+         GROUP BY A.ITEM_NAME
+         LIMIT #{limit} OFFSET #{offset}
+    </select>
+    <select id="searchItemByName" resultMap="getItemNameMap" parameterType="map">
+        SELECT
+        A.ITEM_NAME,
+        A.CATEGORY_NAME,
+        A.MONTHLY_PRICE,
+        SUM(A.ITEM_COUNT) AS STOCK_AMOUNT,
+        SUM(CASE WHEN A.STATUS = 'S'    THEN A.ITEM_COUNT ELSE 0 END) AS RENTAL_AMOUNT,
+        SUM(CASE WHEN A.STATUS = 'P'    THEN A.ITEM_COUNT ELSE 0 END) AS POSSIBLE_AMOUNT,
+        SUM(CASE WHEN A.STATUS = 'R'    THEN A.ITEM_COUNT ELSE 0 END) AS REPAIR_AMOUNT,
+        SUM(CASE WHEN A.STATUS = 'O'    THEN A.ITEM_COUNT ELSE 0 END) AS OVERDUE_AMOUNT,
+        SUM(A.WHOLE_SALES) AS WHOLE_SALES,
+        SUM(A.WHOLE_REPAIR_COST) AS WHOLE_REPAIR_COST,
+        SUM(CASE WHEN A.STATUS = 'S'    THEN A.ITEM_COUNT ELSE 0 END)/SUM(A.ITEM_COUNT)*100 AS UTILIZATION_RATE
+        FROM stocked_item A
+        WHERE A.ITEM_NAME LIKE CONCAT('%', #{keyword}, '%')
+        GROUP BY A.ITEM_NAME
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+    <resultMap id="getItemCountMap" type="com.devoops.rentalbrain.product.productlist.query.dto.ItemKpiDTO">
+        <result property="wholeCount" column="WHOLE_COUNT"/>
+        <result property="rentalCount" column="RENTAL_COUNT"/>
+        <result property="repairCount" column="REPAIR_COUNT"/>
+        <result property="availableCount" column="AVAILABLE_COUNT"/>
+        <result property="overdueCount" column="OVERDUE_COUNT"/>
+    </resultMap>
+    <select id="countItems" resultMap="getItemCountMap">
+        SELECT
+               COUNT(*) AS WHOLE_COUNT,
+               COUNT(CASE WHEN A.STATUS = 'S' THEN 1 END) AS RENTAL_COUNT,
+               COUNT(CASE WHEN A.STATUS = 'R' THEN 1 END) AS REPAIR_COUNT,
+               COUNT(CASE WHEN A.STATUS = 'P' THEN 1 END) AS AVAILABLE_COUNT,
+               COUNT(CASE WHEN A.STATUS = 'O' THEN 1 END) AS OVERDUE_COUNT
+          FROM item A
+    </select>
+    <select id="countItemsList">
+        SELECT
+               COUNT(DISTINCT A.ITEM_NAME)
+          FROM stocked_item A;
+    </select>
+    <select id="filteringItemsByCategory" resultMap="getItemNameMap" parameterType="map">
+        SELECT
+               A.ITEM_NAME,
+               A.CATEGORY_NAME,
+               A.MONTHLY_PRICE,
+               SUM(A.ITEM_COUNT) AS STOCK_AMOUNT,
+               SUM(CASE WHEN A.STATUS = 'S'    THEN A.ITEM_COUNT ELSE 0 END) AS RENTAL_AMOUNT,
+               SUM(CASE WHEN A.STATUS = 'P'    THEN A.ITEM_COUNT ELSE 0 END) AS POSSIBLE_AMOUNT,
+               SUM(CASE WHEN A.STATUS = 'R'    THEN A.ITEM_COUNT ELSE 0 END) AS REPAIR_AMOUNT,
+               SUM(CASE WHEN A.STATUS = 'O'    THEN A.ITEM_COUNT ELSE 0 END) AS OVERDUE_AMOUNT,
+               SUM(A.WHOLE_SALES) AS WHOLE_SALES,
+               SUM(A.WHOLE_REPAIR_COST) AS WHOLE_REPAIR_COST,
+               SUM(CASE WHEN A.STATUS = 'S'    THEN A.ITEM_COUNT ELSE 0 END)/SUM(A.ITEM_COUNT)*100 AS UTILIZATION_RATE
+          FROM stocked_item A
+          LEFT JOIN item_category B ON A.CATEGORY_NAME = B.NAME
+         WHERE B.NAME = #{categoryName}
+         GROUP BY A.ITEM_NAME
+         LIMIT #{limit} OFFSET #{offset}
+    </select>
+    <select id="countSearchItemsList">
+        SELECT
+               COUNT(DISTINCT A.ITEM_NAME)
+        FROM stocked_item A
+        WHERE A.ITEM_NAME LIKE CONCAT('%', #{keyword}, '%')
+    </select>
+    <select id="countFilteringItemsList">
+        SELECT
+               COUNT(DISTINCT A.ITEM_NAME)
+          FROM stocked_item A
+          LEFT JOIN item_category B ON A.CATEGORY_NAME = B.NAME
+         WHERE B.NAME = #{categoryName}
+    </select>
+    <resultMap id="getCategoryMap" type="com.devoops.rentalbrain.product.productlist.query.dto.ItemCategoryDTO">
+        <id property="id" column="ID"/>
+        <result property="name" column="NAME"/>
+    </resultMap>
+    <select id="selectCategory" resultMap="getCategoryMap">
+        SELECT
+               A.ID,
+               A.NAME
+          FROM item_category A
+    </select>
+    <resultMap id="getEachKpiMap" type="com.devoops.rentalbrain.product.productlist.query.dto.EachItemKpiDTO">
+        <result property="totalCount" column="TOTAL_COUNT"/>
+        <result property="rentCount" column="RENT_COUNT"/>
+        <result property="availableCount" column="AVAILABLE_COUNT"/>
+        <result property="repairCount" column="REPAIR_COUNT"/>
+        <result property="overdueCount" column="OVERDUE_COUNT"/>
+    </resultMap>
+    <select id="countEachItemKpi" resultMap="getEachKpiMap" parameterType="string">
+        SELECT
+               COUNT(*) AS TOTAL_COUNT,
+               COUNT(CASE WHEN A.STATUS = 'S' THEN 1 END) AS RENT_COUNT,
+               COUNT(CASE WHEN A.STATUS = 'P' THEN 1 END) AS AVAILABLE_COUNT,
+               COUNT(CASE WHEN A.STATUS = 'R' THEN 1 END) AS REPAIR_COUNT,
+               COUNT(CASE WHEN A.STATUS = 'O' THEN 1 END) AS OVERDUE_COUNT
+          FROM item A
+         WHERE A.NAME = #{itemName}
+    </select>
+</mapper>

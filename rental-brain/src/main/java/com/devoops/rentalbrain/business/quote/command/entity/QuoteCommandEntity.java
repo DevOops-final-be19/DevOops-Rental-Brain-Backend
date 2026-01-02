@@ -18,6 +18,10 @@ public class QuoteCommandEntity {
     @Column(name = "id")
     private Long quoteId;
 
+    // 추가
+    @Column(name = "quote_code", nullable = false, unique = true)
+    private String quoteCode;
+
     @Column(name = "counseling_date", nullable = false)
     private LocalDateTime quoteCounselingDate;
 
@@ -32,12 +36,13 @@ public class QuoteCommandEntity {
     private String quoteContent;
 
     @Column(name = "processing_time", nullable = false)
-    private LocalDateTime quoteProcessingTime;
+    private Integer quoteProcessingTime;
 
     @Column(name = "channel_id", nullable = false)
-    private Integer quoteChannelId;
+    private Long quoteChannelId;
 
     @Column(name = "cum_id", nullable = false)
-    private Integer quoteCumId;
+    private Long quoteCumId;
+
 
 }

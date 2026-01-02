@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.devoops.rentalbrain.employee.query.mapper.EmployeeQueryMapper">
+    <resultMap id="empInfoPageResultMap" type="com.devoops.rentalbrain.employee.query.dto.EmployeeInfoDTO">
+        <id property="id" column="id"/>
+        <result property="employeeCode" column="employee_code"/>
+        <result property="emp_id" column="emp_id"/>
+        <result property="name" column="name"/>
+        <result property="phone" column="phone"/>
+        <result property="email" column="email"/>
+        <result property="addr" column="addr"/>
+        <result property="birthday" column="birthday"/>
+        <result property="gender" column="gender"/>
+        <result property="status" column="status"/>
+        <result property="dept" column="dept"/>
+        <result property="hire_date" column="hire_date"/>
+        <association property="position" javaType="com.devoops.rentalbrain.employee.query.dto.PositionDTO">
+            <id property="position_id" column="position_id"/>
+            <result property="position_name" column="position_name"/>
+        </association>
+
+    </resultMap>
+
+    <resultMap id="empListResultMap" type="com.devoops.rentalbrain.employee.query.dto.EmployeeListDTO">
+        <id property="id" column="id"/>
+        <result property="employeeCode" column="employee_code"/>
+        <result property="emp_id" column="emp_id"/>
+        <result property="name" column="name"/>
+        <result property="phone" column="phone"/>
+        <result property="email" column="email"/>
+        <result property="addr" column="addr"/>
+        <result property="birthday" column="birthday"/>
+        <result property="gender" column="gender"/>
+        <result property="status" column="status"/>
+        <result property="dept" column="dept"/>
+        <result property="hire_date" column="hire_date"/>
+        <result property="resign_date" column="resign_date"/>
+        <association property="position" javaType="com.devoops.rentalbrain.employee.query.dto.PositionDTO">
+            <id property="position_id" column="position_id"/>
+            <result property="position_name" column="position_name"/>
+        </association>
+        <collection property="empAuth" ofType="com.devoops.rentalbrain.employee.query.dto.EmpAuthDTO">
+            <id property="employee_auth_id" column="employee_auth_id"/>
+            <result property="auth_id" column="ea_auth_id"/>
+            <result property="emp_id" column="ea_user_id"/>
+        </collection>
+    </resultMap>
+
+    <resultMap id="empAuthListResultMap" type="com.devoops.rentalbrain.employee.query.dto.EmpAuthListDTO">
+        <id property="id" column="id"/>
+        <result property="description" column="description"/>
+    </resultMap>
+
+    <resultMap id="empPositionListResultMap" type="com.devoops.rentalbrain.employee.query.dto.PositionDTO">
+        <id property="position_id" column="id"/>
+        <result property="position_name" column="position_name"/>
+    </resultMap>
+
+    <resultMap id="empInChargeListResultMap" type="com.devoops.rentalbrain.employee.query.dto.InChargeDTO">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+    </resultMap>
+
+    <select id="getUserAuth" resultType="string">
+        SELECT
+               c.auth
+          FROM employee_auth a
+          JOIN employee b
+            ON a.emp_id = b.id
+          JOIN auth_list c
+            ON a.auth_id = c.id
+         WHERE a.emp_id = #{empId}
+    </select>
+
+    <select id="getEmpInfoPage" resultMap="empInfoPageResultMap">
+        SELECT
+               a.id,
+               a.employee_code,
+               a.emp_id,
+               a.name,
+               a.phone,
+               a.email,
+               a.addr,
+               a.birthday,
+               a.gender,
+               a.status,
+               a.dept,
+               a.hire_date,
+               b.id as position_id,
+               b.position_name
+          FROM employee a JOIN emp_position b
+            ON a.position_id = b.id
+         WHERE emp_id = #{empId}
+    </select>
+
+    <select id="getEmpList" resultMap="empListResultMap">
+        SELECT
+               a.id,
+               a.employee_code,
+               a.emp_id,
+               a.name,
+               a.phone,
+               a.email,
+               a.addr,
+               a.birthday,
+               a.gender,
+               a.status,
+               a.dept,
+               a.hire_date,
+               a.resign_date,
+               b.id as position_id,
+               b.position_name,
+               c.id as employee_auth_id,
+               c.auth_id as ea_auth_id,
+               c.emp_id as ea_user_id
+          FROM employee a
+     LEFT JOIN emp_position b
+            ON a.position_id = b.id
+     LEFT JOIN employee_auth c
+            ON a.id = c.emp_id
+    </select>
+
+    <select id="getEmpAuthList" resultMap="empAuthListResultMap">
+        SELECT
+               a.id
+             , a.description
+          FROM auth_list a
+    </select>
+
+    <select id="getInChargeList" resultMap="empInChargeListResultMap">
+        SELECT
+            a.id
+             , a.name
+        FROM employee a
+    </select>
+
+    <select id="getPositionList" resultMap="empPositionListResultMap">
+        SELECT
+               a.id
+             , a.position_name
+          FROM emp_position a
+    </select>
+
+</mapper>

@@ -1,0 +1,407 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.devoops.rentalbrain.approval.query.mapper.ApprovalQueryMapper">
+    <select id="getApprovalStatus"
+            parameterType="long"
+            resultType="com.devoops.rentalbrain.approval.query.dto.ApprovalStatusDTO">
+
+        SELECT
+            /* =========================
+               1. 내가 현재 승인해야 할 결재
+               ========================= */
+            (
+                SELECT COUNT(DISTINCT m.approval_id)
+                FROM approval_mapping m
+                WHERE m.emp_id = #{empId}
+                  AND m.is_approved = 'U'
+
+                  -- ❌ 반려가 하나라도 있으면 제외
+                  AND NOT EXISTS (
+                    SELECT 1
+                    FROM approval_mapping x
+                    WHERE x.approval_id = m.approval_id
+                      AND x.is_approved = 'N'
+                )
+
+                  -- ✅ 내 앞 단계 결재자가 모두 승인(Y) 상태
+                  AND NOT EXISTS (
+                    SELECT 1
+                    FROM approval_mapping p
+                    WHERE p.approval_id = m.approval_id
+                      AND p.step <![CDATA[ < ]]> m.step
+                      AND p.is_approved <![CDATA[ != ]]> 'Y'
+                )
+            ) AS my_pending,
+
+            /* =========================
+               2. 내가 참여한 승인 완료 결재
+               ========================= */
+            (
+                SELECT COUNT(DISTINCT m.approval_id)
+                FROM approval_mapping m
+                WHERE m.emp_id = #{empId}
+                  AND NOT EXISTS (
+                    SELECT 1
+                    FROM approval_mapping x
+                    WHERE x.approval_id = m.approval_id
+                      AND x.is_approved != 'Y'
+                )
+            ) AS total_approved,
+
+            /* =========================
+               3. 내가 참여한 반려 결재
+               ========================= */
+            (
+                SELECT COUNT(DISTINCT m.approval_id)
+                FROM approval_mapping m
+                WHERE m.emp_id = #{empId}
+                  AND EXISTS (
+                    SELECT 1
+                    FROM approval_mapping x
+                    WHERE x.approval_id = m.approval_id
+                      AND x.is_approved = 'N'
+                )
+            ) AS total_rejected,
+
+            /* =========================
+               4. 내가 참여한 진행 중 결재
+               ========================= */
+            (
+                SELECT COUNT(DISTINCT m.approval_id)
+                FROM approval_mapping m
+                WHERE m.emp_id = #{empId}
+                  AND NOT EXISTS (
+                    SELECT 1
+                    FROM approval_mapping x
+                    WHERE x.approval_id = m.approval_id
+                      AND x.is_approved = 'N'
+                )
+                  AND EXISTS (
+                    SELECT 1
+                    FROM approval_mapping x
+                    WHERE x.approval_id = m.approval_id
+                      AND x.is_approved = 'U'
+                )
+            ) AS in_progress
+
+    </select>
+
+
+    <select id="selectPendingApprovalsByEmpIdWithPaging"
+            parameterType="map"
+            resultType="com.devoops.rentalbrain.approval.query.dto.PendingApprovalDTO">
+
+        SELECT
+        v.approval_mapping_id   AS approvalMappingId,
+        v.approver_emp_id       AS approverEmpId,
+        v.approval_step         AS approvalStep,
+        v.is_approved           AS isApproved,
+        v.approval_code         AS approvalCode,
+        v.approval_title        AS approvalTitle,
+        v.contract_id           AS contractId,
+        v.request_date          AS requestDate,
+        v.request_emp_id        AS requestEmpId,
+        v.employee_code         AS employeeCode,
+        v.employee_name         AS employeeName,
+        v.position_name         AS positionName
+        FROM v_approval_payment_manage v
+        WHERE v.approver_emp_id = #{empId}
+        AND v.is_approved = 'U'
+          <![CDATA[
+        AND NOT EXISTS (
+        SELECT 1
+        FROM v_approval_payment_manage prev
+        WHERE prev.approval_code = v.approval_code
+        AND prev.approval_step < v.approval_step
+                                 AND prev.is_approved != 'Y'
+        )
+          ]]>
+        <if test="criteria.keyword != null and criteria.keyword != ''">
+            AND (
+            v.approval_code LIKE CONCAT('%', #{criteria.keyword}, '%')
+            OR v.approval_title LIKE CONCAT('%', #{criteria.keyword}, '%')
+            )
+        </if>
+
+        ORDER BY v.request_date DESC
+        LIMIT #{criteria.amount}
+        OFFSET #{criteria.offset}
+
+    </select>
+    <select id="countPendingApprovalsByEmpId"
+            parameterType="map"
+            resultType="long">
+
+        SELECT COUNT(*)
+        FROM v_approval_payment_manage v
+        WHERE v.approver_emp_id = #{empId}
+        AND v.is_approved = 'U'
+        <![CDATA[
+        AND NOT EXISTS (
+        SELECT 1
+        FROM v_approval_payment_manage prev
+        WHERE prev.approval_code = v.approval_code
+        AND prev.approval_step < v.approval_step
+                                 AND prev.is_approved != 'Y'
+        )
+          ]]>
+        <if test="criteria.keyword != null and criteria.keyword != ''">
+            AND (
+            v.approval_code LIKE CONCAT('%', #{criteria.keyword}, '%')
+            OR v.approval_title LIKE CONCAT('%', #{criteria.keyword}, '%')
+            )
+        </if>
+    </select>
+    <select id="selectInProgressApprovals"
+            parameterType="map"
+            resultType="com.devoops.rentalbrain.approval.query.dto.ApprovalProgressDTO">
+
+        SELECT
+        approval_code AS approvalCode,
+        approval_title AS approvalTitle,
+        contract_id AS contractId,
+        MIN(request_date) AS requestDate,
+
+        /* 진행률 */
+        COUNT(*) AS totalStep,
+        SUM(CASE WHEN is_approved = 'Y' THEN 1 ELSE 0 END) AS approvedStep,
+        ROUND(
+        SUM(CASE WHEN is_approved = 'Y' THEN 1 ELSE 0 END)
+        / COUNT(*) * 100
+        ) AS progressRate,
+
+        /* 다음 승인자 */
+        MAX(
+        CASE
+        WHEN is_approved = 'U'
+        AND approval_step = (
+        SELECT MIN(approval_step)
+        FROM v_approval_payment_manage sub
+        WHERE sub.approval_code = v.approval_code
+        AND sub.is_approved = 'U'
+        )
+        THEN approver_name
+        END
+        ) AS nextApproverName,
+
+        MAX(
+        CASE
+        WHEN is_approved = 'U'
+        AND approval_step = (
+        SELECT MIN(approval_step)
+        FROM v_approval_payment_manage sub
+        WHERE sub.approval_code = v.approval_code
+        AND sub.is_approved = 'U'
+        )
+        THEN approver_position_name
+        END
+        ) AS nextApproverPosition
+
+        FROM v_approval_payment_manage v
+        WHERE approval_code IN (
+        SELECT approval_code
+        FROM v_approval_payment_manage
+        WHERE approver_emp_id = #{empId}
+        )
+        AND approval_status = 'P'
+
+        -- 반려된 결재 문서 제외
+        AND NOT EXISTS (
+        SELECT 1
+        FROM v_approval_payment_manage x
+        WHERE x.approval_code = v.approval_code
+        AND x.is_approved = 'N'
+        )
+        <!--
+         검색 조건 -->
+        <if test="criteria.keyword != null and criteria.keyword != ''">
+            AND (
+            approval_code LIKE CONCAT('%', #{criteria.keyword}, '%')
+            OR approval_title LIKE CONCAT('%', #{criteria.keyword}, '%')
+            )
+        </if>
+
+        GROUP BY approval_code, approval_title
+        ORDER BY requestDate DESC
+        LIMIT #{criteria.amount}
+        OFFSET #{criteria.offset}
+
+    </select>
+    <select id="countInProgressApprovals"
+            parameterType="map"
+            resultType="long">
+
+        SELECT COUNT(DISTINCT v.approval_code)
+        FROM v_approval_payment_manage v
+        WHERE v.approval_code IN (
+        SELECT approval_code
+        FROM v_approval_payment_manage
+        WHERE approver_emp_id = #{empId}
+        )
+        AND v.approval_status = 'P'
+
+        -- 반려된 결재 문서 제외
+        AND NOT EXISTS (
+        SELECT 1
+        FROM v_approval_payment_manage x
+        WHERE x.approval_code = v.approval_code
+        AND x.is_approved = 'N'
+        )
+
+        <if test="criteria.keyword != null and criteria.keyword != ''">
+            AND (
+            approval_code LIKE CONCAT('%', #{criteria.keyword}, '%')
+            OR approval_title LIKE CONCAT('%', #{criteria.keyword}, '%')
+            )
+        </if>
+    </select>
+    <select id="selectCompletedApprovals"
+            parameterType="map"
+            resultType="com.devoops.rentalbrain.approval.query.dto.ApprovalCompletedDTO">
+        SELECT
+        a.approval_code        AS approvalCode,
+        a.contract_id          AS contractId,
+        a.title                AS approvalTitle,
+        a.request_date         AS requestDate,
+
+        /* ⭐ 최신 정렬 기준 (승인/반려 공통) */
+        COALESCE(a.approval_date, a.request_date) AS lastProcessDate,
+
+        MAX(am.reject_reason)  AS rejectReason,
+
+        /* 최종 결과 상태 */
+        CASE
+        WHEN SUM(
+        CASE
+        WHEN am.is_approved IN ('N','R') THEN 1
+        ELSE 0
+        END
+        ) > 0
+        THEN 'REJECTED'
+        ELSE 'APPROVED'
+        END AS resultStatus
+
+        FROM approval a
+        JOIN approval_mapping am
+        ON am.approval_id = a.id
+
+        <where>
+            <!-- 내가 결재선에 포함된 approval만 -->
+            a.id IN (
+            SELECT DISTINCT m.approval_id
+            FROM approval_mapping m
+            WHERE m.emp_id = #{empId}
+            )
+
+            <!-- 완료 조건 -->
+            AND (
+            EXISTS (
+            SELECT 1
+            FROM approval_mapping m
+            WHERE m.approval_id = a.id
+            AND m.is_approved IN ('N','R')
+            )
+            OR
+            NOT EXISTS (
+            SELECT 1
+            FROM approval_mapping m
+            WHERE m.approval_id = a.id
+            AND m.is_approved = 'U'
+            )
+            )
+
+            <!-- 검색 -->
+            <if test="criteria.keyword != null and criteria.keyword != ''">
+                <choose>
+                    <when test="criteria.type == 'code'">
+                        AND a.approval_code LIKE CONCAT('%', #{criteria.keyword}, '%')
+                    </when>
+                    <when test="criteria.type == 'title'">
+                        AND a.title LIKE CONCAT('%', #{criteria.keyword}, '%')
+                    </when>
+                    <otherwise>
+                        AND (
+                        a.approval_code LIKE CONCAT('%', #{criteria.keyword}, '%')
+                        OR a.title LIKE CONCAT('%', #{criteria.keyword}, '%')
+                        )
+                    </otherwise>
+                </choose>
+            </if>
+        </where>
+
+        GROUP BY
+        a.id,
+        a.approval_code,
+        a.title,
+        a.request_date,
+        a.approval_date
+
+        <!-- ⭐ 최신순 정렬 -->
+        ORDER BY lastProcessDate DESC
+        LIMIT #{criteria.amount}
+        OFFSET #{criteria.offset}
+
+    </select>
+    <select id="countCompletedApprovals"
+            parameterType="map"
+            resultType="long">
+
+        SELECT COUNT(*)
+        FROM (
+        SELECT a.id
+        FROM approval a
+
+        JOIN approval_mapping am
+        ON am.approval_id = a.id
+
+        <where>
+            <!-- 내가 결재선에 포함된 approval만 -->
+            a.id IN (
+            SELECT DISTINCT m.approval_id
+            FROM approval_mapping m
+            WHERE m.emp_id = #{empId}
+            )
+
+            <!-- 완료 조건 -->
+            AND (
+            EXISTS (
+            SELECT 1
+            FROM approval_mapping m
+            WHERE m.approval_id = a.id
+            AND m.is_approved IN ('N','R')
+            )
+            OR
+            NOT EXISTS (
+            SELECT 1
+            FROM approval_mapping m
+            WHERE m.approval_id = a.id
+            AND m.is_approved = 'U'
+            )
+            )
+
+            <!-- 검색 -->
+            <if test="criteria.keyword != null and criteria.keyword != ''">
+                <choose>
+                    <when test="criteria.type == 'code'">
+                        AND a.approval_code LIKE CONCAT('%', #{criteria.keyword}, '%')
+                    </when>
+                    <when test="criteria.type == 'title'">
+                        AND a.title LIKE CONCAT('%', #{criteria.keyword}, '%')
+                    </when>
+                    <otherwise>
+                        AND (
+                        a.approval_code LIKE CONCAT('%', #{criteria.keyword}, '%')
+                        OR a.title LIKE CONCAT('%', #{criteria.keyword}, '%')
+                        )
+                    </otherwise>
+                </choose>
+            </if>
+        </where>
+
+        GROUP BY a.id
+        ) completed
+    </select>
+
+
+</mapper>

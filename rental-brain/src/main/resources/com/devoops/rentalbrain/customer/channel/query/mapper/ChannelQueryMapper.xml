@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.devoops.rentalbrain.customer.channel.query.mapper.ChannelQueryMapper">
+
+    <!--   1) GET /channel/list -->
+    <resultMap id="ChannelListMap" type="com.devoops.rentalbrain.customer.channel.query.dto.ChannelQueryDTO">
+        <id property="channelId" column="channel_id"/>
+        <result property="channelName" column="channel_name"/>
+    </resultMap>
+
+    <select id="selectChannelList" resultMap="ChannelListMap" parameterType="string">
+        SELECT
+        id   AS channel_id,
+        name AS channel_name
+        FROM channel
+        <where>
+            <if test="channelName != null and channelName != ''">
+                name LIKE CONCAT('%', #{channelName}, '%')
+            </if>
+        </where>
+        ORDER BY id
+    </select>
+
+
+    <!-- =========================================================
+         2) GET /channel/kpi
+         ========================================================= -->
+    <resultMap id="ChannelKpiMap" type="com.devoops.rentalbrain.customer.channel.query.dto.ChannelKpiQueryDTO">
+        <id property="channelId" column="channel_id"/>
+        <result property="channelName" column="channel_name"/>
+        <result property="customerCount" column="customer_count"/>
+        <result property="quoteCount" column="quote_count"/>
+        <result property="feedbackCount" column="feedback_count"/>
+        <result property="customerSupportCount" column="customer_support_count"/>
+        <result property="totalCount" column="total_count"/>
+    </resultMap>
+
+    <select id="selectChannelKpi" resultMap="ChannelKpiMap" parameterType="string">
+        SELECT
+        ch.id AS channel_id,
+        ch.name AS channel_name,
+
+        (SELECT COUNT(*) FROM customer c WHERE c.channel_id = ch.id) AS customer_count,
+        (SELECT COUNT(*) FROM quote q WHERE q.channel_id = ch.id) AS quote_count,
+        (SELECT COUNT(*) FROM feedback f WHERE f.channel_id = ch.id) AS feedback_count,
+        (SELECT COUNT(*) FROM customer_support cs WHERE cs.channel_id = ch.id) AS customer_support_count,
+
+        (
+        (SELECT COUNT(*) FROM customer c WHERE c.channel_id = ch.id)
+        + (SELECT COUNT(*) FROM quote q WHERE q.channel_id = ch.id)
+        + (SELECT COUNT(*) FROM feedback f WHERE f.channel_id = ch.id)
+        + (SELECT COUNT(*) FROM customer_support cs WHERE cs.channel_id = ch.id)
+        ) AS total_count
+        FROM channel ch
+        <where>
+            <if test="channelName != null and channelName != ''">
+                ch.name LIKE CONCAT('%', #{channelName}, '%')
+            </if>
+        </where>
+        ORDER BY ch.id
+    </select>
+
+    <!-- =========================================================
+         3) GET /channel/totalSum  (전체 통합 합계 1행)
+         ========================================================= -->
+    <resultMap id="ChannelTotalSumMap" type="com.devoops.rentalbrain.customer.channel.query.dto.ChannelTotalSumDTO">
+        <result property="customerCount" column="customer_count"/>
+        <result property="quoteCount" column="quote_count"/>
+        <result property="feedbackCount" column="feedback_count"/>
+        <result property="customerSupportCount" column="customer_support_count"/>
+        <result property="totalCount" column="total_count"/>
+    </resultMap>
+
+    <select id="selectChannelTotalSum" resultMap="ChannelTotalSumMap">
+        SELECT
+        (SELECT COUNT(*) FROM customer) AS customer_count,
+        (SELECT COUNT(*) FROM quote) AS quote_count,
+        (SELECT COUNT(*) FROM feedback) AS feedback_count,
+        (SELECT COUNT(*) FROM customer_support) AS customer_support_count,
+        (
+        (SELECT COUNT(*) FROM customer)
+        + (SELECT COUNT(*) FROM quote)
+        + (SELECT COUNT(*) FROM feedback)
+        + (SELECT COUNT(*) FROM customer_support)
+        ) AS total_count
+    </select>
+</mapper>

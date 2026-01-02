@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.devoops.rentalbrain.business.campaign.query.mapper.PromotionMapper">
+    <resultMap id="getPromotionMap" type="com.devoops.rentalbrain.business.campaign.query.dto.PromotionDTO">
+        <id property="promotionCode" column="PROMOTION_CODE"/>
+        <result property="name" column="NAME"/>
+        <result property="type" column="TYPE"/>
+        <result property="status" column="STATUS"/>
+        <result property="triggerVal" column="TRIGGER_VAL"/>
+        <result property="segmentName" column="SEGMENT_NAME"/>
+        <result property="content" column="CONTENT"/>
+        <result property="startDate" column="START_DATE"/>
+        <result property="endDate" column="END_DATE"/>
+    </resultMap>
+    <select id="selectPromotion" resultMap="getPromotionMap">
+        SELECT
+               A.PROMOTION_CODE,
+               A.NAME,
+               A.TYPE,
+               A.STATUS,
+               A.TRIGGER_VAL,
+               B.NAME AS SEGMENT_NAME,
+               A.CONTENT,
+               A.START_DATE,
+               A.END_DATE
+          FROM promotion A
+          LEFT JOIN segment B ON A.SEGMENT_ID = B.ID
+         ORDER BY A.PROMOTION_CODE DESC
+         LIMIT #{limit} OFFSET #{offset}
+    </select>
+    <select id="countPromotionList">
+        SELECT
+               COUNT(*)
+          FROM promotion A;
+    </select>
+    <select id="searchPromotion" resultMap="getPromotionMap" parameterType="map">
+        SELECT
+               A.PROMOTION_CODE,
+               A.NAME,
+               A.TYPE,
+               A.STATUS,
+               A.TRIGGER_VAL,
+               B.NAME AS SEGMENT_NAME,
+               A.CONTENT,
+               A.START_DATE,
+               A.END_DATE
+          FROM promotion A
+          LEFT JOIN segment B ON A.SEGMENT_ID = B.ID
+         WHERE A.PROMOTION_CODE LIKE CONCAT('%', #{keyword}, '%') OR A.NAME LIKE CONCAT('%', #{keyword}, '%')
+         ORDER BY A.PROMOTION_CODE DESC
+         LIMIT #{limit} OFFSET #{offset}
+    </select>
+    <select id="countSearchedPromotion" parameterType="string">
+        SELECT
+               COUNT(*)
+          FROM promotion A
+         WHERE A.PROMOTION_CODE LIKE CONCAT('%', #{keyword}, '%') OR A.NAME LIKE CONCAT('%', #{keyword}, '%')
+    </select>
+    <select id="filteringPromotionByType" resultMap="getPromotionMap" parameterType="map">
+        SELECT
+               A.PROMOTION_CODE,
+               A.NAME,
+               A.TYPE,
+               A.STATUS,
+               A.TRIGGER_VAL,
+               B.NAME AS SEGMENT_NAME,
+               A.CONTENT,
+               A.START_DATE,
+               A.END_DATE
+          FROM promotion A
+          LEFT JOIN segment B ON A.SEGMENT_ID = B.ID
+         WHERE A.TYPE = #{type}
+         ORDER BY A.PROMOTION_CODE DESC
+         LIMIT #{limit} OFFSET #{offset}
+    </select>
+    <select id="countFliteringPromotion" parameterType="string">
+        SELECT
+               COUNT(*)
+          FROM promotion A
+         WHERE A.TYPE = #{type}
+    </select>
+    <select id="filteringPromotionByStatus" resultMap="getPromotionMap" parameterType="map">
+        SELECT
+               A.PROMOTION_CODE,
+               A.NAME,
+               A.TYPE,
+               A.STATUS,
+               A.TRIGGER_VAL,
+               B.NAME AS SEGMENT_NAME,
+               A.CONTENT,
+               A.START_DATE,
+               A.END_DATE
+          FROM promotion A
+          LEFT JOIN segment B ON A.SEGMENT_ID = B.ID
+         WHERE A.STATUS = #{status}
+         ORDER BY A.PROMOTION_CODE DESC
+         LIMIT #{limit} OFFSET #{offset}
+    </select>
+    <select id="countFliterPromotionByStatus" parameterType="string">
+        SELECT
+               COUNT(*)
+          FROM promotion A
+         WHERE A.STATUS = #{status}
+    </select>
+    <resultMap id="getPromotionWithContractMap"
+               type="com.devoops.rentalbrain.business.campaign.query.dto.PromotionWithContractDTO">
+        <id property="id" column="ID"/>
+        <result property="promotionCode" column="PROMOTION_CODE"/>
+        <result property="name" column="NAME"/>
+        <result property="content" column="CONTENT"/>
+        <result property="endDate" column="END_DATE"/>
+        <result property="triggerVal" column="TRIGGER_VAL"/>
+    </resultMap>
+    <select id="useContractPromotion" resultMap="getPromotionWithContractMap" parameterType="integer">
+        SELECT
+               ID,
+               PROMOTION_CODE,
+               NAME,
+               CONTENT,
+               END_DATE,
+               TRIGGER_VAL
+          FROM promotion A
+         WHERE SEGMENT_ID = #{segment} AND STATUS = 'A' AND TYPE = 'M'
+    </select>
+    <select id="selectEachPromotion" resultMap="getPromotionMap" parameterType="string">
+        SELECT
+               A.PROMOTION_CODE,
+               A.NAME,
+               A.TYPE,
+               A.STATUS,
+               A.TRIGGER_VAL,
+               B.NAME AS SEGMENT_NAME,
+               A.CONTENT,
+               A.START_DATE,
+               A.END_DATE
+          FROM promotion A
+          LEFT JOIN segment B ON A.SEGMENT_ID = B.ID
+         WHERE A.PROMOTION_CODE = #{proCode}
+    </select>
+</mapper>

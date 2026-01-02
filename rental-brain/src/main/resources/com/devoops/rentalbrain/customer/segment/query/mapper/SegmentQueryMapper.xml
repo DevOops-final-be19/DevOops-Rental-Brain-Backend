@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.devoops.rentalbrain.customer.segment.query.mapper.SegmentQueryMapper">
+
+    <!-- 세그먼트 목록 조회 -->
+    <resultMap id="SegmentQueryListMap" type="com.devoops.rentalbrain.customer.segment.query.dto.SegmentQueryListDTO">
+        <id property="segmentId" column="SEGMENT_ID"/>
+        <result property="segmentName" column="SEGMENT_NAME"/>
+        <result property="segmentContent" column="SEGMENT_CONTENT"/>
+    </resultMap>
+    <select id="selectSegmentList" resultMap="SegmentQueryListMap">
+        SELECT
+               A.ID   AS SEGMENT_ID
+             , A.NAME AS SEGMENT_NAME
+             , A.CONTENT AS SEGMENT_CONTENT
+         FROM segment A
+         WHERE (#{segmentName} IS NULL OR A.NAME LIKE CONCAT('%', #{segmentName}, '%'))
+    </select>
+
+
+
+    <!--  세그먼트 단건(detail) 조회  -->
+    <resultMap id="SegmentQueryDetailMap" type="com.devoops.rentalbrain.customer.segment.query.dto.SegmentQueryDetailDTO">
+        <id property="segmentId" column="SEGMENT_ID"/>
+        <result property="segmentName" column="SEGMENT_NAME"/>
+        <result property="segmentContent" column="SEGMENT_CONTENT"/>
+        <result property="segmentTotalCharge" column="SEGMENT_TOTAL_CHARGE"/>
+        <result property="segmentPeriod" column="SEGMENT_PERIOD"/>
+        <result property="segmentIsContracted" column="SEGMENT_IS_CONTRACTED"/>
+        <result property="segmentOverdued" column="SEGMENT_OVERDUED"/>
+
+        <!-- 고객 리스트 -->
+        <collection property="customers"
+                    ofType="com.devoops.rentalbrain.customer.segment.query.dto.SegmentQueryDetailDTO$SegmentCustomerDTO"
+                    column="SEGMENT_ID"
+                    select="selectCustomersBySegmentId"/>
+
+    </resultMap>
+
+    <!-- 세그먼트 단건 조회(세그먼트만 상세 조회) -->
+    <select id="selectSegmentDetail" resultMap="SegmentQueryDetailMap">
+        SELECT
+               A.ID   AS SEGMENT_ID
+             , A.NAME AS SEGMENT_NAME
+             , A.CONTENT AS SEGMENT_CONTENT
+             , A.TOTAL_CHARGE AS SEGMENT_TOTAL_CHARGE
+             , A.SEGMENT_PERIOD AS SEGMENT_PERIOD
+             , A.IS_CONTRACTED AS SEGMENT_IS_CONTRACTED
+             , A.OVERDUED AS SEGMENT_OVERDUED
+        FROM segment A
+        WHERE A.ID = #{segmentId}
+    </select>
+
+    <!-- ✅ 세그먼트에 속한 고객 목록 -->
+    <select id="selectCustomersBySegmentId"
+            resultType="com.devoops.rentalbrain.customer.segment.query.dto.SegmentQueryDetailDTO$SegmentCustomerDTO">
+        SELECT
+               A.ID            AS customerId
+             , A.CUSTOMER_CODE AS customerCode
+             , A.NAME          AS customerName
+             , A.IN_CHARGE     AS inCharge
+             , A.DEPT          AS dept
+             , A.CALL_NUM      AS callNum
+             , A.STAR          AS star
+             , A.IS_DELETED    AS isDeleted
+        FROM customer A
+        WHERE A.SEGMENT_ID = #{segmentId}
+          AND A.IS_DELETED = 'N'
+        ORDER BY A.ID DESC
+    </select>
+
+</mapper>

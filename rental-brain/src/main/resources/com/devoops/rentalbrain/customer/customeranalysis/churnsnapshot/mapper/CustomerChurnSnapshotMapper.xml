@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.devoops.rentalbrain.customer.customeranalysis.churnsnapshot.mapper.CustomerChurnSnapshotMapper">
+
+    <insert id="upsertMonthlySnapshot">
+        INSERT INTO customer_churn_snapshot
+        (snapshot_month, customer_id, is_churn_risk, risk_reason_code, prev_segment_id)
+        SELECT
+        #{month} AS snapshot_month,
+        c.id AS customer_id,
+        CASE WHEN c.segment_id = 4 THEN 'Y' ELSE 'N' END AS is_churn_risk,
+        CASE WHEN c.segment_id = 4 THEN 'SEGMENT_RISK' ELSE 'NONE' END AS risk_reason_code,
+        NULL AS prev_segment_id
+        FROM customer c
+        WHERE c.is_deleted = 'N'
+        ON DUPLICATE KEY UPDATE
+        is_churn_risk    = VALUES(is_churn_risk),
+        risk_reason_code = VALUES(risk_reason_code),
+        prev_segment_id  = VALUES(prev_segment_id);
+    </insert>
+
+    <select id="countDistinctCustomersByMonth" resultType="int">
+        SELECT COUNT(DISTINCT customer_id)
+        FROM customer_churn_snapshot
+        WHERE snapshot_month = #{month};
+    </select>
+
+    <select id="countRiskCustomersByMonth" resultType="int">
+        SELECT COUNT(*)
+        FROM customer_churn_snapshot
+        WHERE snapshot_month = #{month}
+        AND is_churn_risk = 'Y';
+    </select>
+
+    <delete id="deleteByMonth">
+        DELETE FROM customer_churn_snapshot
+        WHERE snapshot_month = #{month};
+    </delete>
+
+</mapper>

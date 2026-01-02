@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.devoops.rentalbrain.business.contract.query.mapper.ContractQueryMapper">
+    <select id="getContractList" resultType="com.devoops.rentalbrain.business.contract.query.dto.AllContractDTO"
+    parameterType="com.devoops.rentalbrain.business.contract.query.dto.ContractSearchDTO">
+        SELECT
+                t.id,
+                t.contract_code   AS contractCode,
+                c.name            AS cusName,
+                c.in_charge       AS inCharge,
+                c.call_num        AS callNum,
+                t.name            AS conName,
+                t.start_date      AS startDate,
+                t.contract_period AS contractPeriod,
+                t.monthly_payment AS monthlyPayment,
+                t.status          AS status
+                FROM contract t LEFT JOIN customer c
+            ON t.cum_id = c.id
+        <where>
+            <if test="status != null and status != ''">
+                AND t.status = #{status}
+            </if>
+
+            <if test="keyword != null and keyword != '' and type != null and type != ''">
+                AND
+                <foreach collection="type.split(',')" item="tp" open="(" close=")" separator=" OR ">
+                    <choose>
+                        <when test="tp == 'contract_code'">
+                            t.contract_code LIKE CONCAT('%', #{keyword}, '%')
+                        </when>
+                        <when test="tp == 'cusName'">
+                            c.name LIKE CONCAT('%', #{keyword}, '%')
+                        </when>
+                        <when test="tp == 'in_charge'">
+                            c.in_charge LIKE CONCAT('%', #{keyword}, '%')
+                        </when>
+                        <when test="tp == 'conName'">
+                            t.name LIKE CONCAT('%', #{keyword}, '%')
+                        </when>
+                        <otherwise>
+                            1 = 0
+                        </otherwise>
+                    </choose>
+                </foreach>
+            </if>
+        </where>
+        ORDER BY id DESC
+            LIMIT #{amount} OFFSET #{offset}
+    </select>
+
+    <select id="getCountContract" resultType="long"
+    parameterType="com.devoops.rentalbrain.business.contract.query.dto.ContractSearchDTO">
+        SELECT COUNT(*)
+        FROM contract t LEFT JOIN customer c
+        ON t.cum_id = c.id
+        <where>
+            <if test="status != null and status != ''">
+                AND t.status = #{status}
+            </if>
+
+            <if test="keyword != null and keyword != '' and type != null and type != ''">
+                AND
+                <foreach collection="type.split(',')" item="tp" open="(" close=")" separator=" OR ">
+                    <choose>
+                        <when test="tp == 'contract_code'">
+                            t.contract_code LIKE CONCAT('%', #{keyword}, '%')
+                        </when>
+                        <when test="tp == 'cusName'">
+                            c.name LIKE CONCAT('%', #{keyword}, '%')
+                        </when>
+                        <when test="tp == 'in_charge'">
+                            c.in_charge LIKE CONCAT('%', #{keyword}, '%')
+                        </when>
+                        <when test="tp == 'conName'">
+                            t.name LIKE CONCAT('%', #{keyword}, '%')
+                        </when>
+                        <otherwise>
+                            1 = 0
+                        </otherwise>
+                    </choose>
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <!-- 전체 계약 수 (P, E, I, C) -->
+    <select id="countAllContracts" resultType="long">
+        SELECT COUNT(*)
+        FROM contract
+        WHERE STATUS IN ('P', 'E', 'I', 'C')
+    </select>
+
+    <!-- 진행중 계약 수 -->
+    <select id="countProgressContracts" resultType="long">
+        SELECT COUNT(*)
+        FROM contract
+        WHERE STATUS = 'P'
+    </select>
+
+    <!-- 만료임박 계약 수 -->
+    <select id="countImminentExpireContracts" resultType="long">
+        SELECT COUNT(*)
+        FROM contract
+        WHERE STATUS = 'I'
+    </select>
+
+    <!-- 이번 달 신규 계약 수 -->
+    <select id="countThisMonthContracts" resultType="long">
+        SELECT COUNT(*)
+        FROM approval
+        WHERE approval_date <![CDATA[ >= ]]>DATE_FORMAT(CURDATE(), '%Y-%m-01')
+        AND approval_date <![CDATA[ < ]]> DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL 1 MONTH)
+    </select>
+    <!-- 렌탈 중인 상품 리스트 조회 -->
+    <select id="selectRentalProductList"
+    parameterType="long"
+    resultType="com.devoops.rentalbrain.business.contract.query.dto.RentalProductInfoDTO">
+        SELECT
+            A.ID                AS itemId,
+            A.name              AS itemName,
+            A.STATUS            AS itemStatus,
+            A.LAST_INSPECT_DATE AS lastInspectDate,
+            C.cum_id            AS customerId
+        FROM item A
+                 JOIN contract_with_item B ON A.ID = B.ITEM_ID
+                 JOIN contract C ON B.CONTRACT_ID = C.ID
+                 JOIN approval D ON C.id = D.contract_id
+        WHERE D.approval_date IS NOT NULL
+          AND A.status = 'S'
+          AND C.ID = #{contractId}
+        ORDER BY A.id DESC;
+    </select>
+</mapper>

@@ -7,6 +7,7 @@
 
         <!-- quote -->
         <id     property="quoteId"             column="quote_id"/>
+        <result property="quoteCode"            column="quoteCode"/>
         <result property="quoteCounselingDate" column="counseling_date"/>
         <result property="quoteCounselor"      column="counselor"/>
         <result property="quoteSummary"        column="summary"/>
@@ -26,6 +27,7 @@
     <sql id="quoteBaseSelect">
         SELECT
         A.id              AS quote_id,
+        A.quote_code      AS quoteCode,
         A.counseling_date AS counseling_date,
         A.counselor       AS counselor,
         A.summary         AS summary,
@@ -37,8 +39,8 @@
 
         C.name            AS channel_name
         FROM quote A
-        JOIN customer B ON A.cum_id = B.id
-        JOIN channel  C ON A.channel_id = C.id
+        LEFT JOIN customer B ON A.cum_id = B.id
+        LEFT JOIN channel  C ON A.channel_id = C.id
         <where>
             <!-- 기업명 -->
             <if test="customerName != null and customerName != ''">
@@ -76,16 +78,15 @@
     <!-- 검색 + 페이징 조회 -->
     <select id="getQuoteListWithPaging" resultMap="QuoteQueryMap">
         <include refid="quoteBaseSelect"/>
-        ORDER BY A.counseling_date DESC
+        ORDER BY A.quote_code DESC
         LIMIT #{limit} OFFSET #{offset}
     </select>
 
     <!-- 견적/상담 id로 detail -->
-    <select id="getQuoteDetail"
-            parameterType="long"
-            resultType="com.devoops.rentalbrain.business.quote.query.dto.QuoteDetailQueryResponseDTO">
+    <select id="getQuoteDetail" resultType="com.devoops.rentalbrain.business.quote.query.dto.QuoteDetailQueryResponseDTO">
         SELECT
             A.id               AS quoteId,
+            A.quote_code       AS quoteCode,
             A.counseling_date  AS quoteCounselingDate,
             A.counselor        AS quoteCounselor,
             A.summary          AS quoteSummary,
@@ -103,17 +104,17 @@
 
             C.name             AS channelName
         FROM quote A
-                 JOIN customer B ON A.cum_id = B.id
-                 JOIN channel  C ON A.channel_id = C.id
+                 LEFT JOIN customer B ON A.cum_id = B.id
+                 LEFT JOIN channel  C ON A.channel_id = C.id
         WHERE A.id = #{quoteId}
     </select>
 
     <!-- 총 건수 (페이지 수 계산용) -->
     <select id="countQuoteList" resultType="long">
         SELECT COUNT(*)
-        FROM quote   A
-        JOIN customer B ON A.cum_id = B.id
-        JOIN channel  C ON A.channel_id = C.id
+        FROM quote A
+        LEFT JOIN customer B ON A.cum_id = B.id
+        LEFT JOIN channel  C ON A.channel_id = C.id
         <where>
             <if test="customerName != null and customerName != ''">
                 AND B.name LIKE CONCAT('%', #{customerName}, '%')
@@ -136,18 +137,28 @@
     <!-- KPI 카드용 집계 쿼리  -->
     <select id="getQuoteKpi" resultType="com.devoops.rentalbrain.business.quote.query.dto.QuoteKpiResponseDTO">
         SELECT
-            COUNT(*) AS totalCount,         -- 전체 상담 건수
-            SUM(CASE
-                    WHEN DATE(A.counseling_date) = CURDATE() THEN 1
-                ELSE 0
-                END) AS todayCount,         -- 오늘 상담 건수
-            AVG(A.processing_time) AS avgProcessingAll,   -- 전체 평균 처리시간(분)
-            AVG(CASE
-                    WHEN A.counseling_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
-                        THEN A.processing_time
-                    ELSE NULL
-                END) AS avgProcessing7Days  -- 최근 7일 평균 처리시간(분)
+        COUNT(*) AS totalCount,
+
+        SUM(
+        CASE
+        WHEN A.counseling_date >= CURDATE()
+        AND A.counseling_date <![CDATA[<]]> DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+        THEN 1 ELSE 0
+        END
+        ) AS todayCount,
+
+        /* 전체 평균 처리시간(분) */
+        ROUND(AVG(A.processing_time), 1) AS avgProcessingAll,
+
+        /* 최근 7일(오늘 포함 7일) */
+        ROUND(AVG(
+        CASE
+        WHEN A.counseling_date >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
+        AND A.counseling_date <![CDATA[<]]>  DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+        THEN A.processing_time
+        ELSE NULL
+        END
+        ), 1) AS avgProcessing7Days
         FROM quote A
     </select>
-
 </mapper>

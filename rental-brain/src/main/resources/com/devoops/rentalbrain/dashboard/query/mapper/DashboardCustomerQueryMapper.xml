@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.devoops.rentalbrain.dashboard.query.mapper.DashboardCustomerQueryMapper">
+
+    <!-- 분기별 고객 트렌트 차트 -->
+    <select id="selectQuarterlyCustomerTrend"
+            parameterType="int"
+            resultType="com.devoops.rentalbrain.dashboard.query.dto.QuarterlyCustomerTrendItemDTO">
+
+        WITH first_contract AS (
+        SELECT
+        c.cum_id AS customer_id,
+        MIN(c.start_date) AS first_contract_dt
+        FROM contract c
+        WHERE c.start_date IS NOT NULL
+        GROUP BY c.cum_id
+        ),
+        q AS (
+        SELECT 'Q1' AS quarter,
+        STR_TO_DATE(CONCAT(#{year}, '-01-01'), '%Y-%m-%d') AS q_start,
+        STR_TO_DATE(CONCAT(#{year}, '-03-31'), '%Y-%m-%d') AS q_end
+        UNION ALL
+        SELECT 'Q2',
+        STR_TO_DATE(CONCAT(#{year}, '-04-01'), '%Y-%m-%d'),
+        STR_TO_DATE(CONCAT(#{year}, '-06-30'), '%Y-%m-%d')
+        UNION ALL
+        SELECT 'Q3',
+        STR_TO_DATE(CONCAT(#{year}, '-07-01'), '%Y-%m-%d'),
+        STR_TO_DATE(CONCAT(#{year}, '-09-30'), '%Y-%m-%d')
+        UNION ALL
+        SELECT 'Q4',
+        STR_TO_DATE(CONCAT(#{year}, '-10-01'), '%Y-%m-%d'),
+        STR_TO_DATE(CONCAT(#{year}, '-12-31'), '%Y-%m-%d')
+        )
+        SELECT
+        q.quarter AS quarter,
+
+        SUM(CASE WHEN fc.first_contract_dt &lt;= q.q_end THEN 1 ELSE 0 END) AS totalCustomerCount,
+
+        SUM(CASE WHEN fc.first_contract_dt BETWEEN q.q_start AND q.q_end THEN 1 ELSE 0 END) AS newCustomerCount
+
+        FROM q
+        LEFT JOIN first_contract fc ON 1=1
+        GROUP BY q.quarter
+        ORDER BY q.quarter;
+
+    </select>
+
+    <!-- 1) 향후 60일 만료 예정 계약 수 -->
+    <select id="countExpiringContractsNext60" resultType="int">
+        SELECT COUNT(*)
+        FROM contract c
+        WHERE c.status IN ('P','I')
+        AND DATE_ADD(c.start_date, INTERVAL c.contract_period MONTH) &gt;= #{now}
+        AND DATE_ADD(c.start_date, INTERVAL c.contract_period MONTH) &lt;= #{until}
+    </select>
+
+    <!-- 2) 납부 연체(진행중) -->
+    <select id="countPayOverdueInProgress" resultType="int">
+        SELECT COUNT(*)
+        FROM pay_overdue po
+        WHERE po.status = 'P'
+    </select>
+
+    <!-- 3) 문의 대기 -->
+    <select id="countWaitingInquiries" resultType="int">
+        SELECT COUNT(*)
+        FROM customer_support cs
+        WHERE cs.status = 'P'
+    </select>
+
+    <!-- 4) 월 매출 합 (월 과금 기준 / 활성 계약 MRR)
+     monthly_payment 합
+     status 진행/만료임박만 포함(P/I)
+     해당 월 기간(start~end)과 계약 기간이 겹치면 포함
+-->
+    <select id="sumMonthlyRevenueBetween" resultType="long">
+        SELECT COALESCE(SUM(c.monthly_payment), 0)
+        FROM contract c
+        WHERE c.status IN ('P','I')
+        AND c.start_date <![CDATA[<]]> #{end}
+        AND DATE_ADD(c.start_date, INTERVAL c.contract_period MONTH) <![CDATA[>=]]> #{start}
+    </select>
+
+
+</mapper>

@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.devoops.rentalbrain.customer.customersupport.query.mapper.CustomersupportQueryFeedbackMapper">
+
+    <resultMap id="FeedbackResultMap" type="com.devoops.rentalbrain.customer.customersupport.query.dto.FeedbackDTO">
+        <id property="id" column="id"/>
+        <result property="feedbackCode" column="feedback_code"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="star" column="star"/>
+        <result property="action" column="action"/>
+        <result property="createDate" column="create_date_fmt"/>
+        <result property="cumId" column="cum_id"/>
+        <result property="customerName" column="customer_name"/>
+        <result property="empId" column="emp_id"/>
+        <result property="empName" column="emp_name"/>
+        <result property="categoryId" column="category_id"/>
+        <result property="categoryName" column="category_name"/>
+        <result property="channelId" column="channel_id"/>
+        <result property="channelName" column="channel_name"/>
+    </resultMap>
+
+    <select id="selectFeedbackList" resultMap="FeedbackResultMap">
+        SELECT
+        f.id,
+        f.feedback_code,
+        f.title,
+        f.content,
+        f.star,
+        DATE_FORMAT(f.create_date, '%Y-%m-%d %H:%i:%s') as create_date_fmt,
+        f.action,
+        f.cum_id,
+        c.name as customer_name,
+        f.emp_id,
+        e.name as emp_name,
+        f.category_id,
+        sc.name as category_name, /* support_category 테이블 조인 */
+        f.channel_id,
+        ch.name as channel_name   /* channel 테이블 조인 */
+        FROM feedback f
+        LEFT JOIN customer c ON f.cum_id = c.id
+        LEFT JOIN employee e ON f.emp_id = e.id
+        LEFT JOIN support_category sc ON f.category_id = sc.id
+        LEFT JOIN channel ch ON f.channel_id = ch.id
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (
+                c.name LIKE CONCAT('%', #{keyword}, '%')
+                OR f.title LIKE CONCAT('%', #{keyword}, '%')
+                OR f.content LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+
+            <if test="category != null">
+                AND f.category_id = #{category}
+            </if>
+
+            <if test="star != null">
+                AND f.star = #{star}
+            </if>
+
+            <if test='status == "C"'>
+                AND f.action IS NOT NULL AND f.action != ''
+            </if>
+            <if test='status == "P"'>
+                AND (f.action IS NULL OR f.action = '')
+            </if>
+        </where>
+        ORDER BY
+        <choose>
+            <when test="sortBy == 'star'">
+                f.star ${sortOrder}
+            </when>
+            <when test="sortBy == 'feedbackCode'">
+                f.feedback_code ${sortOrder}
+            </when>
+            <otherwise>
+                f.feedback_code DESC
+            </otherwise>
+        </choose>
+
+        LIMIT #{offset}, #{amount}
+    </select>
+
+    <select id="countFeedbackList" resultType="int">
+        SELECT COUNT(*)
+        FROM feedback f
+        LEFT JOIN customer c ON f.cum_id = c.id
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (
+                c.name LIKE CONCAT('%', #{keyword}, '%')
+                OR f.title LIKE CONCAT('%', #{keyword}, '%')
+                OR f.content LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+            <if test="category != null">
+                AND f.category_id = #{category}
+            </if>
+            <if test="star != null">
+                AND f.star = #{star}
+            </if>
+            <if test='status == "C"'>
+                AND f.action IS NOT NULL AND f.action != ''
+            </if>
+            <if test='status == "P"'>
+                AND (f.action IS NULL OR f.action = '')
+            </if>
+        </where>
+    </select>
+
+    <select id="selectFeedbackDetail" resultMap="FeedbackResultMap">
+        SELECT
+            f.id,
+            f.feedback_code,
+            f.title,
+            f.content,
+            f.star,
+            DATE_FORMAT(f.create_date, '%Y-%m-%d %H:%i:%s') as create_date_fmt,
+            f.action,
+            f.cum_id,
+            c.name as customer_name,
+            f.emp_id,
+            e.name as emp_name,
+            f.category_id,
+            sc.name as category_name,
+            f.channel_id,
+            ch.name as channel_name
+        FROM feedback f
+                 LEFT JOIN customer c ON f.cum_id = c.id
+                 LEFT JOIN employee e ON f.emp_id = e.id
+                 LEFT JOIN support_category sc ON f.category_id = sc.id
+                 LEFT JOIN channel ch ON f.channel_id = ch.id
+        WHERE f.id = #{id}
+    </select>
+
+    <select id="selectFeedbackKpi" resultType="java.util.Map">
+        SELECT
+            COUNT(*) as total,
+            COUNT(CASE WHEN star &lt;= 2 THEN 1 END) as complaints
+        FROM feedback
+    </select>
+
+</mapper>
