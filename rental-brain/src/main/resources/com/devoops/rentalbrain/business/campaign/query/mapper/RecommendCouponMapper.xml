@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.devoops.rentalbrain.business.campaign.query.mapper.RecommendCouponMapper">
+    <resultMap id="getRecommendCouponMap" type="com.devoops.rentalbrain.business.campaign.query.dto.RecommendCouponDTO">
+        <id property="id" column="ID"/>
+        <result property="name" column="NAME"/>
+        <result property="rate" column="RATE"/>
+        <result property="content" column="CONTENT"/>
+        <result property="segmentName" column="SEGMENT_NAME"/>
+        <result property="surveyId" column="SURVEY_ID"/>
+    </resultMap>
+    <select id="selectRecommendCouponsBySurveyId" resultMap="getRecommendCouponMap" parameterType="long">
+        SELECT
+               A.ID,
+               A.NAME,
+               A.RATE,
+               A.CONTENT,
+               A.SEGMENT_NAME,
+               A.SURVEY_ID
+          FROM recommend_coupon A
+         WHERE A.SURVEY_ID = #{surveyId}
+    </select>
+    <select id="selectRecommendCouponById" resultMap="getRecommendCouponMap" parameterType="long">
+        SELECT
+               A.ID,
+               A.NAME,
+               A.RATE,
+               A.CONTENT,
+               A.SEGMENT_NAME,
+               A.SURVEY_ID
+          FROM recommend_coupon A
+         WHERE A.ID = #{recommendCouponId}
+    </select>
+    <select id="selectRecommendCouponOne" resultMap="getRecommendCouponMap">
+        SELECT
+        A.ID,
+        A.NAME,
+        A.RATE,
+        A.CONTENT,
+        A.SEGMENT_NAME,
+        A.SURVEY_ID
+        FROM recommend_coupon A
+    </select>
+</mapper>
