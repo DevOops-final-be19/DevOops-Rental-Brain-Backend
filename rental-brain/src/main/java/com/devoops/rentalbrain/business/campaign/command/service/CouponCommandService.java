@@ -12,5 +12,5 @@ public interface CouponCommandService {
 
     String createIssuedCoupon(Long couponId, Long contractId);
 
-    String updateIssuedCoupon(Long IssuedCouponId);
+    void updateIssuedCoupon(Long contractId);
 }

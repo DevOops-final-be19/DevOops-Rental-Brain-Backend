@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -88,9 +89,9 @@ public class CouponCommandController {
         return result;
     }
 
-    @PutMapping("/log/{IssuedCouponId}")
-    public String updateIssuedCoupon(@PathVariable("IssuedCouponId") Long IssuedCouponId) {
-        String result = couponCommandService.updateIssuedCoupon(IssuedCouponId);
-        return result;
+    @PutMapping("/log/{contractId}")
+    public ResponseEntity<?> updateIssuedCoupon(@PathVariable("contractId") Long contractId) {
+        couponCommandService.updateIssuedCoupon(contractId);
+        return ResponseEntity.ok().build();
     }
 }
