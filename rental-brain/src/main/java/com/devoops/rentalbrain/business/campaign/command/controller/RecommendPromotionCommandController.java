@@ -36,6 +36,20 @@ public class RecommendPromotionCommandController {
     }
 
     @Operation(
+            summary = "추천 프로모션 수정",
+            description = "추천 프로모션이 실제로 등록되면 생성여부를 수정합니다.",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "조회 성공"),
+                    @ApiResponse(responseCode = "400", description = "잘못된 요청")
+            }
+    )
+    @PutMapping("update/{recommendPromotionId}")
+    public void updateRecommendPromotion(@PathVariable Long recommendPromotionId) {
+        recommendPromotionCommandService.updateRecommendPromotion(recommendPromotionId);
+    }
+
+    @Operation(
             summary = "추천 프로모션 삭제",
             description = "추천 프로모션을 삭제합니다.",
             security = @SecurityRequirement(name = "bearerAuth"),
@@ -45,7 +59,7 @@ public class RecommendPromotionCommandController {
             }
     )
     @DeleteMapping("delete/{recommendPromotionId}")
-    public void DeleteRecommendPromotion(@PathVariable Long recommendPromotionId) {
-        recommendPromotionCommandService.DeleteRecommendPromotion(recommendPromotionId);
+    public void deleteRecommendPromotion(@PathVariable Long recommendPromotionId) {
+        recommendPromotionCommandService.deleteRecommendPromotion(recommendPromotionId);
     }
 }

@@ -26,12 +26,23 @@ public class RecommendCouponCommandServiceImpl implements RecommendCouponCommand
     public void insertRecommendCoupon(InsertRecommendCouponDTO recommendCouponDTO) {
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
         RecommendCoupon recommendCoupon = modelMapper.map(recommendCouponDTO, RecommendCoupon.class);
+        recommendCoupon.setIsUsed("N");
         recommendCouponRepository.save(recommendCoupon);
     }
 
     @Override
     @Transactional
-    public void DeleteRecommendCoupon(Long recommendCouponId) {
+    public void deleteRecommendCoupon(Long recommendCouponId) {
         recommendCouponRepository.deleteById(recommendCouponId);
+    }
+
+    @Override
+    @Transactional
+    public void updateRecommendCoupon(Long recommendCouponId) {
+        RecommendCoupon recommendCoupon = recommendCouponRepository.findById(recommendCouponId).orElse(null);
+        if (recommendCoupon != null) {
+            recommendCoupon.setIsUsed("Y");
+            recommendCouponRepository.save(recommendCoupon);
+        }
     }
 }
