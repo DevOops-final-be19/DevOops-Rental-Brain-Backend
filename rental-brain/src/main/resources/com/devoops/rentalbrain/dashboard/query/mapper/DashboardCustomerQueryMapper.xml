@@ -72,16 +72,17 @@
         WHERE cs.status = 'P'
     </select>
 
-    <!-- 4) 이번 달 매출 합(계약 기준)
-         total_amount 합
-         status 진행/만료임박만 포함(P/I)
-    -->
-    <select id="sumRevenueBetween" resultType="long">
-        SELECT COALESCE(SUM(c.total_amount), 0)
+    <!-- 4) 월 매출 합 (월 과금 기준 / 활성 계약 MRR)
+     monthly_payment 합
+     status 진행/만료임박만 포함(P/I)
+     해당 월 기간(start~end)과 계약 기간이 겹치면 포함
+-->
+    <select id="sumMonthlyRevenueBetween" resultType="long">
+        SELECT COALESCE(SUM(c.monthly_payment), 0)
         FROM contract c
-        WHERE c.start_date &gt;= #{start}
-        AND c.start_date &lt;= #{end}
-        AND c.status IN ('P','I')
+        WHERE c.status IN ('P','I')
+        AND c.start_date <![CDATA[<]]> #{end}
+        AND DATE_ADD(c.start_date, INTERVAL c.contract_period MONTH) <![CDATA[>=]]> #{start}
     </select>
 
 

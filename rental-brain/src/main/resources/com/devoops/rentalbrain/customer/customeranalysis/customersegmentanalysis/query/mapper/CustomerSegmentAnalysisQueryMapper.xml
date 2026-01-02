@@ -5,31 +5,57 @@
 
 <mapper namespace="com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.mapper.CustomerSegmentAnalysisQueryMapper">
 
-    <!-- KPI 1번 현재 이탈 위험 고객 비중/수 + 전월 대비(%p) -->
+    <!-- KPI 1 / 월별 위험률 차트: 월말 기준(history) -->
 
-    <!-- 전체 고객 수 -->
+    <!-- 월말 기준 전체 고객 수 -->
+    <select id="countTotalCustomersAtMonth" resultType="int">
+        SELECT COUNT(*)
+        FROM customer
+        WHERE is_deleted = 'N'
+    </select>
+
     <select id="countTotalCustomers" resultType="int">
         SELECT COUNT(*)
         FROM customer
+        WHERE is_deleted = 'N'
     </select>
 
-    <!-- 현재 이탈 위험 고객 수 (현재 상태 기준: customer.segment_id = 4) -->
     <select id="countCurrentRiskCustomers" resultType="int">
         SELECT COUNT(*)
         FROM customer
-        WHERE segment_id = #{riskSegmentId}
+        WHERE is_deleted = 'N'
+        AND segment_id = 4
     </select>
 
-    <!-- 스냅샷 기준 월별 이탈 위험 고객 수 (전월 대비 계산용) -->
-    <select id="countSnapshotRiskCustomers" resultType="int">
-        SELECT COUNT(DISTINCT customer_id)
-        FROM customer_churn_snapshot
-        WHERE snapshot_month = #{snapshotMonth}
-        AND is_churn_risk = 'Y'
+    <!-- 월말 기준 세그먼트별 고객 수: history 우선 + 없으면 customer.segment_id fallback -->
+    <select id="countCustomersBySegmentAtMonth" resultType="int">
+        SELECT COUNT(*)
+        FROM (
+        SELECT
+        c.id AS customer_id,
+        COALESCE(h.current_segment_id, c.segment_id) AS segment_id
+        FROM customer c
+        LEFT JOIN (
+        SELECT h1.customer_id, h1.current_segment_id
+        FROM customer_segment_history h1
+        JOIN (
+        SELECT customer_id, MAX(changed_at) AS max_dt
+        FROM customer_segment_history
+        WHERE changed_at <![CDATA[<]]> #{monthEndExclusive}
+        GROUP BY customer_id
+        ) x
+        ON x.customer_id = h1.customer_id
+        AND x.max_dt = h1.changed_at
+        ) h
+        ON h.customer_id = c.id
+        WHERE c.is_deleted = 'N'
+        ) t
+        WHERE t.segment_id = #{segmentId}
     </select>
 
 
-    <!-- KPI 2번 이탈 위험 사유 분포 (전체 기준) -->
+    <!-- KPI 2: 이탈 위험 사유 분포 / 고객 리스트 -->
+
     <select id="countRiskReasons" resultType="map">
         SELECT
         reason_code AS reasonCode,
@@ -40,8 +66,6 @@
         ORDER BY cnt DESC
     </select>
 
-
-    <!--  KPI 2번: 이탈 위험 사유 분포 (월 기준 필터) -->
     <select id="countRiskReasonsByMonth" resultType="map">
         SELECT
         reason_code AS reasonCode,
@@ -49,87 +73,82 @@
         FROM customer_risk_transition_history
         WHERE to_segment_id = #{riskSegmentId}
         AND changed_at <![CDATA[>=]]> #{from}
-        AND changed_at <![CDATA[<]]> #{to}
+        AND changed_at <![CDATA[<]]>  #{to}
         GROUP BY reason_code
         ORDER BY cnt DESC
     </select>
 
-    <!--  KPI 2번: 이탈 위험 사유 분포 고객들 (월 기준 필터) -->
     <select id="findRiskReasonCustomersByMonth"
             resultType="com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.CustomerSegmentAnalysisRiskReasonCustomerDTO">
-
         SELECT
-        C.id          AS customerId,
+        C.id            AS customerId,
         C.customer_code AS customerCode,
-        C.name        AS customerName,
-        C.in_charge   AS inCharge,
-        C.dept        AS dept,
-        C.call_num    AS callNum,
-        C.is_deleted  AS isDeleted,
-        H.changed_at  AS changedAt
+        C.name          AS customerName,
+        C.in_charge     AS inCharge,
+        C.dept          AS dept,
+        C.call_num      AS callNum,
+        C.is_deleted    AS isDeleted,
+        H.changed_at    AS changedAt
         FROM customer_risk_transition_history H
         JOIN (
-                SELECT customer_id, MAX(changed_at) AS max_changed_at
-                FROM customer_risk_transition_history
-                WHERE to_segment_id = #{riskSegmentId}
-                AND reason_code = #{reasonCode}
-                AND changed_at <![CDATA[>=]]> #{from}
-                AND changed_at <![CDATA[<]]>  #{to}
-                GROUP BY customer_id
-                ) X ON X.customer_id = H.customer_id AND X.max_changed_at = H.changed_at
-        JOIN customer C ON C.id = H.customer_id
+        SELECT customer_id, MAX(changed_at) AS max_changed_at
+        FROM customer_risk_transition_history
+        WHERE to_segment_id = #{riskSegmentId}
+        AND reason_code = #{reasonCode}
+        AND changed_at <![CDATA[>=]]> #{from}
+        AND changed_at <![CDATA[<]]>  #{to}
+        GROUP BY customer_id
+        ) X
+        ON X.customer_id = H.customer_id
+        AND X.max_changed_at = H.changed_at
+        JOIN customer C
+        ON C.id = H.customer_id
         WHERE H.to_segment_id = #{riskSegmentId}
         AND H.reason_code = #{reasonCode}
         ORDER BY H.changed_at DESC, C.id DESC
     </select>
 
-    <!-- 고객 세그먼트 차트 -->
+
+    <!-- 세그먼트별 거래 차트 -->
+
     <select id="getSegmentTradeChart"
             resultType="com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.CustomerSegmentTradeChartDTO">
-
         SELECT
         A.id   AS segmentId,
         A.name AS segmentName,
-
         COUNT(DISTINCT B.id) AS customerCount,
-
         COALESCE(SUM(C.total_amount), 0) AS totalTradeAmount,
-
         CASE
-            WHEN COUNT(DISTINCT B.id) = 0 THEN 0
-            ELSE ROUND(COALESCE(SUM(C.total_amount), 0) / COUNT(DISTINCT B.id), 1)
+        WHEN COUNT(DISTINCT B.id) = 0 THEN 0
+        ELSE ROUND(COALESCE(SUM(C.total_amount), 0) / COUNT(DISTINCT B.id), 1)
         END AS avgTradeAmount
-
         FROM segment A
         LEFT JOIN customer B
         ON B.segment_id = A.id
-
         LEFT JOIN contract C
         ON C.cum_id = B.id
-
         GROUP BY A.id, A.name
         ORDER BY A.id ASC
     </select>
 
 
-    <!-- 세그먼트별 분석 카드 -->
+    <!-- 세그먼트 상세 카드 -->
+
     <select id="getSegmentDetailBase"
             resultType="com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.CustomerSegmentDetailCardDTO">
         SELECT
-              A.ID AS segmentId,
-              A.NAME AS segmentName,
-              coalesce(count(DISTINCT B.id), 0) AS customerCount,
-              coalesce(SUM(C.total_amount), 0) AS totalTradeAmount,
-              coalesce(ROUND(C.total_amount),0)/ count(DISTINCT B.id) AS avgTradeAmount
-         FROM segment A
-         LEFT JOIN customer B ON B.segment_id = A.id
-         LEFT JOIN contract C ON C.cum_id = B.id
+        A.ID AS segmentId,
+        A.NAME AS segmentName,
+        COALESCE(COUNT(DISTINCT B.id), 0) AS customerCount,
+        COALESCE(SUM(C.total_amount), 0) AS totalTradeAmount,
+        COALESCE(ROUND(C.total_amount), 0) / COUNT(DISTINCT B.id) AS avgTradeAmount
+        FROM segment A
+        LEFT JOIN customer B ON B.segment_id = A.id
+        LEFT JOIN contract C ON C.cum_id = B.id
         WHERE A.id = #{segmentId}
         GROUP BY A.id, A.name
-
     </select>
 
-    <!-- 세그먼트별 피드백 만족도 평균 -->
     <select id="getSegmentAvgStar" resultType="double">
         SELECT COALESCE(ROUND(AVG(C.star), 1), 0)
         FROM customer B
@@ -137,10 +156,8 @@
         WHERE B.segment_id = #{segmentId}
     </select>
 
-    <!-- 세그먼트별 인기 품목 -->
     <select id="getTopItemName" resultType="string">
-        SELECT
-            D.name
+        SELECT D.name
         FROM customer A
         JOIN contract B ON B.cum_id = A.id
         JOIN contract_with_item C ON C.contract_id = B.id
@@ -151,23 +168,19 @@
         LIMIT 1
     </select>
 
-    <!-- 세그먼트별 인기 문의사항 -->
     <select id="getTopSupport" resultType="string">
-        SELECT
-            COALESCE(B.name, '-') AS topSupport
+        SELECT COALESCE(B.name, '-') AS topSupport
         FROM customer_support A
         JOIN support_category B ON B.id = A.category_id
-        JOIN customer C          ON C.id  = A.cum_id
+        JOIN customer C         ON C.id  = A.cum_id
         WHERE C.segment_id = #{segmentId}
         GROUP BY B.id, B.name
         ORDER BY COUNT(*) DESC, B.id ASC
         LIMIT 1
     </select>
 
-    <!-- 세그먼트별 인기 피드백 -->
     <select id="getTopFeedback" resultType="String">
-        SELECT
-            C.name
+        SELECT C.name
         FROM customer A
         JOIN feedback B ON A.id = B.cum_id
         JOIN support_category C ON B.category_id = C.id
@@ -176,6 +189,68 @@
         GROUP BY C.id, C.name
         ORDER BY COUNT(*) DESC
         LIMIT 1
+    </select>
+
+    <select id="countRiskCustomersAtMonth" resultType="int">
+        SELECT COUNT(*)
+        FROM (
+        SELECT
+        c.id AS customer_id,
+        COALESCE(h.current_segment_id, c.segment_id) AS segment_id
+        FROM customer c
+        LEFT JOIN (
+        SELECT h1.customer_id, h1.current_segment_id
+        FROM customer_segment_history h1
+        JOIN (
+        SELECT customer_id, MAX(changed_at) AS max_dt
+        FROM customer_segment_history
+        WHERE changed_at <![CDATA[<]]> #{monthEndExclusive}
+        GROUP BY customer_id
+        ) x
+        ON x.customer_id = h1.customer_id
+        AND x.max_dt = h1.changed_at
+        ) h
+        ON h.customer_id = c.id
+        WHERE c.is_deleted = 'N'
+        ) t
+        WHERE t.segment_id = 4
+    </select>
+
+    <select id="findRiskCustomersAtMonth"
+            resultType="com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.CustomerSegmentRiskCustomerDTO">
+        SELECT
+        c.id            AS customerId,
+        c.customer_code AS customerCode,
+        c.name          AS customerName,
+        c.in_charge     AS inCharge,
+        c.dept          AS dept,
+        c.call_num      AS callNum
+        FROM customer c
+        JOIN (
+        SELECT
+        c2.id AS customer_id,
+        COALESCE(h.current_segment_id, c2.segment_id) AS segment_id
+        FROM customer c2
+        LEFT JOIN (
+        SELECT h1.customer_id, h1.current_segment_id
+        FROM customer_segment_history h1
+        JOIN (
+        SELECT customer_id, MAX(changed_at) AS max_dt
+        FROM customer_segment_history
+        WHERE changed_at <![CDATA[<]]> #{monthEndExclusive}
+        GROUP BY customer_id
+        ) x
+        ON x.customer_id = h1.customer_id
+        AND x.max_dt = h1.changed_at
+        ) h
+        ON h.customer_id = c2.id
+        WHERE c2.is_deleted = 'N'
+        ) t
+        ON t.customer_id = c.id
+        WHERE c.is_deleted = 'N'
+        AND t.segment_id = 4
+        ORDER BY c.id DESC
+        LIMIT #{limit} OFFSET #{offset}
     </select>
 
 </mapper>

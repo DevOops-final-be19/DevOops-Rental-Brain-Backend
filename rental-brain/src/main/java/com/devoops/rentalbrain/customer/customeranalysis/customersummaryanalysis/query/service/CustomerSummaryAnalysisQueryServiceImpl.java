@@ -4,11 +4,14 @@ import com.devoops.rentalbrain.common.pagination.Criteria;
 import com.devoops.rentalbrain.common.pagination.PageResponseDTO;
 import com.devoops.rentalbrain.common.pagination.Pagination;
 import com.devoops.rentalbrain.common.pagination.PagingButtonInfo;
+import com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.ChurnKpiCardResponseDTO;
+import com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.MonthlyRiskRateResponseDTO;
 import com.devoops.rentalbrain.customer.customeranalysis.customersummaryanalysis.query.dto.*;
 import com.devoops.rentalbrain.customer.customeranalysis.customersummaryanalysis.query.mapper.CustomerSummaryAnalysisQueryMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,161 +27,82 @@ public class CustomerSummaryAnalysisQueryServiceImpl implements CustomerSummaryA
     }
 
 
+    private static final int SEGMENT_POTENTIAL = 1; // 잠재 고객
+    private static final int SEGMENT_BLACKLIST = 6;  // 블랙리스트 고객
+
     // kpi 카드들
     @Override
     public CustomerSummaryAnalysisQueryKPIDTO getkpi(String month) {
 
-        if (month == null || month.isBlank()) {
-            throw new IllegalArgumentException("month 파라미터는 필수입니다. 예: 2025-08");
-        }
+        // 0️⃣ month 파싱
+        YearMonth currentMonth = (month == null || month.isBlank())
+                ? YearMonth.now()
+                : YearMonth.parse(month);
 
-        final int POTENTIAL_SEGMENT_ID = 1;   // 잠재 고객
-//        final int RISK_SEGMENT_ID = 4;        // 이탈 위험 고객, 여기서는 잠재랑 블랙만 제외
-        final int BLACKLIST_SEGMENT_ID = 6;   // 블랙리스트 고객
+        String prevMonth = currentMonth.minusMonths(1).toString();
+        String curMonth = currentMonth.toString();
 
-        YearMonth curYm = YearMonth.parse(month);
-        YearMonth prevYm = curYm.minusMonths(1);
-        String prevMonth = prevYm.toString();
+        // 1️⃣ 전체 고객 / 세그먼트 고객 수 (현재 기준)
+        int totalCustomers = customerSummaryAnalysisQueryMapper.countTotalCustomers();
+        int curPotential = customerSummaryAnalysisQueryMapper.countCustomersBySegmentId(SEGMENT_POTENTIAL);
+        int curBlacklist = customerSummaryAnalysisQueryMapper.countCustomersBySegmentId(SEGMENT_BLACKLIST);
 
-        // 월 범위 (거래액/만족도용)
-        String curFrom  = curYm.atDay(1).atStartOfDay().toString();
-        String curTo    = curYm.plusMonths(1).atDay(1).atStartOfDay().toString();
-        String prevFrom = prevYm.atDay(1).atStartOfDay().toString();
-        String prevTo   = prevYm.plusMonths(1).atDay(1).atStartOfDay().toString();
+        // 2️⃣ 거래 고객 수 (현재 기준: 잠재+블랙리스트 제외)
+        int curTradeCustomers = customerSummaryAnalysisQueryMapper.countTradeCustomers(
+                SEGMENT_POTENTIAL, SEGMENT_BLACKLIST
+        );
 
-    /* =========================================================
-       1️⃣ 전체 고객 기준 분모 (customer 테이블 기준)
-       ========================================================= */
-        int totalCustomers = customerSummaryAnalysisQueryMapper.countTotalCustomers(); // ← 61명
-        int curPotential   = customerSummaryAnalysisQueryMapper.countCustomersBySegmentId(POTENTIAL_SEGMENT_ID);
-        int curBlacklist   = customerSummaryAnalysisQueryMapper.countCustomersBySegmentId(BLACKLIST_SEGMENT_ID);
-
-        // 거래 고객 = 전체 - 잠재 - 블랙
-        int curTradeCustomers = Math.max(totalCustomers - curPotential - curBlacklist, 0);
-
-        // 전월 비교는 "거래 고객 기준" 문구 유지용 → 현재 기준으로 동일 값 사용
+        // 3️⃣ 전월 대비(현재는 임시값 유지)
         int prevTradeCustomers = curTradeCustomers;
         int tradeMomDiff = 0;
         double tradeMomRate = 0.0;
 
-    /* =========================================================
-       2️⃣ 평균 거래액 (월 기준)
-       ========================================================= */
-        long curAvgTrade  = safeLong(customerSummaryAnalysisQueryMapper.avgMonthlyPaymentByMonth(curFrom, curTo));
-        long prevAvgTrade = safeLong(customerSummaryAnalysisQueryMapper.avgMonthlyPaymentByMonth(prevFrom, prevTo));
-        double avgTradeMomRate = momRate(prevAvgTrade, curAvgTrade);
+        // 4️⃣ 평균 거래액(월): monthly_payment 기반 (month 구간)
+        LocalDateTime curFrom = currentMonth.atDay(1).atStartOfDay();
+        LocalDateTime curTo = currentMonth.plusMonths(1).atDay(1).atStartOfDay();
 
-    /* =========================================================
-       3️⃣ 평균 만족도 (월 기준)
-       ========================================================= */
-        double curStar  = safeDouble(customerSummaryAnalysisQueryMapper.avgStarByMonth(curFrom, curTo));
-        double prevStar = safeDouble(customerSummaryAnalysisQueryMapper.avgStarByMonth(prevFrom, prevTo));
-        double avgStarMomDiff = round1(curStar - prevStar);
+        long curAvgTradeAmount = customerSummaryAnalysisQueryMapper.avgMonthlyPaymentByMonth(curFrom.toString(), curTo.toString());
 
-    /* =========================================================
-       4️⃣ 이탈 위험 / 안정 고객 (월별 snapshot 기준)
-       ========================================================= */
-        int curRisk  = customerSummaryAnalysisQueryMapper.countMonthRiskCustomers(month);
-        int prevRisk = customerSummaryAnalysisQueryMapper.countMonthRiskCustomers(prevMonth);
+        // 전월 평균 거래액
+        YearMonth prevYm = currentMonth.minusMonths(1);
+        LocalDateTime prevFrom = prevYm.atDay(1).atStartOfDay();
+        LocalDateTime prevTo = prevYm.plusMonths(1).atDay(1).atStartOfDay();
 
-        // ⚠️ 분모는 반드시 전체 고객 기준
-        double curRiskRate  = rate(curRisk, totalCustomers);
-        double prevRiskRate = rate(prevRisk, totalCustomers);
-        double riskMomDiffRate = round1(curRiskRate - prevRiskRate); // %p
+        long prevAvgTradeAmount = customerSummaryAnalysisQueryMapper.avgMonthlyPaymentByMonth(prevFrom.toString(), prevTo.toString());
 
-        int stableCount = Math.max(totalCustomers - curRisk - curBlacklist, 0);
-        double stableRate = rate(stableCount, totalCustomers);
+        double avgTradeMomRate = calcMomRate(curAvgTradeAmount, prevAvgTradeAmount);
 
-    /* =========================================================
-       5️⃣ DTO 반환
-       ========================================================= */
+        // 5️⃣ 평균 만족도(월)
+        double curAvgStar = customerSummaryAnalysisQueryMapper.avgStarByMonth(curFrom.toString(), curTo.toString());
+        double prevAvgStar = customerSummaryAnalysisQueryMapper.avgStarByMonth(prevFrom.toString(), prevTo.toString());
+
+        double avgStarMomDiff = round1(curAvgStar - prevAvgStar);
+
         return CustomerSummaryAnalysisQueryKPIDTO.builder()
-                .currentMonth(month)
+                .currentMonth(curMonth)
                 .previousMonth(prevMonth)
 
-                // 고객 수
-                .totalCustomerCount(totalCustomers)
                 .tradeCustomerCount(curTradeCustomers)
+
+                .totalCustomerCount(totalCustomers)
                 .potentialCustomerCount(curPotential)
                 .blacklistCustomerCount(curBlacklist)
 
-                // 거래 고객 증감
                 .prevTradeCustomerCount(prevTradeCustomers)
                 .tradeCustomerMomDiff(tradeMomDiff)
                 .tradeCustomerMomRate(tradeMomRate)
 
-                // 거래액
-                .avgTradeAmount(curAvgTrade)
-                .avgTradeMomRate(avgTradeMomRate)
+                .avgTradeAmount(curAvgTradeAmount)
+                .avgTradeMomRate(round1(avgTradeMomRate))
 
-                // 만족도
-                .avgStar(curStar)
+                .avgStar(curAvgStar)
                 .avgStarMomDiff(avgStarMomDiff)
-
-                // 안정 / 위험
-                .stableCustomerCount(stableCount)
-                .stableCustomerRate(stableRate)
-                .riskCustomerCount(curRisk)
-                .riskRate(curRiskRate)
-                .riskMomDiffRate(riskMomDiffRate)
-
                 .build();
     }
 
 
-    // Kpi 이탈 위험률 조회
-    @Override
-    public ChurnKpiCardResponseDTO getRiskKpi(String month) {
-
-        YearMonth ym = YearMonth.parse(month);
-        String prevMonth = ym.minusMonths(1).toString();
-
-        int curTotal = customerSummaryAnalysisQueryMapper.countSnapshotCustomers(month);
-        int prevTotal = customerSummaryAnalysisQueryMapper.countSnapshotCustomers(prevMonth);
-
-        int curRisk = customerSummaryAnalysisQueryMapper.countMonthRiskCustomers(month);
-        int prevRisk = customerSummaryAnalysisQueryMapper.countMonthRiskCustomers(prevMonth);
-
-        double curRiskRate = rate(curRisk, curTotal);
-        double prevRiskRate = rate(prevRisk, prevTotal);
-
-        int retained = Math.max(curTotal - curRisk, 0);
-        double retentionRate = round1(100.0 - curRiskRate);
-
-        return ChurnKpiCardResponseDTO.builder()
-                .snapshotMonth(month)
-                .prevMonth(prevMonth)
-                .totalCustomerCount(curTotal)
-                .curRiskCustomerCount(curRisk)
-                .curRiskRate(curRiskRate)
-                .prevRiskCustomerCount(prevRisk)
-                .prevRiskRate(prevRiskRate)
-                .momDiffRate(round1(curRiskRate - prevRiskRate))
-                .curRetainedCustomerCount(retained)
-                .curRetentionRate(retentionRate)
-                .build();
-    }
 
 
-    // 차트 (월별 위험률 차트)
-    @Override
-    public List<MonthlyRiskRateResponseDTO> getMonthlyRiskRate(String fromMonth, String toMonth) {
-
-        List<String> months = customerSummaryAnalysisQueryMapper.findMonthsBetween(fromMonth, toMonth);
-        List<MonthlyRiskRateResponseDTO> result = new ArrayList<>();
-
-        for (String m : months) {
-            int total = customerSummaryAnalysisQueryMapper.countSnapshotCustomers(m);
-            int risk  = customerSummaryAnalysisQueryMapper.countMonthRiskCustomers(m);
-
-            result.add(MonthlyRiskRateResponseDTO.builder()
-                    .snapshotMonth(m)
-                    .riskCustomerCount(risk)
-                    .riskRate(rate(risk, total))
-                    .build());
-        }
-        return result;
-    }
 
     // 차트 만족도
     @Override
@@ -232,22 +156,19 @@ public class CustomerSummaryAnalysisQueryServiceImpl implements CustomerSummaryA
         return round1((double) numerator / denom * 100.0);
     }
 
-    private double momRate(long prev, long cur) {
-        if (prev <= 0) return 0.0;
-        return round1(((double) (cur - prev) / prev) * 100.0);
+    private double calcMomRate(long current, long previous) {
+        if(previous <= 0){
+            return (current > 0) ? 100.0 : 0.0;
+        }
+        return ((double) (current -previous) / previous)  * 100.0 ;
     }
 
     private double round1(double v) {
         return Math.round(v * 10.0) / 10.0;
     }
 
-    private long safeLong(Long v) {
-        return v == null ? 0L : v;
-    }
 
-    private double safeDouble(Double v) {
-        return v == null ? 0.0 : v;
-    }
+
 
     // 만족도 분포 상세 조회
     @Override
