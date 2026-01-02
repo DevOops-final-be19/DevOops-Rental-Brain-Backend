@@ -38,16 +38,8 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
         FROM item i
         WHERE i.name = :name
           AND i.status = 'P'
-          AND NOT EXISTS (
-              SELECT 1
-              FROM contract_with_item ci
-              JOIN contract c ON ci.contract_id = c.id
-              WHERE ci.item_id = i.id
-                AND c.status IN ('P','I')
-          )
         ORDER BY i.id ASC
         LIMIT :quantity
-        FOR UPDATE
     """, nativeQuery = true)
     List<Long> findRentableItemIdsForContract(
             @Param("name") String name,
