@@ -33,34 +33,61 @@ public class ContractStatusScheduler {
      * P → I → C
      * 계약 만료 시 하루 지난 후 해당 아이템 S → O (연체중)
      */
-    @Scheduled(cron = "0 0 6 * * *")
+    @Scheduled(cron = "*/20 * * * * *")
     @Transactional
     public void runContractStatusBatch() {
 
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime oneMonthLater = now.plusMonths(1);
 
-        // 1. 만료 임박
-        contractCommandRepository.updateToExpireImminent(
+        log.info("[BATCH][CONTRACT_STATUS] START now={}", now);
+
+        // 1. 만료 임박 처리
+
+        int imminentUpdated = contractCommandRepository.updateToExpireImminent(
                 now, oneMonthLater
+        );
+
+        log.info(
+                "[BATCH][STEP1][EXPIRE_IMMINENT] updatedCount={}",
+                imminentUpdated
         );
 
         // 2. 만료 대상 계약 조회
         List<Long> expiredContractIds =
                 contractCommandRepository.findExpiredContractIds(now);
 
-        if (!expiredContractIds.isEmpty()) {
+        log.info(
+                "[BATCH][STEP2][EXPIRED_FOUND] count={}, ids={}",
+                expiredContractIds.size(),
+                expiredContractIds
+        );
 
-            // 3. 계약 상태 → C
+        // 3. 계약 상태 → C
+        if (!expiredContractIds.isEmpty()) {
+            int closedUpdated =
             contractCommandRepository.updateToClosedByIds(
                     expiredContractIds
             );
+
+            log.info(
+                    "[BATCH][STEP3][CLOSED] updatedCount={}",
+                    closedUpdated
+            );
+
         }
 
         // 4. 만료 후 하루 지난 계약의 아이템만 점검중(O)으로
         List<Long> inspectionTargets =
                 contractCommandRepository.findContractsExpiredOneDayAgo(now);
 
+        log.info(
+                "[BATCH][STEP4][OVERDUE_TARGET] count={}, ids={}",
+                inspectionTargets.size(),
+                inspectionTargets
+        );
+
+        // 5. 아이템 상태 변경
         for (Long contractId : inspectionTargets) {
             int updated = itemRepository.updateItemsToOverdueExceptRepair(contractId);
             log.info(
