@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/approval")
-@Tag(name = "결제 조회(Query)", description = "결재/승인 조회 API")
+@Tag(name = "결재 조회(Query)", description = "결재/승인 조회 API")
 public class ApprovalQueryController {
 
     private ApprovalQueryService approvalQueryService;

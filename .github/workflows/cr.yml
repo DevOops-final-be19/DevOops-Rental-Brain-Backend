@@ -5,7 +5,7 @@ permissions:
 on:
   push:
     branches:
-      - "docs/hch-aws"
+      - "main"
 
 jobs:
   deploy:
@@ -33,7 +33,7 @@ jobs:
           mkdir -p src/main/resources
           cat > rental-brain/src/main/resources/application.yml.template <<'EOL'
           server:
-            port: 5000
+            port: ${PORT:5000}
             servlet:
               encoding:
                 charset: UTF-8
@@ -42,9 +42,9 @@ jobs:
           spring:
             datasource:
               driver-class-name: org.mariadb.jdbc.Driver
-              url: jdbc:mariadb://\${RDS_HOSTNAME}:\${RDS_PORT}/\${RDS_DB_NAME}
-              username: \${RDS_USERNAME}
-              password: \${RDS_PASSWORD}
+              url: jdbc:mariadb://${RDS_HOSTNAME}:${RDS_PORT}/${RDS_DB_NAME}?useUnicode=true&characterEncoding=utf8&connectionCollation=utf8mb4_unicode_ci
+              username: ${RDS_USERNAME}
+              password: ${RDS_PASSWORD}
           
             hikari:
               maximum-pool-size: 10
@@ -60,6 +60,12 @@ jobs:
               multipart:
                 max-file-size: 20MB
                 max-request-size: 20MB
+            data:
+              redis:
+                host: ${SPRING_DATA_REDIS_HOST}
+                port: ${SPRING_DATA_REDIS_PORT:6379}
+                password: ${SPRING_DATA_REDIS_PASSWORD}
+                timeout: 5000ms
 
             jpa:
               generate-ddl: false
@@ -68,6 +74,19 @@ jobs:
               properties:
                 hibernate:
                   '[format_sql]': true
+            
+          opensearch: 
+            host: ${OPENSEARCH_HOST}
+            port: ${OPENSEARCH_PORT:9200}
+            username: ${OPENSEARCH_USERNAME}
+            password: ${OPENSEARCH_PASSWORD}
+            scheme: http
+
+          token:
+            access_secret: ${TOKEN_ACCESS_SECRET}
+            refresh_secret: ${TOKEN_REFRESH_SECRET}
+            access_expiration_time: ${TOKEN_ACCESS_EXPIRATION_TIME}
+            refresh_expiration_time: ${TOKEN_REFRESH_EXPIRATION_TIME}
 
       - name: Set Yaml
         working-directory: rental-brain
@@ -121,7 +140,6 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-          
       - name: Beanstalk Deploy
         uses: einaregilsson/beanstalk-deploy@v22
         with:

@@ -31,7 +31,15 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String path = request.getRequestURI();
-        if (path.equals("/auth/validate")||path.equals("/login")) {
+        //  JWT 검사 제외 경로
+        if (
+                path.equals("/login") ||
+                path.equals("/auth/validate") ||
+                path.startsWith("/swagger-ui") ||
+                path.equals("/swagger-ui.html") ||
+                path.startsWith("/api-docs") ||
+                path.startsWith("/v3/api-docs")
+        ) {
             filterChain.doFilter(request, response);
             return;
         }

@@ -400,6 +400,7 @@ public class ContractCommandServiceImpl implements ContractCommandService {
             contract.setStatus("P"); // 계약 진행
 
             insertPaymentDetailsForContract(contract);
+            couponCommandService.updateIssuedCoupon(contract.getId());
             return;
         }
 

@@ -1,14 +1,8 @@
 package com.devoops.rentalbrain.business.contract.command.service;
 
 import com.devoops.rentalbrain.business.contract.command.dto.PaymentDetailRequestDTO;
-import com.devoops.rentalbrain.business.contract.command.entity.ContractCommandEntity;
 import com.devoops.rentalbrain.business.contract.command.entity.PaymentDetailCommandEntity;
-import com.devoops.rentalbrain.business.contract.command.repository.ContractCommandRepository;
 import com.devoops.rentalbrain.business.contract.command.repository.PaymentDetailCommandRepository;
-import com.devoops.rentalbrain.common.codegenerator.CodeGenerator;
-import com.devoops.rentalbrain.common.codegenerator.CodeType;
-import com.devoops.rentalbrain.customer.overdue.command.entity.PayOverdue;
-import com.devoops.rentalbrain.customer.overdue.command.repository.PayOverdueRepository;
 import com.devoops.rentalbrain.product.productlist.command.repository.ItemRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
@@ -27,21 +20,13 @@ public class PaymentDetailCommandServiceImpl implements PaymentDetailCommandServ
 
     private final PaymentDetailCommandRepository paymentDetailCommandRepository;
     private final ItemRepository itemRepository;
-    private final PayOverdueRepository payOverdueRepository;
-    private final ContractCommandRepository contractCommandRepository;
-    private final CodeGenerator codeGenerator;
+
 
     @Autowired
     public PaymentDetailCommandServiceImpl(PaymentDetailCommandRepository paymentDetailCommandRepository,
-                                           ItemRepository itemRepository,
-                                           PayOverdueRepository payOverdueRepository,
-                                           ContractCommandRepository contractCommandRepository,
-                                           CodeGenerator codeGenerator) {
+                                           ItemRepository itemRepository) {
         this.paymentDetailCommandRepository = paymentDetailCommandRepository;
         this.itemRepository = itemRepository;
-        this.payOverdueRepository = payOverdueRepository;
-        this.contractCommandRepository = contractCommandRepository;
-        this.codeGenerator = codeGenerator;
     }
 
     @Override

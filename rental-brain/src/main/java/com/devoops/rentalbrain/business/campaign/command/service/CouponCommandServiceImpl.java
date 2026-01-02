@@ -146,6 +146,7 @@ public class CouponCommandServiceImpl implements CouponCommandService {
         issued.setEndDate(end);
         issued.setCouponId(couponId);
         issued.setCumId(contract.getCustomer().getId());
+        issued.setConId(contract.getId());
 
         issuedCouponRepository.save(issued);
         return "issued coupon created successfully";
@@ -153,12 +154,20 @@ public class CouponCommandServiceImpl implements CouponCommandService {
 
     @Override
     @Transactional
-    public String updateIssuedCoupon(Long IssuedCouponId) {
-        IssuedCoupon issued = issuedCouponRepository.findById(IssuedCouponId).get();
+    public void updateIssuedCoupon(Long contractId) {
 
+        boolean hasUnusedCoupon =
+                issuedCouponRepository.existsByConIdAndIsUsed(contractId, "N");
+
+        if (!hasUnusedCoupon) {
+            return;
+        }
+
+        IssuedCoupon issued = issuedCouponRepository.findByConId(contractId);
         issued.setIsUsed("Y");
         issued.setUsedDate(LocalDateTime.now());
-        return "issued coupon updated successfully";
+
+        issuedCouponRepository.save(issued);
     }
 
 }

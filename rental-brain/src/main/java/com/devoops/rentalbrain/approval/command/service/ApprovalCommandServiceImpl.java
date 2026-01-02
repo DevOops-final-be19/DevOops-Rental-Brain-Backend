@@ -5,6 +5,7 @@ package com.devoops.rentalbrain.approval.command.service;
 import com.devoops.rentalbrain.approval.command.Repository.ApprovalMappingCommandRepository;
 import com.devoops.rentalbrain.approval.command.entity.ApprovalCommandEntity;
 import com.devoops.rentalbrain.approval.command.entity.ApprovalMappingCommandEntity;
+import com.devoops.rentalbrain.business.campaign.command.service.CouponCommandService;
 import com.devoops.rentalbrain.business.contract.command.entity.ContractCommandEntity;
 import com.devoops.rentalbrain.business.contract.command.entity.PaymentDetailCommandEntity;
 import com.devoops.rentalbrain.business.contract.command.repository.PaymentDetailCommandRepository;
@@ -35,14 +36,17 @@ public class ApprovalCommandServiceImpl implements ApprovalCommandService {
     private final ApprovalMappingCommandRepository approvalMappingCommandRepository;
     private final PaymentDetailCommandRepository paymentDetailCommandRepository;
     private final ItemRepository itemRepository;
+    private final CouponCommandService couponCommandService;
 
     @Autowired
     public ApprovalCommandServiceImpl(ApprovalMappingCommandRepository approvalMappingCommandRepository,
                                       PaymentDetailCommandRepository paymentDetailCommandRepository,
-                                      ItemRepository itemRepository) {
+                                      ItemRepository itemRepository,
+                                      CouponCommandService couponCommandService) {
         this.approvalMappingCommandRepository = approvalMappingCommandRepository;
         this.paymentDetailCommandRepository = paymentDetailCommandRepository;
         this.itemRepository = itemRepository;
+        this.couponCommandService = couponCommandService;
     }
 
     @Override
@@ -79,6 +83,7 @@ public class ApprovalCommandServiceImpl implements ApprovalCommandService {
             approval.setStatus("A");
             contract.setStatus("P");
             insertPaymentDetailsForContract(contract);
+            couponCommandService.updateIssuedCoupon(contract.getId());
         } else {
             // 아직 전부 Y가 아니면: current_step 업데이트
             contract.setCurrentStep(approvedStep);
