@@ -22,11 +22,22 @@ public interface PaymentDetailCommandRepository extends JpaRepository<PaymentDet
             @Param("now") LocalDateTime now
     );
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("""
-        update PaymentDetailCommandEntity p
-        set p.overdueDays = p.overdueDays + 1
-        where p.paymentStatus = 'N'
-    """)
+    update PaymentDetailCommandEntity p
+    set p.overdueDays = COALESCE(p.overdueDays, 0) + 1
+    where p.paymentStatus = 'N'
+""")
     int increaseOverdueDaysForNonPayment();
+
+    @Modifying(clearAutomatically = true)
+    @Query("""
+    update PaymentDetailCommandEntity p
+    set p.paymentStatus = 'N',
+        p.overdueDays = 0
+    where p.paymentStatus = 'P'
+      and p.paymentActual is null
+      and p.paymentDue < :now
+""")
+    int markAsNonPayment(@Param("now") LocalDateTime now);
 }

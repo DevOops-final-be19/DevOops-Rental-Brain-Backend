@@ -33,7 +33,7 @@ public class ContractStatusScheduler {
      * P → I → C
      * 계약 만료 시 하루 지난 후 해당 아이템 S → O (연체중)
      */
-    @Scheduled(cron = "*/20 * * * * *")
+    @Scheduled(cron = "0 0 6 * * *")
     @Transactional
     public void runContractStatusBatch() {
 
