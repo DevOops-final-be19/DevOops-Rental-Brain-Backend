@@ -1,4 +1,4 @@
-package com.devoops.rentalbrain.customer.customeranalysis.customersummaryanalysis.query.dto;
+package com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,8 +11,8 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ChurnKpiCardResponseDTO {
 
-    private String snapshotMonth;          // 기준월(YYYY-MM)
-    private String prevMonth;              // 전월(YYYY-MM)
+    private String snapshotMonth; // 기준월(YYYY-MM) - 월말 기준(as-of month end)
+    private String prevMonth;     // 전월(YYYY-MM) - 월말 기준(as-of month end)
 
     private int totalCustomerCount;        // 전체 customer 수
 
@@ -27,7 +27,4 @@ public class ChurnKpiCardResponseDTO {
     // 전월 대비 증감(%p)
     private double momDiffRate;            // curRiskRate - prevRiskRate
 
-    // 유지(이번달)
-    private int curRetainedCustomerCount;  // 이번달 유지 고객 수 = total - curRisk
-    private double curRetentionRate;       // 이번달 유지율(%) = 100 - curRiskRate
 }

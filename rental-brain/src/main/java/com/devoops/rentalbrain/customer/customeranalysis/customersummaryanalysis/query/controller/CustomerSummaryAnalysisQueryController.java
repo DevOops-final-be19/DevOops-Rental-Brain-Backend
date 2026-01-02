@@ -47,11 +47,11 @@ public class CustomerSummaryAnalysisQueryController {
             summary = "고객 요약 분석 KPI(5개 카드) 조회",
             description = """
                     입력한 기준월(YYYY-MM)을 기반으로 고객 요약 KPI를 반환합니다.
-                    - 총 고객 수(누적) + 전월 대비(월 활동 고객 기준 %)
-                    - 평균 거래액(월) = monthly_payment 기반 고객당 평균 월 과금액 + 전월 대비(%)
-                    - 평균 만족도(월) + 전월 대비(점)
-                    - 안정 고객 비율(%) + 안정 고객 수
-                    - 이탈 위험률(%) + 이탈 위험 고객 수 + 전월 대비(%p)
+                    - 총 고객 수
+                    - 평균 거래액(월)
+                    - 평균 만족도(월)
+                    
+                    ※ 이탈 위험 KPI는 /customersegmentanalysis/riskKpi API에서 제공합니다.
                     """,
             responses = {
                     @ApiResponse(responseCode = "200", description = "KPI 조회 성공",
@@ -66,62 +66,6 @@ public class CustomerSummaryAnalysisQueryController {
             @RequestParam("month") String month
     ) {
         return ResponseEntity.ok(customerSummaryAnalysisQueryService.getkpi(month));
-    }
-
-
-
-    // 이탈률 Kpi 카드 조회
-    @Operation(
-            summary = "이탈 위험 KPI 카드 조회",
-            description = """
-                    입력한 기준월(YYYY-MM)을 기반으로 KPI 카드 데이터를 반환합니다.
-                    - 전체 고객 수
-                    - 해당 월 이탈 위험 고객 수 / 위험률(%)
-                    - 전월 이탈 위험 고객 수 / 위험률(%)
-                    - 전월 대비 위험률 변화(MoM, %p)
-                    - 유지 고객 수 / 유지율(%)
-                    """,
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "KPI 카드 조회 성공",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ChurnKpiCardResponseDTO.class))),
-                    @ApiResponse(responseCode = "400", description = "요청 파라미터 오류(형식 불일치 등)"),
-                    @ApiResponse(responseCode = "500", description = "서버 오류")
-            }
-    )
-    @GetMapping("/riskKpi")
-    public ResponseEntity<ChurnKpiCardResponseDTO> kpiCard(@RequestParam("month") String month) {
-
-        ChurnKpiCardResponseDTO kpiCard = customerSummaryAnalysisQueryService.getRiskKpi(month);
-
-        return ResponseEntity.ok(kpiCard);
-    }
-
-    // 차트 (월별 위험률 차트)
-    @Operation(
-            summary = "월별 이탈 위험률 차트 조회",
-            description = """
-                    from~to 범위(YYYY-MM) 내 월별 이탈 위험률(%)을 반환합니다.
-                    차트 X축: 월(YYYY-MM)
-                    차트 Y축: 위험률(%)
-                    """,
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "월별 위험률 조회 성공",
-                            content = @Content(mediaType = "application/json",
-                                    array = @ArraySchema(schema = @Schema(implementation = MonthlyRiskRateResponseDTO.class)))),
-                    @ApiResponse(responseCode = "400", description = "요청 파라미터 오류(형식 불일치/기간 역전 등)"),
-                    @ApiResponse(responseCode = "500", description = "서버 오류")
-            }
-    )
-    @GetMapping("/risk-monthly-rate")
-    public ResponseEntity<List<MonthlyRiskRateResponseDTO>> monthlyRate(
-            @RequestParam("from") String fromMonth,
-            @RequestParam("to") String toMonth
-    ){
-        List<MonthlyRiskRateResponseDTO> list
-                = customerSummaryAnalysisQueryService.getMonthlyRiskRate(fromMonth, toMonth);
-
-        return ResponseEntity.ok(list);
     }
 
     // 차트 만족도 분포
@@ -139,7 +83,7 @@ public class CustomerSummaryAnalysisQueryController {
     }
 
 
-    // ✅ 만족도 상세 조회(별점별 회사 목록) - 고객별 '최근 피드백 1건' 기준
+    // 만족도 상세 조회(별점별 회사 목록) - 고객별 '최근 피드백 1건' 기준
     @Operation(
             summary = "만족도(별점) 상세 - 별점별 회사 목록 조회(페이징)",
             description = """

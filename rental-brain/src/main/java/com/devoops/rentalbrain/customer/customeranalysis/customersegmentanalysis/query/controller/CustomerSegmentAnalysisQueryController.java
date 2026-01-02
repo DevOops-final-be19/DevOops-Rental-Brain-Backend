@@ -3,6 +3,7 @@ package com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysi
 import com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.dto.*;
 import com.devoops.rentalbrain.customer.customeranalysis.customersegmentanalysis.query.service.CustomerSegmentAnalysisQueryService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -10,26 +11,23 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/customersegmentanalysis")
+@RequestMapping("/customerSegmentAnalysis")
 @Tag(
         name = "고객 세그먼트 분석 조회(Query)",
         description = "고객 세그먼트 분석 조회 및 상세 조회 API"
 )
 public class CustomerSegmentAnalysisQueryController {
 
-    private final CustomerSegmentAnalysisQueryService customerSegmentAnalysisQueryservice;
+    private final CustomerSegmentAnalysisQueryService customerSegmentAnalysisQueryService;
 
     @Autowired
-    public CustomerSegmentAnalysisQueryController(CustomerSegmentAnalysisQueryService customerSegmentAnalysisQueryservice) {
-        this.customerSegmentAnalysisQueryservice = customerSegmentAnalysisQueryservice;
+    public CustomerSegmentAnalysisQueryController(CustomerSegmentAnalysisQueryService customerSegmentAnalysisQueryService) {
+        this.customerSegmentAnalysisQueryService = customerSegmentAnalysisQueryService;
     }
 
     @GetMapping("/health")
@@ -37,37 +35,32 @@ public class CustomerSegmentAnalysisQueryController {
         return "CustomerSegmentAnalysis OK";
     }
 
-
-    // postman으로 테스트할때 2025-02 이런식으로 MM 두자리로 해야함
-
-    @GetMapping("/riskKpi")
     @Operation(
             summary = "이탈 위험 KPI 조회",
             description = """
-                    기준 월(month) 기준으로 이탈 위험 고객 KPI를 조회합니다.
+                    기준 월(month) '월말 기준(as-of month end)'으로 이탈 위험 KPI를 조회합니다.
                     - month 형식: YYYY-MM (예: 2025-02)
-                    - month 미입력 시: 서비스 기본 기준월 로직(예: 현재월/최근월) 적용
+                    - month 미입력 시: 현재월 기준으로 조회합니다.
+                    - 위험률(%) = (해당 월말 기준 이탈 위험 고객 수 / 해당 월말 기준 전체 고객 수) * 100
                     """
     )
     @ApiResponses({
             @ApiResponse(
                     responseCode = "200",
                     description = "조회 성공",
-                    content = @Content(schema = @Schema(implementation = CustomerSegmentAnalysisRiskKPIDTO.class))
+                    content = @Content(schema = @Schema(implementation = ChurnKpiCardResponseDTO.class))
             ),
             @ApiResponse(responseCode = "400", description = "요청 파라미터 형식 오류"),
             @ApiResponse(responseCode = "500", description = "서버 오류")
     })
-    public ResponseEntity<CustomerSegmentAnalysisRiskKPIDTO> getRiskKpi(
-            @RequestParam(required = false) String month        // 지금 세그먼트 kpi를 월별
+    @GetMapping("/riskKpi")
+    public ResponseEntity<ChurnKpiCardResponseDTO> getRiskKpi(
+            @RequestParam(required = false) String month
     ){
-        CustomerSegmentAnalysisRiskKPIDTO kpi
-                = customerSegmentAnalysisQueryservice.getRiskKpi(month);
-
-        return ResponseEntity.ok(kpi);
+        return ResponseEntity.ok(customerSegmentAnalysisQueryService.getRiskKpi(month));
     }
 
-    @GetMapping("/riskReasonKpi")
+
     @Operation(
             summary = "이탈 위험 사유별 KPI 조회",
             description = """
@@ -79,21 +72,19 @@ public class CustomerSegmentAnalysisQueryController {
             @ApiResponse(
                     responseCode = "200",
                     description = "조회 성공",
-                    content = @Content(schema = @Schema(implementation = CustomerSegmentAnalysisRiskReaseonKPIDTO.class))
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = CustomerSegmentAnalysisRiskReaseonKPIDTO.class)))
             ),
             @ApiResponse(responseCode = "400", description = "요청 파라미터 형식 오류"),
             @ApiResponse(responseCode = "500", description = "서버 오류")
     })
+    @GetMapping("/riskReasonKpi")
     public ResponseEntity<List<CustomerSegmentAnalysisRiskReaseonKPIDTO>> getRiskReasonKpi(
             @RequestParam String month
     ){
-        List<CustomerSegmentAnalysisRiskReaseonKPIDTO> kpis
-                = customerSegmentAnalysisQueryservice.getRiskReasonKpi(month);
-
-        return ResponseEntity.ok(kpis);
+        return ResponseEntity.ok(customerSegmentAnalysisQueryService.getRiskReasonKpi(month));
     }
 
-    @GetMapping("/riskReasonCustomers")
+
     @Operation(
             summary = "이탈 위험 사유별 고객 리스트 조회",
             description = """
@@ -103,18 +94,42 @@ public class CustomerSegmentAnalysisQueryController {
                 """
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "200", description = "조회 성공",
+                    content = @Content(schema = @Schema(implementation = CustomerSegmentAnalysisRiskReasonCustomersListDTO.class))),
             @ApiResponse(responseCode = "400", description = "요청 파라미터 형식 오류"),
             @ApiResponse(responseCode = "500", description = "서버 오류")
     })
+    @GetMapping("/riskReasonCustomers")
     public ResponseEntity<CustomerSegmentAnalysisRiskReasonCustomersListDTO> getRiskReasonCustomers(
             @RequestParam String month,
             @RequestParam String reasonCode
     ){
-        return ResponseEntity.ok(customerSegmentAnalysisQueryservice.getRiskReasonCustomers(month, reasonCode));
+        return ResponseEntity.ok(customerSegmentAnalysisQueryService.getRiskReasonCustomers(month, reasonCode));
     }
 
-    @GetMapping("/segmentTradeChart")
+
+    @Operation(
+            summary = "월별 이탈 위험률 차트 조회",
+            description = """
+                    from~to 범위(YYYY-MM) 내 월별 이탈 위험률(월말 기준, %)을 반환합니다.
+                    - 위험률(%) = (해당 월말 기준 이탈 위험 고객 수 / 해당 월말 기준 전체 고객 수) * 100
+                    """,
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "월별 위험률 조회 성공",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = MonthlyRiskRateResponseDTO.class)))),
+                    @ApiResponse(responseCode = "400", description = "요청 파라미터 오류(형식 불일치/기간 역전 등)"),
+                    @ApiResponse(responseCode = "500", description = "서버 오류")
+            }
+    )
+    @GetMapping("/risk-monthly-rate")
+    public ResponseEntity<List<MonthlyRiskRateResponseDTO>> monthlyRate(
+            @RequestParam("from") String fromMonth,
+            @RequestParam("to") String toMonth
+    ){
+        return ResponseEntity.ok(customerSegmentAnalysisQueryService.getMonthlyRiskRate(fromMonth, toMonth));
+    }
+
+
     @Operation(
             summary = "세그먼트별 거래 차트 조회",
             description = """
@@ -127,26 +142,22 @@ public class CustomerSegmentAnalysisQueryController {
             @ApiResponse(
                     responseCode = "200",
                     description = "조회 성공",
-                    content = @Content(schema = @Schema(implementation = CustomerSegmentTradeChartDTO.class))
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = CustomerSegmentTradeChartDTO.class)))
             ),
             @ApiResponse(responseCode = "400", description = "요청 파라미터 형식 오류"),
             @ApiResponse(responseCode = "500", description = "서버 오류")
     })
+    @GetMapping("/segmentTradeChart")
     public ResponseEntity<List<CustomerSegmentTradeChartDTO>> getSegmentTradeChart(
             @RequestParam(required = false) String month
     ){
-        return ResponseEntity.ok(customerSegmentAnalysisQueryservice.getSegmentTradeChart(month));
+        return ResponseEntity.ok(customerSegmentAnalysisQueryService.getSegmentTradeChart(month));
     }
 
-
-
-    @GetMapping("/segmentCard")
     @Operation(
             summary = "세그먼트 상세 카드 조회",
             description = """
                 선택한 세그먼트(segmentId)에 대한 상세 요약 카드 정보를 조회합니다.
-                - 세그먼트 기본 정보
-                - 고객 수 / 거래 요약 / 주요 지표
                 """
     )
     @ApiResponses({
@@ -159,12 +170,19 @@ public class CustomerSegmentAnalysisQueryController {
             @ApiResponse(responseCode = "404", description = "해당 세그먼트를 찾을 수 없음"),
             @ApiResponse(responseCode = "500", description = "서버 오류")
     })
+    @GetMapping("/segmentCard")
     public ResponseEntity<CustomerSegmentDetailCardDTO> getCustomerSegmentDetailCard(
             @RequestParam Long segmentId
     ){
-        return ResponseEntity.ok(customerSegmentAnalysisQueryservice.getSegmentDetailCard(segmentId));
+        return ResponseEntity.ok(customerSegmentAnalysisQueryService.getSegmentDetailCard(segmentId));
     }
 
-
-    
+    @GetMapping("/risk-customers")
+    public ResponseEntity<CustomerSegmentRiskCustomerPageDTO> getRiskCustomers(
+            @RequestParam String month,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        return ResponseEntity.ok(customerSegmentAnalysisQueryService.getRiskCustomersByMonth(month, page, size));
+    }
 }

@@ -26,41 +26,7 @@
         SELECT COUNT(*)
         FROM customer
         WHERE is_deleted='N'
-        AND segment_id IN (2, 3, 5, 7)
-    </select>
-
-    <!--  스냅샷 이탈 위험 고객(월별)  -->
-    <select id="countMonthRiskCustomers" resultType="int">
-        SELECT COUNT(DISTINCT customer_id)
-        FROM customer_churn_snapshot
-        WHERE snapshot_month = #{snapshotMonth}
-        AND is_churn_risk = 'Y'
-    </select>
-
-    <!-- 이걸로 써야할듯 -->
-    <select id="countCurrentRiskCustomers" resultType="int">
-        SELECT COUNT(*)
-        FROM customer
-        WHERE is_deleted='N'
-        AND segment_id = 4
-    </select>
-
-    <select id="countSnapshotCustomers" resultType="int">
-        SELECT COUNT(DISTINCT customer_id)
-        FROM customer_churn_snapshot
-        WHERE snapshot_month = #{snapshotMonth}
-    </select>
-
-
-    <!-- 차트 X축 월 목록 (스냅샷이 존재하는 월만 뽑음) -->
-    <!-- <![CDATA[ ~~ ]]> [] 안의 기호를 그대로 받아내는 것  -->
-    <select id="findMonthsBetween" resultType="string">
-        SELECT
-              DISTINCT snapshot_month
-         FROM customer_churn_snapshot
-        WHERE snapshot_month <![CDATA[ >= ]]> #{fromMonth}
-          AND snapshot_month <![CDATA[ <= ]]> #{toMonth}
-        ORDER BY snapshot_month
+        AND segment_id IN (2, 3, 4, 5, 7)
     </select>
 
 
@@ -81,15 +47,6 @@
          WHERE A.create_date <![CDATA[>=]]> #{from}
            AND A.create_date <![CDATA[<]]>  #{to}
     </select>
-
-    <!-- 월 활동 고객 수 (이번달 계약 시작한 고객 distinct) -->
-<!--    <select id="countActiveCustomersByMonth" resultType="int">-->
-<!--        SELECT-->
-<!--               COUNT(DISTINCT A.cum_id)-->
-<!--          FROM contract A-->
-<!--         WHERE A.start_date <![CDATA[>=]]> #{from}-->
-<!--           AND A.start_date <![CDATA[<]]>  #{to}-->
-<!--    </select>-->
 
     <select id="countActiveCustomersByMonth" resultType="int">
         SELECT COUNT(DISTINCT c.cum_id)

@@ -6,52 +6,115 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 @Service
 @Slf4j
-public class CustomerSegmentAnalysisQueryServiceImpl implements CustomerSegmentAnalysisQueryService{
+public class CustomerSegmentAnalysisQueryServiceImpl implements CustomerSegmentAnalysisQueryService {
 
     private final CustomerSegmentAnalysisQueryMapper customerSegmentAnalysisQueryMapper;
+
     private static final int RISK_SEGMENT_ID = 4;
+
+    // MariaDB DATETIME 비교 안전 포맷
+    private static final DateTimeFormatter DT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Autowired
     public CustomerSegmentAnalysisQueryServiceImpl(CustomerSegmentAnalysisQueryMapper customerSegmentAnalysisQueryMapper) {
         this.customerSegmentAnalysisQueryMapper = customerSegmentAnalysisQueryMapper;
     }
 
-    // 고객 세그먼트 분석 kpi 1번
+    // KPI 1) 이탈 위험률 카드 (월말 기준)
     @Override
-    public CustomerSegmentAnalysisRiskKPIDTO getRiskKpi(String month) {
-        YearMonth currentMonth = YearMonth.parse(month);
-        String previousMonth = currentMonth.minusMonths(1).toString();
+    public ChurnKpiCardResponseDTO getRiskKpi(String month) {
 
-        int totalCustomers = customerSegmentAnalysisQueryMapper.countTotalCustomers();
-        int currentRiskCustomers = customerSegmentAnalysisQueryMapper.countCurrentRiskCustomers(RISK_SEGMENT_ID);
+        if (month == null || month.isBlank()) {
+            throw new IllegalArgumentException("month 파라미터는 필수입니다. 예: 2026-01");
+        }
 
-        // 전월 대비에 대한 것은 Snapshot 기반으로
-        int currentSnapshotRisk = customerSegmentAnalysisQueryMapper.countSnapshotRiskCustomers(month);
-        int previousSnapshotRisk = customerSegmentAnalysisQueryMapper.countSnapshotRiskCustomers(previousMonth);
+        YearMonth ym = YearMonth.parse(month);
+        YearMonth prevYm = ym.minusMonths(1);
 
-        double currentRiskRate = rate(currentRiskCustomers, totalCustomers);
-        double currentSnapshotRate = rate(currentSnapshotRisk, totalCustomers);
-        double previousSnapshotRate = rate(previousSnapshotRisk, totalCustomers);
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
+        String monthEndExclusive =
+                ym.plusMonths(1).atDay(1).atStartOfDay().format(fmt);
 
-        return CustomerSegmentAnalysisRiskKPIDTO.builder()
-                .currentMonth(month)
-                .previousMonth(previousMonth)
-                .totalCustomerCount(totalCustomers)
-                .currentRiskCustomerCount(currentRiskCustomers)
-                .currentRiskRate(currentRiskRate)
-                .momDiffRate(round1(currentSnapshotRate - previousSnapshotRate))
+        String prevEndExclusive =
+                ym.atDay(1).atStartOfDay().format(fmt);
+
+        //  월말 기준 전체 고객 수
+        int total = customerSegmentAnalysisQueryMapper
+                .countTotalCustomersAtMonth(monthEndExclusive);
+
+        int prevTotal = customerSegmentAnalysisQueryMapper
+                .countTotalCustomersAtMonth(prevEndExclusive);
+
+        //  월말 기준 위험 고객 수 (segment_id = 4)
+        int curRisk = customerSegmentAnalysisQueryMapper
+                .countCustomersBySegmentAtMonth(RISK_SEGMENT_ID, monthEndExclusive);
+
+        int prevRisk = customerSegmentAnalysisQueryMapper
+                .countCustomersBySegmentAtMonth(RISK_SEGMENT_ID, prevEndExclusive);
+
+        double curRiskRate = rate(curRisk, total);
+        double prevRiskRate = rate(prevRisk, prevTotal);
+
+        return ChurnKpiCardResponseDTO.builder()
+                .snapshotMonth(month)
+                .prevMonth(prevYm.toString())
+                .totalCustomerCount(total)
+                .curRiskCustomerCount(curRisk)
+                .curRiskRate(curRiskRate)
+                .prevRiskCustomerCount(prevRisk)
+                .prevRiskRate(prevRiskRate)
+                .momDiffRate(round1(curRiskRate - prevRiskRate))
                 .build();
-
     }
 
-    // 고객 세그먼트 분석 kpi 2번
+    // 차트) 월별 이탈 위험률 (월말 기준)
+    @Override
+    public List<MonthlyRiskRateResponseDTO> getMonthlyRiskRate(String fromMonth, String toMonth) {
+
+        if (fromMonth == null || fromMonth.isBlank() || toMonth == null || toMonth.isBlank()) {
+            throw new IllegalArgumentException("from/to 파라미터는 필수입니다. 예: from=2025-01&to=2025-06");
+        }
+
+        YearMonth from = YearMonth.parse(fromMonth);
+        YearMonth to = YearMonth.parse(toMonth);
+
+        if (from.isAfter(to)) {
+            throw new IllegalArgumentException("기간이 올바르지 않습니다. from은 to보다 클 수 없습니다.");
+        }
+
+        List<MonthlyRiskRateResponseDTO> result = new ArrayList<>();
+
+        YearMonth cur = from;
+        while (!cur.isAfter(to)) {
+            String m = cur.toString();
+            String endExclusive = monthEndExclusive(cur);
+
+            int total = customerSegmentAnalysisQueryMapper.countTotalCustomersAtMonth(endExclusive);
+            int risk = customerSegmentAnalysisQueryMapper.countCustomersBySegmentAtMonth(RISK_SEGMENT_ID, endExclusive);
+
+            result.add(MonthlyRiskRateResponseDTO.builder()
+                    .snapshotMonth(m)                 // 필드명 유지(프론트 깨짐 방지) / 의미는 "해당 월(월말 기준)"
+                    .riskCustomerCount(risk)
+                    .riskRate(rate(risk, total))
+                    .build());
+
+            cur = cur.plusMonths(1);
+        }
+
+        return result;
+    }
+
+    // KPI 2) 이탈 위험 사유 분포 (월 기준)
     @Override
     public List<CustomerSegmentAnalysisRiskReaseonKPIDTO> getRiskReasonKpi(String month) {
 
@@ -61,38 +124,28 @@ public class CustomerSegmentAnalysisQueryServiceImpl implements CustomerSegmentA
 
         YearMonth ym = YearMonth.parse(month);
 
-        // from/to 범위: (from, to)
-        String from = ym.atDay(1).atStartOfDay().toString();
-        String to   = ym.plusMonths(1).atDay(1).atStartOfDay().toString();
+        String from = monthStart(ym);
+        String to = monthStart(ym.plusMonths(1));
 
-        // DB 집계 결과 (있는 reasonCode만 나옴)
         List<Map<String, Object>> rows =
                 customerSegmentAnalysisQueryMapper.countRiskReasonsByMonth(RISK_SEGMENT_ID, from, to);
 
-        // KPI 카드에 항상 보여줄 4개 reasonCode를 0으로 기본 세팅
-        // (순서도 고정됨)
         List<String> fixedCodes = List.of("EXPIRING", "LOW_SAT", "OVERDUE", "NO_RENEWAL");
 
-        // code -> count 맵
         java.util.Map<String, Integer> countMap = new java.util.LinkedHashMap<>();
         for (String code : fixedCodes) countMap.put(code, 0);
 
-        // DB 결과 반영
         for (Map<String, Object> r : rows) {
             String code = (String) r.get("reasonCode");
             int cnt = ((Number) r.get("cnt")).intValue();
-
-            // 고정 코드만 반영 (혹시 다른 코드가 들어와도 무시)
             if (countMap.containsKey(code)) {
                 countMap.put(code, cnt);
             }
         }
 
-        // 총합 계산 (고정 4개 합)
         int total = countMap.values().stream().mapToInt(Integer::intValue).sum();
 
-        // 최종 결과(List) 생성: 항상 4개
-        List<CustomerSegmentAnalysisRiskReaseonKPIDTO> result = new java.util.ArrayList<>();
+        List<CustomerSegmentAnalysisRiskReaseonKPIDTO> result = new ArrayList<>();
         for (String code : fixedCodes) {
             int cnt = countMap.get(code);
             double ratio = (total == 0) ? 0.0 : round1((double) cnt / total * 100.0);
@@ -107,8 +160,7 @@ public class CustomerSegmentAnalysisQueryServiceImpl implements CustomerSegmentA
         return result;
     }
 
-
-    // 이탈 사유 고객
+    // KPI 2) 사유별 고객 리스트 (월 기준)
     @Override
     public CustomerSegmentAnalysisRiskReasonCustomersListDTO getRiskReasonCustomers(String month, String reasonCode) {
 
@@ -119,15 +171,15 @@ public class CustomerSegmentAnalysisQueryServiceImpl implements CustomerSegmentA
             throw new IllegalArgumentException("reasonCode 파라미터는 필수입니다.");
         }
 
-        // KPI랑 동일하게 고정 코드만 허용
         List<String> fixedCodes = List.of("EXPIRING", "LOW_SAT", "OVERDUE", "NO_RENEWAL");
         if (!fixedCodes.contains(reasonCode)) {
             throw new IllegalArgumentException("허용되지 않는 reasonCode 입니다: " + reasonCode);
         }
 
         YearMonth ym = YearMonth.parse(month);
-        String from = ym.atDay(1).atStartOfDay().toString();
-        String to   = ym.plusMonths(1).atDay(1).atStartOfDay().toString();
+
+        String from = monthStart(ym);
+        String to = monthStart(ym.plusMonths(1));
 
         var list = customerSegmentAnalysisQueryMapper.findRiskReasonCustomersByMonth(
                 RISK_SEGMENT_ID, reasonCode, from, to
@@ -141,40 +193,20 @@ public class CustomerSegmentAnalysisQueryServiceImpl implements CustomerSegmentA
                 .build();
     }
 
-
-
-
-
-
-
-
-    private double rate(int numerator, int denom) {
-        if(denom <= 0) {
-            return 0.0;
-        }
-        return round1((double)numerator / denom * 100.0);
-    }
-
-    private double round1(double round) {
-        return Math.round(round * 10.0) / 10.0;
-    }
-
-
     @Override
     public List<CustomerSegmentTradeChartDTO> getSegmentTradeChart(String month) {
 
-        if(month == null || month.isBlank()) {
+        if (month == null || month.isBlank()) {
             throw new IllegalArgumentException("month 파라미터는 필수 입니다. 예: YYYY-MM");
         }
 
         YearMonth yearMonth = YearMonth.parse(month);
-        String from = yearMonth.atDay(1).atStartOfDay().toString();
-        String to = yearMonth.plusMonths(1).atDay(1).atStartOfDay().toString();
 
+        String from = monthStart(yearMonth);
+        String to = monthStart(yearMonth.plusMonths(1));
 
         return customerSegmentAnalysisQueryMapper.getSegmentTradeChart(from, to);
     }
-
 
     @Override
     public CustomerSegmentDetailCardDTO getSegmentDetailCard(long segmentId) {
@@ -208,5 +240,52 @@ public class CustomerSegmentAnalysisQueryServiceImpl implements CustomerSegmentA
 
         return card;
     }
+
+    @Override
+    public CustomerSegmentRiskCustomerPageDTO getRiskCustomersByMonth(String month, int page, int size) {
+
+        if (month == null || month.isBlank()) {
+            throw new IllegalArgumentException("month 파라미터는 필수입니다. 예: 2026-01");
+        }
+
+        if (page < 1) page = 1;
+        if (size < 1) size = 20;
+
+        YearMonth ym = YearMonth.parse(month);
+        String endExclusive = monthEndExclusive(ym);
+
+        int offset = (page - 1) * size;
+
+        int total = customerSegmentAnalysisQueryMapper.countRiskCustomersAtMonth(endExclusive);
+        List<CustomerSegmentRiskCustomerDTO> list =
+                customerSegmentAnalysisQueryMapper.findRiskCustomersAtMonth(endExclusive, size, offset);
+
+        return CustomerSegmentRiskCustomerPageDTO.builder()
+                .month(month)
+                .totalCount(total)
+                .customers(list)
+                .build();
+    }
+
+    private String monthStart(YearMonth ym) {
+        return LocalDateTime.of(ym.getYear(), ym.getMonth(), 1, 0, 0, 0).format(DT);
+    }
+
+    private String monthEndExclusive(YearMonth ym) {
+        YearMonth next = ym.plusMonths(1);
+        return LocalDateTime.of(next.getYear(), next.getMonth(), 1, 0, 0, 0).format(DT);
+    }
+
+    private double rate(int numerator, int denom) {
+        if (denom <= 0) {
+            return 0.0;
+        }
+        return round1((double) numerator / denom * 100.0);
+    }
+
+    private double round1(double round) {
+        return Math.round(round * 10.0) / 10.0;
+    }
+
 
 }

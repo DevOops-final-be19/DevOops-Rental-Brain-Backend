@@ -30,13 +30,4 @@ public class CustomerSummaryAnalysisQueryKPIDTO {
     private double avgStar;          // 이번달 평균 별점
     private double avgStarMomDiff;   // 전월 대비 변화(점)
 
-    private int stableCustomerCount;       // 안정 고객 수 = tradeCustomerCount - riskCustomerCount
-    private double stableCustomerRate;     // 안정 고객 비율(%) = stableCustomerCount / tradeCustomerCount * 100
-
-    private int riskCustomerCount;         // 이탈 위험 고객 수
-    private double riskRate;               // 이탈 위험률(%) = riskCustomerCount / tradeCustomerCount * 100
-    private double riskMomDiffRate;        // 전월 대비 변화(%p)
-
-
-
 }
