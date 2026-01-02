@@ -4,6 +4,7 @@ import com.devoops.rentalbrain.business.contract.command.entity.ContractCommandE
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,53 +16,78 @@ public interface ContractCommandRepository extends JpaRepository<ContractCommand
      * 만료일이 1개월 이내 남았을 때
      */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("""
-        UPDATE ContractCommandEntity c
-        SET c.status = 'I'
-        WHERE c.status = 'P'
-        AND FUNCTION(
-            'DATE_ADD',
-            c.startDate,
-            CONCAT(c.contractPeriod, ' MONTH')
-        ) BETWEEN :now AND :oneMonthLater
-    """)
+    @Query(
+            value = """
+            UPDATE contract
+            SET status = 'I'
+            WHERE status = 'P'
+              AND TIMESTAMPADD(
+                    MONTH,
+                    contract_period,
+                    start_date
+              ) BETWEEN :now AND :oneMonthLater
+        """,
+            nativeQuery = true
+    )
     int updateToExpireImminent(
-            LocalDateTime now,
-            LocalDateTime oneMonthLater
+            @Param("now") LocalDateTime now,
+            @Param("oneMonthLater") LocalDateTime oneMonthLater
     );
+
     /**
      * 진행중(P), 만료임박(I) → 만료(C)
-     * 만료일이 지난 계약
      */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("""
-    UPDATE ContractCommandEntity c
-    SET c.status = 'C'
-    WHERE c.id IN :contractIds
-    """)
-    int updateToClosedByIds(List<Long> contractIds);
+    @Query(
+            value = """
+            UPDATE contract
+            SET status = 'C'
+            WHERE id IN (:contractIds)
+        """,
+            nativeQuery = true
+    )
+    int updateToClosedByIds(
+            @Param("contractIds") List<Long> contractIds
+    );
 
-    @Query("""
-    SELECT c.id
-    FROM ContractCommandEntity c
-    WHERE c.status IN ('P','I')
-      AND FUNCTION(
-        'DATE_ADD',
-        c.startDate,
-        CONCAT(c.contractPeriod, ' MONTH')
-      ) < :now
-    """)
-    List<Long> findExpiredContractIds(LocalDateTime now);
+    /**
+     * 이미 만료된 계약 조회
+     */
+    @Query(
+            value = """
+            SELECT id
+            FROM contract
+            WHERE status IN ('P','I')
+              AND TIMESTAMPADD(
+                    MONTH,
+                    contract_period,
+                    start_date
+              ) < :now
+        """,
+            nativeQuery = true
+    )
+    List<Long> findExpiredContractIds(
+            @Param("now") LocalDateTime now
+    );
 
-    @Query("""
-        SELECT c.id
-        FROM ContractCommandEntity c
-        WHERE c.status = 'C'
-            AND FUNCTION(
-            'DATE_ADD',
-            c.startDate,
-            CONCAT(c.contractPeriod + 1, ' MONTH')
-            ) < :now
-        """)
-    List<Long> findContractsExpiredOneDayAgo(LocalDateTime now);
+    /**
+     * 계약 만료 + 1개월 지난 계약 조회
+     * (아이템 연체 처리 대상)
+     */
+    @Query(
+            value = """
+            SELECT id
+            FROM contract
+            WHERE status = 'C'
+              AND TIMESTAMPADD(
+                    MONTH,
+                    contract_period + 1,
+                    start_date
+              ) < :now
+        """,
+            nativeQuery = true
+    )
+    List<Long> findContractsExpiredOneDayAgo(
+            @Param("now") LocalDateTime now
+    );
 }
