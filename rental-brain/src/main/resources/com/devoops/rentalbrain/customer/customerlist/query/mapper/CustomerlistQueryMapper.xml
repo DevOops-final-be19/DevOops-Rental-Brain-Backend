@@ -350,7 +350,8 @@
 
     <select id="selectCouponList" resultMap="CouponListMap">
         SELECT
-            C.id, C.name,
+            C.id AS id,
+            C.name,
             IC.is_used AS status,
             C.rate,
             C.coupon_code AS couponCode
@@ -361,7 +362,8 @@
 
     <select id="selectPromotionList" resultMap="PromotionListMap">
         SELECT
-            P.id, P.name,
+            P.id AS id,
+            P.name,
             P.status,
             P.promotion_code AS promotionCode
         FROM promotion_log PL
