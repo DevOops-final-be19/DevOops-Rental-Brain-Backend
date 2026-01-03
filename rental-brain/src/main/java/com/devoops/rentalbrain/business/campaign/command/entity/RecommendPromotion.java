@@ -27,4 +27,7 @@ public class RecommendPromotion {
 
     @Column(name = "survey_id")
     private Long surveyId;
+
+    @Column(name = "is_used")
+    private String isUsed;
 }

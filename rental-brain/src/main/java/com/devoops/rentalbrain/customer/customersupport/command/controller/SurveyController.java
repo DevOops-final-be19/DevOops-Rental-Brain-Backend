@@ -3,6 +3,7 @@ package com.devoops.rentalbrain.customer.customersupport.command.controller;
 import com.devoops.rentalbrain.customer.common.SurveyDTO;
 import com.devoops.rentalbrain.customer.customersupport.command.dto.SurveyDeleteDTO;
 import com.devoops.rentalbrain.customer.customersupport.command.dto.SurveyModifyDTO;
+import com.devoops.rentalbrain.customer.customersupport.command.entity.Survey;
 import com.devoops.rentalbrain.customer.customersupport.command.service.SurveyCommandService;
 import com.openai.models.responses.Response;
 import com.openai.models.responses.ResponseOutputText;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/survey")
@@ -40,9 +42,12 @@ public class SurveyController {
     }
 
     @PostMapping("/start")
-    public ResponseEntity<?> startSurvey(@RequestBody SurveyDTO surveyDTO) {
-        surveyCommandService.startSurvey(surveyDTO);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Map<String, Object>> startSurvey(@RequestBody SurveyDTO surveyDTO) {
+        Survey survey = surveyCommandService.startSurvey(surveyDTO);
+        return ResponseEntity.ok(Map.of(
+                "surveyId", survey.getId(),
+                "message", "설문 생성 성공"
+        ));
     }
 
     @PutMapping("/update")

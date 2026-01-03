@@ -13,4 +13,5 @@ public class RecommendPromotionDTO {
     private String content;
     private String segmentName;
     private Long surveyId;
+    private String isUsed;
 }

@@ -26,12 +26,24 @@ public class RecommendPromotionCommandServiceImpl implements RecommendPromotionC
     public void insertRecommendPromotion(InsertRecommendPromotionDTO recommendPromotionDTO) {
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
         RecommendPromotion recommendPromotion = modelMapper.map(recommendPromotionDTO, RecommendPromotion.class);
+        recommendPromotion.setIsUsed("N");
         recommendPromotionRepository.save(recommendPromotion);
     }
 
     @Override
     @Transactional
-    public void DeleteRecommendPromotion(Long recommendPromotionId) {
+    public void deleteRecommendPromotion(Long recommendPromotionId) {
         recommendPromotionRepository.deleteById(recommendPromotionId);
+    }
+
+    @Override
+    @Transactional
+    public void updateRecommendPromotion(Long recommendPromotionId) {
+        RecommendPromotion recommendPromotion =
+                recommendPromotionRepository.findById(recommendPromotionId).orElse(null);
+        if (recommendPromotion != null) {
+            recommendPromotion.setIsUsed("Y");
+            recommendPromotionRepository.save(recommendPromotion);
+        }
     }
 }

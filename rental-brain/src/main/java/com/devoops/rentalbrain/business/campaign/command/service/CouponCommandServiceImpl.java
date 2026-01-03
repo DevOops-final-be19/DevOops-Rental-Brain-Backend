@@ -62,6 +62,7 @@ public class CouponCommandServiceImpl implements CouponCommandService {
         String couponCode = codeGenerator.generate(CodeType.COUPON);
         coupon.setCouponCode(couponCode);
         coupon.setSegmentId(segmentId);
+        coupon.setStatus("A");
 
         couponRepository.save(coupon);
 

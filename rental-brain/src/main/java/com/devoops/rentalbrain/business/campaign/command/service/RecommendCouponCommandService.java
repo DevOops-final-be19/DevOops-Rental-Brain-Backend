@@ -5,5 +5,7 @@ import com.devoops.rentalbrain.business.campaign.command.dto.InsertRecommendCoup
 public interface RecommendCouponCommandService {
     void insertRecommendCoupon(InsertRecommendCouponDTO recommendCouponDTO);
 
-    void DeleteRecommendCoupon(Long recommendCouponId);
+    void deleteRecommendCoupon(Long recommendCouponId);
+
+    void updateRecommendCoupon(Long recommendCouponId);
 }
