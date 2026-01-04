@@ -2,6 +2,9 @@ package com.devoops.rentalbrain.customer.customerlist.command.service;
 
 import com.devoops.rentalbrain.common.codegenerator.CodeGenerator;
 import com.devoops.rentalbrain.common.codegenerator.CodeType;
+import com.devoops.rentalbrain.common.notice.application.domain.PositionType;
+import com.devoops.rentalbrain.common.notice.application.facade.NotificationPublisher;
+import com.devoops.rentalbrain.common.notice.application.strategy.event.CustomerRegistEvent;
 import com.devoops.rentalbrain.customer.customerlist.command.dto.CustomerlistCommandDTO;
 import com.devoops.rentalbrain.customer.customerlist.command.entity.CustomerlistCommandEntity;
 import com.devoops.rentalbrain.customer.customerlist.command.repository.CustomerlistCommandRepository;
@@ -19,6 +22,8 @@ import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -27,6 +32,7 @@ public class CustomerlistCommandServiceImpl implements CustomerlistCommandServic
 
     private final CustomerlistCommandRepository customerRepository;
     private final CodeGenerator codeGenerator;
+    private final NotificationPublisher notificationPublisher;
 
     // [추가] 이력 저장 서비스 주입
     private final HistoryCommandService historyCommandService;
@@ -53,6 +59,7 @@ public class CustomerlistCommandServiceImpl implements CustomerlistCommandServic
 
         customer.setIsDeleted("N");
         CustomerlistCommandEntity saved = customerRepository.save(customer);
+        notificationPublisher.publish(new CustomerRegistEvent(List.of(PositionType.CUSTOMER,PositionType.CUSTOMER_MANAGER),saved.getName(),saved.getId()));
         return saved.getId();
     }
 
