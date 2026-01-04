@@ -71,6 +71,9 @@ public class RecommendPromotionQueryController {
     @GetMapping("read-one")
     public ResponseEntity<RecommendPromotionDTO> recommendPromotionOne() {
         RecommendPromotionDTO recommendPromotion = recommendPromotionQueryService.recommendPromotionOne();
+        if (recommendPromotion == null) {
+            return ResponseEntity.noContent().build();
+        }
         return ResponseEntity.ok().body(recommendPromotion);
     }
 }

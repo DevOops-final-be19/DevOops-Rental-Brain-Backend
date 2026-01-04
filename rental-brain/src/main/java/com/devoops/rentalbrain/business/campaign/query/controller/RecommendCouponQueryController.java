@@ -69,6 +69,9 @@ public class RecommendCouponQueryController {
     @GetMapping("read-one")
     public ResponseEntity<RecommendCouponDTO> recommendCouponOne() {
         RecommendCouponDTO recommendCoupon = recommendCouponQueryService.recommendCouponOne();
+        if (recommendCoupon == null) {
+            return ResponseEntity.noContent().build();
+        }
         return ResponseEntity.ok().body(recommendCoupon);
     }
 }
