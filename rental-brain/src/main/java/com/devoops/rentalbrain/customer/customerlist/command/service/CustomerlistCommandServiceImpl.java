@@ -33,6 +33,7 @@ public class CustomerlistCommandServiceImpl implements CustomerlistCommandServic
 
     // ModelMapper 설정 유지
     private final ModelMapper modelMapper = new ModelMapper();
+
     {
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
     }

@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @Setter
 @ToString
 public class PromotionDTO {
+    private Long id;
     private String promotionCode;
     private String name;
     private String type;
