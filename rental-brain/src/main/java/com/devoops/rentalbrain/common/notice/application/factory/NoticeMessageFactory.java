@@ -1,6 +1,8 @@
 package com.devoops.rentalbrain.common.notice.application.factory;
 
 import com.devoops.rentalbrain.common.notice.application.strategy.event.ContractApprovedEvent;
+import com.devoops.rentalbrain.common.notice.application.strategy.event.CustomerRegistEvent;
+import com.devoops.rentalbrain.common.notice.application.strategy.event.ProductRegistEvent;
 import com.devoops.rentalbrain.common.notice.application.strategy.event.QuoteInsertedEvent;
 import com.devoops.rentalbrain.common.notice.command.entity.Notification;
 import org.springframework.stereotype.Component;
@@ -11,13 +13,41 @@ public class NoticeMessageFactory {
 
     public NoticeMessageFactory() {}
 
-    public Notification contractApprovedCreate(ContractApprovedEvent contractApprovedEvent) {
+    public Notification customerRegistCreate(CustomerRegistEvent customerRegistEvent) {
         return new Notification(
-                "QUOTE_INSERT",
-                "계약 승인",
-                "등록한 계약이 승인되었습니다.",
-                "/contract/"
+                "CUSTOMER_REGIST",
+                "신규 고객 등록",
+                "신규 고객이 등록되었습니다: " + customerRegistEvent.company(),
+                "/customer/" + customerRegistEvent.cmpId()
         );
+    }
+
+    public Notification productRegistCreate(ProductRegistEvent productRegistEvent) {
+        return new Notification(
+                "PRODUCT_REGIST",
+                "신규 자산 등록",
+                "신규 자산이 등록되었습니다: " + productRegistEvent.Item(),
+                "/product/" + productRegistEvent.itemId()
+        );
+    }
+
+    public Notification contractApprovedCreate(ContractApprovedEvent contractApprovedEvent) {
+        if(contractApprovedEvent.isApproved()=='A'){
+            return new Notification(
+                    "APPROVAL",
+                    "결재 승인",
+                    "등록한 결재가 승인되었습니다.",
+                    "/contract/"
+            );
+        }
+        else{
+            return new Notification(
+                    "REJECT",
+                    "결재 반려",
+                    "등록한 결재가 반려되었습니다.",
+                    "/contract/"
+            );
+        }
     }
 
     public Notification quoteInsertedCreate(QuoteInsertedEvent quoteInsertedEvent) {

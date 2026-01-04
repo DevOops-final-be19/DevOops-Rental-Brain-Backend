@@ -2,6 +2,9 @@ package com.devoops.rentalbrain.product.productlist.command.service;
 
 import com.devoops.rentalbrain.common.codegenerator.CodeGenerator;
 import com.devoops.rentalbrain.common.codegenerator.CodeType;
+import com.devoops.rentalbrain.common.notice.application.domain.PositionType;
+import com.devoops.rentalbrain.common.notice.application.facade.NotificationPublisher;
+import com.devoops.rentalbrain.common.notice.application.strategy.event.ProductRegistEvent;
 import com.devoops.rentalbrain.product.productlist.command.dto.ItemDTO;
 import com.devoops.rentalbrain.product.productlist.command.dto.ModifyEachItemDTO;
 import com.devoops.rentalbrain.product.productlist.command.dto.ModifyItemDTO;
@@ -25,15 +28,19 @@ public class ItemCommandServiceImpl implements ItemCommandService {
     private final ItemRepository itemRepository;
     private final ItemCategoryRepository itemCategoryRepository;
     private final CodeGenerator codeGenerator;
+    private final NotificationPublisher notificationPublisher;
 
     @Autowired
     public ItemCommandServiceImpl(ModelMapper modelMapper,
                                   ItemRepository itemRepository,
-                                  ItemCategoryRepository itemCategoryRepository, CodeGenerator codeGenerator) {
+                                  ItemCategoryRepository itemCategoryRepository,
+                                  CodeGenerator codeGenerator,
+                                  NotificationPublisher notificationPublisher) {
         this.modelMapper = modelMapper;
         this.itemRepository = itemRepository;
         this.itemCategoryRepository = itemCategoryRepository;
         this.codeGenerator = codeGenerator;
+        this.notificationPublisher = notificationPublisher;
     }
 
     @Override
@@ -54,7 +61,8 @@ public class ItemCommandServiceImpl implements ItemCommandService {
         item.setRepairCost(0);
         item.setCategoryId(categoryId);
 
-        itemRepository.save(item);
+        Item savedItem = itemRepository.save(item);
+        notificationPublisher.publish(new ProductRegistEvent(List.of(PositionType.PRODUCT,PositionType.PRODUCT_MANAGER),savedItem.getName(),savedItem.getId()));
     }
 
     @Override
