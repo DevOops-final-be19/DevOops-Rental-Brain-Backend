@@ -12,7 +12,7 @@
 
 |   |   |   |   |   |   |
 | :--------------------------------------------------------------: | :--------------------------------------------------------------: | :--------------------------------------------------------------------------: | :-----------------------------------------------------------: | :--------------------------------------------------------------: | :--------------------------------------------------------------: |
-|      <img src="./image/kang.png" width="350px;" alt=""/>      |      <img src="./image/jung.png" width="350px;" alt=""/>      |            <img src="./image/lee.png" width="350px;" alt=""/>            |    <img src="./image/song.png" width="350px;" alt=""/>     |      <img src="./image/yoon.png" width="350px;" alt=""/>      |
+|      <img src="./image/kang.png" width="350px;" alt=""/>      |      <img src="./image/jung.png" width="350px;" alt=""/>      |            <img src="./image/lee.png" width="350px;" alt=""/>            |    <img src="./image/song.png" width="350px;" alt=""/>     |      <img src="./image/yoon.png" width="350px;" alt=""/>      |      <img src="./image/chang.png" width="350px;" alt=""/>      |
 |      [강지현](https://github.com/Kjandgo)      |      [정건일](https://github.com/kyuhon)      |      [이순우](https://github.com/SoonWooLee1)      |      [송형석](https://github.com/thdgudtjr0415)      |      [윤서진](https://github.com/ysj0826)      |      [허창훈](https://github.com/huni2)      |
 
 </div>
