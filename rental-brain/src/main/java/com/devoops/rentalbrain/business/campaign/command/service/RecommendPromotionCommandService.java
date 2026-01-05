@@ -5,5 +5,7 @@ import com.devoops.rentalbrain.business.campaign.command.dto.InsertRecommendProm
 public interface RecommendPromotionCommandService {
     void insertRecommendPromotion(InsertRecommendPromotionDTO recommendPromotionDTO);
 
-    void DeleteRecommendPromotion(Long recommendPromotionId);
+    void deleteRecommendPromotion(Long recommendPromotionId);
+
+    void updateRecommendPromotion(Long recommendPromotionId);
 }

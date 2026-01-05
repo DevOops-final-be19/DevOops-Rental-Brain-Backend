@@ -44,6 +44,7 @@ public class PaymentDetailCommandServiceImpl implements PaymentDetailCommandServ
         // 1. 결제 완료 처리
         paymentDetail.setPaymentActual(dto.getPaymentActual());
         paymentDetail.setPaymentStatus("C");
+        paymentDetail.setOverdueDays(0);
 
         // 2. 계약 ID 추출
         Long contractId = paymentDetail.getContractId();
@@ -61,20 +62,12 @@ public class PaymentDetailCommandServiceImpl implements PaymentDetailCommandServ
     public void autoMarkAsNonPayment() {
         LocalDateTime now = LocalDateTime.now();
 
-        List<PaymentDetailCommandEntity> targets =
-                paymentDetailCommandRepository.findExpiredUnpaid(now);
+        int updated = paymentDetailCommandRepository.markAsNonPayment(now);
 
-        for (PaymentDetailCommandEntity paymentDetail : targets) {
+        log.warn("[AUTO NON-PAYMENT] {}건 미납 전환 처리", updated);
 
-            paymentDetail.setPaymentStatus("N");
-            paymentDetail.setOverdueDays(0);
-
-            log.warn(
-                    "[AUTO NON-PAYMENT] paymentDetailId={}, overdueDays=0",
-                    paymentDetail.getId()
-            );
-        }
     }
+
     @Override
     public void increaseOverdueDays() {
         int updated = paymentDetailCommandRepository.increaseOverdueDaysForNonPayment();

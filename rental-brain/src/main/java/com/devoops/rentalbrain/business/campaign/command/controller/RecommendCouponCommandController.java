@@ -36,6 +36,20 @@ public class RecommendCouponCommandController {
     }
 
     @Operation(
+            summary = "추천 쿠폰 수정",
+            description = "추천 쿠폰이 실제로 등록되면 생성여부를 수정합니다.",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "조회 성공"),
+                    @ApiResponse(responseCode = "400", description = "잘못된 요청")
+            }
+    )
+    @PutMapping("update/{recommendCouponId}")
+    public void updateRecommendCoupon(@PathVariable Long recommendCouponId) {
+        recommendCouponCommandService.updateRecommendCoupon(recommendCouponId);
+    }
+
+    @Operation(
             summary = "추천 쿠폰 삭제",
             description = "추천 쿠폰을 삭제합니다.",
             security = @SecurityRequirement(name = "bearerAuth"),
@@ -45,7 +59,7 @@ public class RecommendCouponCommandController {
             }
     )
     @DeleteMapping("delete/{recommendCouponId}")
-    public void DeleteRecommendCoupon(@PathVariable Long recommendCouponId) {
-        recommendCouponCommandService.DeleteRecommendCoupon(recommendCouponId);
+    public void deleteRecommendCoupon(@PathVariable Long recommendCouponId) {
+        recommendCouponCommandService.deleteRecommendCoupon(recommendCouponId);
     }
 }

@@ -86,7 +86,7 @@ public class SurveyCommandServiceImpl implements SurveyCommandService {
                 "  {\n" +
                 "   \"name\": string,\n" +
                 "   \"content\": string,\n" +
-                "   \"segmentName\": \"잠재 고객\" | \"신규 고객\" | \"일반 고객\" | \"VIP 고객\" | \"확장 의사 고객\" | \"이탈 위험 고객\",\n" +
+                "   \"segmentName\": \"잠재 고객\" | \"신규 고객\" | \"일반 고객\" | \"VIP 고객\" | \"확장 의사 고객 (기회 고객)\" | \"이탈 위험 고객\",\n" +
                 "   \"rate\"?: number\n" +
                 "  }\n" +
                 " ]\n" +
@@ -97,7 +97,7 @@ public class SurveyCommandServiceImpl implements SurveyCommandService {
                 "- 신규 고객: 첫 계약을 체결한 직후의 고객으로, 아직 관계 안정성이 검증되지 않은 초기 거래 단계\n" +
                 "- 일반 고객: 첫 계약 시작일 기준 3개월 이상 경과했고, 해지·연체·이탈 위험·확장 시그널이 없는 정상 거래 고객\n" +
                 "- VIP 고객: 해지 이력이 없고, 계약 유지 개월 수 합계가 36개월 이상이거나 총 계약 금액이 3억 원 이상인 핵심 고객\n" +
-                "- 확장 의사 고객: 업셀링이 증가했거나 계약 만료가 3~6개월 이내이면서 만족도 4.0 이상인 고객 중, 해지 요청이나 연체가 없는 경우\n" +
+                "- 확장 의사 고객 (기회 고객): 업셀링이 증가했거나 계약 만료가 3~6개월 이내이면서 만족도 4.0 이상인 고객 중, 해지 요청이나 연체가 없는 경우\n" +
                 "- 이탈 위험 고객: 계약 만료가 1~3개월 이내이거나, 해지·연체가 발생했거나, 최근 3개월 평균 만족도가 2.5 이하이거나, 계약 종료 후 3개월 이내에 활성 계약이 없는 고객\n\n" +
 
                 "추천 규칙:\n" +
@@ -140,14 +140,15 @@ public class SurveyCommandServiceImpl implements SurveyCommandService {
 
     @Override
     @Transactional
-    public void startSurvey(SurveyDTO surveyDTO) {
+    public Survey startSurvey(SurveyDTO surveyDTO) {
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
         Survey survey = modelMapper.map(surveyDTO, Survey.class);
 
         survey.setSurveyCode(codeGenerator.generate(CodeType.SURVEY));
 
         log.info("survey : {}", survey);
-        surveyCommandRepository.save(survey);
+        Survey resultSurvey = surveyCommandRepository.save(survey);
+        return resultSurvey;
     }
 
     @Override

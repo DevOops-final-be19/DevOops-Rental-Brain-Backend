@@ -10,6 +10,7 @@
         <result property="content" column="CONTENT"/>
         <result property="segmentName" column="SEGMENT_NAME"/>
         <result property="surveyId" column="SURVEY_ID"/>
+        <result property="isUsed" column="IS_USED"/>
     </resultMap>
     <select id="selectRecommendCouponsBySurveyId" resultMap="getRecommendCouponMap" parameterType="long">
         SELECT
@@ -18,7 +19,8 @@
                A.RATE,
                A.CONTENT,
                A.SEGMENT_NAME,
-               A.SURVEY_ID
+               A.SURVEY_ID,
+               A.IS_USED
           FROM recommend_coupon A
          WHERE A.SURVEY_ID = #{surveyId}
     </select>
@@ -42,5 +44,7 @@
         A.SEGMENT_NAME,
         A.SURVEY_ID
         FROM recommend_coupon A
+        ORDER BY A.ID DESC
+        LIMIT 1
     </select>
 </mapper>

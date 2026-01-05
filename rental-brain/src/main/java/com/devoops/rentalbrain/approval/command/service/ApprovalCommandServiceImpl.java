@@ -37,16 +37,19 @@ public class ApprovalCommandServiceImpl implements ApprovalCommandService {
     private final PaymentDetailCommandRepository paymentDetailCommandRepository;
     private final ItemRepository itemRepository;
     private final CouponCommandService couponCommandService;
+    private final NotificationPublisher notificationPublisher;
 
     @Autowired
     public ApprovalCommandServiceImpl(ApprovalMappingCommandRepository approvalMappingCommandRepository,
                                       PaymentDetailCommandRepository paymentDetailCommandRepository,
                                       ItemRepository itemRepository,
-                                      CouponCommandService couponCommandService) {
+                                      CouponCommandService couponCommandService,
+                                      NotificationPublisher notificationPublisher) {
         this.approvalMappingCommandRepository = approvalMappingCommandRepository;
         this.paymentDetailCommandRepository = paymentDetailCommandRepository;
         this.itemRepository = itemRepository;
         this.couponCommandService = couponCommandService;
+        this.notificationPublisher = notificationPublisher;
     }
 
     @Override
@@ -84,6 +87,7 @@ public class ApprovalCommandServiceImpl implements ApprovalCommandService {
             contract.setStatus("P");
             insertPaymentDetailsForContract(contract);
             couponCommandService.updateIssuedCoupon(contract.getId());
+            notificationPublisher.publish(new ContractApprovedEvent(approval.getEmployee().getId(),'A'));
         } else {
             // 아직 전부 Y가 아니면: current_step 업데이트
             contract.setCurrentStep(approvedStep);
@@ -118,6 +122,9 @@ public class ApprovalCommandServiceImpl implements ApprovalCommandService {
 
         // 6. 결재 반려 → 아이템 상태 롤백
         rollbackContractItems(contract.getId());
+
+        notificationPublisher.publish(new ContractApprovedEvent(approval.getEmployee().getId(),'R'));
+
     }
     /**
      * 공통 조회 메서드
