@@ -37,7 +37,11 @@
 ---
 
 ## WBS
-[![WBS](https://img.shields.io/badge/WBS-바로가기-blue?style=for-the-badge)](Project-WBS)
+
+<details>
+    <summary></summary>
+<img src = "./image/WBS.png" width = "1000"> </img>
+</details>
 
 ---
 
@@ -72,12 +76,20 @@
 ---
 
 ## DDD
-[![DDD](https://img.shields.io/badge/DDD-바로가기-red?style=for-the-badge)](Project-DDD)
+
+<details>
+    <summary></summary>
+<img src = "./image/DDD.png" width = "1000"> </img>
+</details>
 
 ---
 
 ## 물리 모델링
-[![물리 모델링](https://img.shields.io/badge/물리_모델링-바로가기-red?style=for-the-badge)](Project-Modeling)
+
+<details>
+    <summary></summary>
+<img src = "./image/Modeling.png" width = "1000"> </img>
+</details>
 
 ---
 
@@ -92,7 +104,12 @@
 ---
 
 ## 화면 설계서
-[![화면 설계서](https://img.shields.io/badge/화면_설계서-바로가기-yellow?style=for-the-badge)](Screen-design)
+
+<details>
+    <summary></summary>
+<img src = "./image/screen1.png" width = "1000"> </img>
+<img src = "./image/screen2.png" width = "1000"> </img>
+</details>
 
 ---
 
