@@ -15,6 +15,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 @Slf4j
 public class JwtFilter extends OncePerRequestFilter {
@@ -31,6 +33,7 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String path = request.getRequestURI();
+
         //  JWT 검사 제외 경로
         if (
                 path.equals("/login") ||
@@ -47,7 +50,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         // 헤더에서 Authorization Token 추출
         String authorizationHeader = request.getHeader("Authorization");
-
+        log.info("source - {}",getClientIp(request));
         // 토큰 존재하는지 검사
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
             log.info("토큰 인증 실패");
@@ -57,7 +60,6 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         String accessToken = authorizationHeader.substring(7);
-        log.info("엑세스 토큰: {}", accessToken);
 
         // 토큰 유효성 검사
         try {
@@ -65,8 +67,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
             // 토큰에 있는 권한 추출
             Authentication authentication = jwtUtil.getAuthentication(accessToken);
-            log.info("authentication 내용 : {}", authentication.toString());
-            // 토큰 서버측 검사(redis), 나중에 넣음
+            // 토큰 서버측 검사(redis)
             try {
                 if (redisTemplate.opsForValue().get("BL:" + accessToken) != null) {
                     log.info("유효하지 않은 JWT Token(BL)");
@@ -79,6 +80,8 @@ public class JwtFilter extends OncePerRequestFilter {
             }
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
+            UserImpl user = (UserImpl) authentication.getPrincipal();
+            log.info("user - {}",user.getUsername());
 
         } catch (ExpiredJwtException e) {
             log.info("세션 만료");
@@ -103,5 +106,45 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    public static String getClientIp(HttpServletRequest request) throws UnknownHostException {
+        String ip = request.getHeader("X-Forwarded-For");
+
+        if (ip == null || ip.isBlank() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("Proxy-Client-IP");
+        }
+        if (ip == null || ip.isBlank() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("WL-Proxy-Client-IP");
+        }
+        if (ip == null || ip.isBlank() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_CLIENT_IP");
+        }
+        if (ip == null || ip.isBlank() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_X_FORWARDED_FOR");
+        }
+        if (ip == null || ip.isBlank() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("X-Real-IP");
+        }
+        if (ip == null || ip.isBlank() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("X-RealIP");
+        }
+        if (ip == null || ip.isBlank() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("REMOTE_ADDR");
+        }
+        if (ip == null || ip.isBlank() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr(); // fallback
+        }
+
+        // X-Forwarded-For는 콤마로 여러 IP가 들어올 수 있음 → 첫 번째가 클라이언트
+        if (ip != null && ip.contains(",")) {
+            ip = ip.split(",")[0].trim();
+        }
+        if (ip.equals("0:0:0:0:0:0:0:1")) {
+            InetAddress inet = InetAddress.getLocalHost();
+            ip = inet.getHostAddress();
+        }
+
+        return ip;
     }
 }

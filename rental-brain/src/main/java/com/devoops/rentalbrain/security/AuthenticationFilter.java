@@ -58,7 +58,6 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         try {
             LoginDTO credential = new ObjectMapper().readValue(request.getInputStream(), LoginDTO.class);
-            log.info("attemptAuthentication: credential={}", credential);
 
             return getAuthenticationManager().authenticate(
                     new UsernamePasswordAuthenticationToken(credential.getEmpId(), credential.getPwd(), new ArrayList<>()));
@@ -70,7 +69,6 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
-        log.info("로그인 성공 : {}", authResult.toString());
         // 성공한 사용자의 id
         String id = authResult.getName();
         log.info(id);
@@ -92,9 +90,9 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
                 .setExpiration(new java.util.Date(System.currentTimeMillis() + Long.parseLong(env.getProperty(("token.access_expiration_time")))))
                 .signWith(SignatureAlgorithm.HS512, env.getProperty("token.access_secret"))
                 .compact();
+        log.info("accessToken - {}",accessToken);
 
 //        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        log.info("accessToken : {}", accessToken);
 //        response.addHeader("access-token", accessToken);
 
 
@@ -124,8 +122,6 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
         } catch (Exception e) {
             log.info("오류 - {}", e.getMessage());
         }
-
-        log.info("refreshToken : {}", refreshToken);
 
 
         // 성공 객체 반환

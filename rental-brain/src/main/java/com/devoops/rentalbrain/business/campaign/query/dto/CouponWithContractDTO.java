@@ -15,5 +15,6 @@ public class CouponWithContractDTO {
     private String name;
     private String content;
     private Integer rate;
+    private String type;
     private LocalDateTime endDate;
 }
