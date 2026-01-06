@@ -44,7 +44,8 @@
              , a.category_id
              , b.name as category_name
           FROM survey a JOIN survey_category b
-           ON a.category_id = b.id
+            ON a.category_id = b.id
+         ORDER BY a.survey_code DESC
     </select>
 
     <select id="getSurveyResult" resultMap="surveyResultMap">

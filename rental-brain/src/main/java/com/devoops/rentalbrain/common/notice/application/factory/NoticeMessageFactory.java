@@ -1,9 +1,6 @@
 package com.devoops.rentalbrain.common.notice.application.factory;
 
-import com.devoops.rentalbrain.common.notice.application.strategy.event.ContractApprovedEvent;
-import com.devoops.rentalbrain.common.notice.application.strategy.event.CustomerRegistEvent;
-import com.devoops.rentalbrain.common.notice.application.strategy.event.ProductRegistEvent;
-import com.devoops.rentalbrain.common.notice.application.strategy.event.QuoteInsertedEvent;
+import com.devoops.rentalbrain.common.notice.application.strategy.event.*;
 import com.devoops.rentalbrain.common.notice.command.entity.Notification;
 import org.springframework.stereotype.Component;
 
@@ -12,6 +9,15 @@ import org.springframework.stereotype.Component;
 public class NoticeMessageFactory {
 
     public NoticeMessageFactory() {}
+
+    public Notification ApprovalRequestCreate(ApprovalRequestEvent approvalRequestEvent){
+        return new Notification(
+                "APPROVAL_REQUEST",
+                "결재 대기중",
+                "대기중인 결재가 있습니다: " + approvalRequestEvent.approvalName(),
+                "/approval/"
+        );
+    }
 
     public Notification customerRegistCreate(CustomerRegistEvent customerRegistEvent) {
         return new Notification(
