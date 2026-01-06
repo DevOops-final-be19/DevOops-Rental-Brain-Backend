@@ -1,6 +1,6 @@
 # Rental Brain - 어쩌구저쩌구
 
-<img width="900" alt="Image" src="./image/banner.png" />
+<img width="750" alt="Image" src="./image/banner.png" />
 
 <br>
 
