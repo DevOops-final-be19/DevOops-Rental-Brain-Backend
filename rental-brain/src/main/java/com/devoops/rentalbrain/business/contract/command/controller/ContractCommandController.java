@@ -134,4 +134,53 @@ public class ContractCommandController {
 
         return ResponseEntity.ok().build();
     }
+
+    @Operation(
+            summary = "계약 삭제 (논리 삭제)",
+            description = """
+            계약을 논리적으로 삭제 처리합니다.
+
+            ### 처리 내용
+            - 계약 is_deleted 값을 'Y'로 변경합니다.
+            - 실제 데이터는 삭제되지 않습니다.
+
+            ### 제한 사항
+            - 이미 삭제된 계약은 삭제할 수 없습니다.
+            - 종료된 계약(C, T)만 삭제할 수 있습니다.
+            """
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "계약 삭제 성공"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "잘못된 요청",
+                    content = @Content(schema = @Schema())
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "계약을 찾을 수 없음",
+                    content = @Content(schema = @Schema())
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "서버 오류",
+                    content = @Content(schema = @Schema())
+            )
+    })
+    @PatchMapping("/{contractId}/delete")
+    public ResponseEntity<Void> deleteContract(
+            @PathVariable Long contractId
+    ) {
+        contractCommandService.deleteContract(contractId);
+
+        log.info(
+                "[API][CONTRACT_DELETE] contractId={}",
+                contractId
+        );
+
+        return ResponseEntity.ok().build();
+    }
 }
