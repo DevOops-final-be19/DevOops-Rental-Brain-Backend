@@ -56,7 +56,6 @@ public class RefreshAuthController {
                 .orElseThrow(() -> new RuntimeException("No refresh token"));
         String refreshToken = refreshCookie.getValue();
 
-        log.info("엑세스 토큰: {}, \n 리프레쉬 토큰: {}", accessToken, refreshToken);
 
         if (accessToken == null || !accessToken.startsWith("Bearer ")) {
             log.info("엑세스 토큰이 없습니다.");
@@ -84,7 +83,6 @@ public class RefreshAuthController {
 
         String storedAccessToken = (String) redisTemplate.opsForHash().get("RT:" + sub, "Access-Token");
         String storedRefreshToken = (String) redisTemplate.opsForHash().get("RT:" + sub, "Refresh-Token");
-        log.info("저장된 엑세스 토큰: {} \n 저장된 리프레쉬 토큰: {}", storedAccessToken, storedRefreshToken);
 
         if (storedRefreshToken == null || !storedRefreshToken.equals(refreshToken) || !storedAccessToken.equals(accessToken)) {
             log.info("검증되지 않은 리프레쉬 토큰입니다.");
