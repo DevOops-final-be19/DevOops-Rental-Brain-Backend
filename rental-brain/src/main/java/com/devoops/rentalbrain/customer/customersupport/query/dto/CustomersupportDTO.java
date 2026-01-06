@@ -13,6 +13,7 @@ public class CustomersupportDTO {
     private LocalDateTime createDate;
     private String action;
 
+    private String cumId;
     private String customerName;
     private String empName;
     private String categoryName;

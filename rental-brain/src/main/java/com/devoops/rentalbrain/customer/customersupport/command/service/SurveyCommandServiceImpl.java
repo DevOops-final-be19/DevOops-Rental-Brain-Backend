@@ -120,7 +120,7 @@ public class SurveyCommandServiceImpl implements SurveyCommandService {
                 new String(csvFile.getBytes(), StandardCharsets.UTF_8) +
                 "\n" +
                 "Return ONLY the JSON object.\n";
-        log.info(prompt);
+
 
         ResponseCreateParams createParams = ResponseCreateParams.builder()
                 .temperature(0.0)
@@ -130,10 +130,10 @@ public class SurveyCommandServiceImpl implements SurveyCommandService {
                 )
                 .model(ChatModel.GPT_5_1)
                 .build();
-        log.info("response 값 : {}", createParams);
+        log.info("request : {}", createParams);
 
         Response response = client.responses().create(createParams);
-        log.info("response 값 : {}", response);
+        log.info("response : {}", response);
 
         return response;
     }
