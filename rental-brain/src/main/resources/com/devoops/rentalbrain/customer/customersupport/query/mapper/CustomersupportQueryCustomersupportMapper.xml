@@ -13,6 +13,7 @@
         <result property="createDate" column="CREATE_DATE"/>
         <result property="action" column="ACTION"/>
 
+        <result property="cumId" column="CUM_ID"/>
         <result property="customerName" column="CUSTOMER_NAME"/>
         <result property="empName" column="EMP_NAME"/>
         <result property="categoryName" column="CATEGORY_NAME"/>
@@ -95,6 +96,7 @@
                  , A.STATUS
                  , A.CREATE_DATE
                  , A.ACTION
+                 , B.ID AS CUM_ID
                  , B.NAME AS CUSTOMER_NAME
                  , C.NAME AS EMP_NAME
                  , D.NAME AS CATEGORY_NAME
