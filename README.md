@@ -32,22 +32,22 @@
 ---
 
 ## 프로젝트 기획서
-[![프로젝트 기획서](https://img.shields.io/badge/프로젝트_기획서-바로가기-blue?style=for-the-badge)](여기에_링크_입력)
+[![프로젝트 기획서](https://img.shields.io/badge/프로젝트_기획서-바로가기-blue?style=for-the-badge)](Project-Plan)
 
 ---
 
 ## WBS
-[![WBS](https://img.shields.io/badge/WBS-바로가기-blue?style=for-the-badge)](여기에_링크_입력)
+[![WBS](https://img.shields.io/badge/WBS-바로가기-blue?style=for-the-badge)](Project-WBS)
 
 ---
 
 ## 요구사항 명세서
-[![요구사항 명세서](https://img.shields.io/badge/요구사항_명세서-바로가기-orange?style=for-the-badge)](여기에_링크_입력)
+[![요구사항 명세서](https://img.shields.io/badge/요구사항_명세서-바로가기-orange?style=for-the-badge)](Project-Requirements)
 
 ---
 
 ## 프로그램 사양서
-[![프로그램 사양서](https://img.shields.io/badge/프로그램_사양서-바로가기-orange?style=for-the-badge)](여기에_링크_입력)
+[![프로그램 사양서](https://img.shields.io/badge/프로그램_사양서-바로가기-orange?style=for-the-badge)](Program-Specification)
 
 ---
 
@@ -62,7 +62,7 @@
 ---
 
 ## CICD 설계서
-[![CICD 설계서](https://img.shields.io/badge/CICD_설계서-바로가기-red?style=for-the-badge)](여기에_링크_입력)
+[![CICD 설계서](https://img.shields.io/badge/CICD_설계서-바로가기-red?style=for-the-badge)](Project-CICD)
 
 ---
 
@@ -72,27 +72,27 @@
 ---
 
 ## DDD
-[![DDD](https://img.shields.io/badge/DDD-바로가기-red?style=for-the-badge)](여기에_링크_입력)
+[![DDD](https://img.shields.io/badge/DDD-바로가기-red?style=for-the-badge)](Project-DDD)
 
 ---
 
 ## 물리 모델링
-[![물리 모델링](https://img.shields.io/badge/물리_모델링-바로가기-red?style=for-the-badge)](여기에_링크_입력)
+[![물리 모델링](https://img.shields.io/badge/물리_모델링-바로가기-red?style=for-the-badge)](Project-Modeling)
 
 ---
 
 ## DDL
-[![DDL](https://img.shields.io/badge/DDL-바로가기-red?style=for-the-badge)](여기에_링크_입력)
+[![DDL](https://img.shields.io/badge/DDL-바로가기-red?style=for-the-badge)](Project-DDL)
 
 ---
 
 ## DML
-[![DML](https://img.shields.io/badge/DML-바로가기-red?style=for-the-badge)](여기에_링크_입력)
+[![DML](https://img.shields.io/badge/DML-바로가기-red?style=for-the-badge)](Project-DML)
 
 ---
 
 ## 화면 설계서
-[![화면 설계서](https://img.shields.io/badge/화면_설계서-바로가기-yellow?style=for-the-badge)](여기에_링크_입력)
+[![화면 설계서](https://img.shields.io/badge/화면_설계서-바로가기-yellow?style=for-the-badge)](Screen-design)
 
 ---
 
@@ -102,7 +102,7 @@
 ---
 
 ## API 명세서(POSTMAN)
-[![API 명세서](https://img.shields.io/badge/API_명세서(POSTMAN)-바로가기-green?style=for-the-badge)](여기에_링크_입력)
+[![API 명세서](https://img.shields.io/badge/API_명세서(POSTMAN)-바로가기-green?style=for-the-badge)](Project-API)
 
 ---
 
