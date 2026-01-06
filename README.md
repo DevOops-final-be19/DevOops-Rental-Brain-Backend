@@ -32,7 +32,7 @@
 ---
 
 ## 프로젝트 기획서
-[![프로젝트 기획서](https://img.shields.io/badge/프로젝트_기획서-바로가기-blue?style=for-the-badge)](Project-Plan)
+[![프로젝트 기획서](https://img.shields.io/badge/프로젝트_기획서-바로가기-blue?style=for-the-badge)](https://github.com/DevOops-final-be19/DevOops-Rental-Brain-Backend/wiki/%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%A8-%EA%B8%B0%ED%9A%8D%EC%84%9C)
 
 ---
 
@@ -46,12 +46,12 @@
 ---
 
 ## 요구사항 명세서
-[![요구사항 명세서](https://img.shields.io/badge/요구사항_명세서-바로가기-orange?style=for-the-badge)](Project-Requirements)
+[![요구사항 명세서](https://img.shields.io/badge/요구사항_명세서-바로가기-orange?style=for-the-badge)](https://docs.google.com/spreadsheets/d/1FiPIK108LXFpthGKHbMOO1j-0Fgp1mbqoVh2J5XJNPE/edit?pli=1&gid=142676024#gid=142676024)
 
 ---
 
 ## 프로그램 사양서
-[![프로그램 사양서](https://img.shields.io/badge/프로그램_사양서-바로가기-orange?style=for-the-badge)](Program-Specification)
+[![프로그램 사양서](https://img.shields.io/badge/프로그램_사양서-바로가기-orange?style=for-the-badge)](https://ohgiraffers.notion.site/2dc649136c1180048e10cb275fe62fe9?source=copy_link)
 
 ---
 
@@ -66,7 +66,7 @@
 ---
 
 ## CICD 설계서
-[![CICD 설계서](https://img.shields.io/badge/CICD_설계서-바로가기-red?style=for-the-badge)](Project-CICD)
+[![CICD 설계서](https://img.shields.io/badge/CICD_설계서-바로가기-red?style=for-the-badge)](https://ohgiraffers.notion.site/CI-CD-2dc649136c11807b9d0bcf8f9334220b?source=copy_link)
 
 ---
 
@@ -119,7 +119,7 @@
 ---
 
 ## API 명세서(POSTMAN)
-[![API 명세서](https://img.shields.io/badge/API_명세서(POSTMAN)-바로가기-green?style=for-the-badge)](Project-API)
+[![API 명세서](https://img.shields.io/badge/API_명세서(POSTMAN)-바로가기-green?style=for-the-badge)](https://docs.google.com/spreadsheets/d/1FiPIK108LXFpthGKHbMOO1j-0Fgp1mbqoVh2J5XJNPE/edit?pli=1&gid=1317837305#gid=1317837305)
 
 ---
 
