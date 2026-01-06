@@ -71,7 +71,7 @@
 ---
 
 ## 기술 스택	
-[![기술 스택](https://img.shields.io/badge/기술_스택-바로가기-red?style=for-the-badge)](여기에_링크_입력)
+[![기술 스택](https://img.shields.io/badge/기술_스택-바로가기-red?style=for-the-badge)](https://github.com/DevOops-final-be19/DevOops-Rental-Brain-Backend/wiki/%EA%B8%B0%EC%88%A0-%EC%8A%A4%ED%83%9D)
 
 ---
 
