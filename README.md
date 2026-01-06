@@ -1,4 +1,4 @@
-# Rental Brain - 어쩌구저쩌구
+# Rental Brain - 감이 아닌 확신으로, 렌탈 운영의 기준을 바꾸는 전자 비서
 
 <img width="950" alt="Image" src="./image/banner.png" />
 
@@ -22,7 +22,7 @@
 
 
 ## 프로젝트 소개
-[![프로젝트 소개](https://img.shields.io/badge/프로젝트_소개-바로가기-blue?style=for-the-badge)](여기에_링크_입력)
+[![프로젝트 소개](https://img.shields.io/badge/프로젝트_소개-바로가기-blue?style=for-the-badge)](https://github.com/DevOops-final-be19/DevOops-Rental-Brain-Backend/wiki/%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%EC%86%8C%EA%B0%9C)
 
 ---
 
