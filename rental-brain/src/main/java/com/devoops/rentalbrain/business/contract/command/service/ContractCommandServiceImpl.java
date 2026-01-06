@@ -19,6 +19,8 @@ import com.devoops.rentalbrain.common.codegenerator.CodeGenerator;
 import com.devoops.rentalbrain.common.codegenerator.CodeType;
 import com.devoops.rentalbrain.common.error.ErrorCode;
 import com.devoops.rentalbrain.common.error.exception.BusinessException;
+import com.devoops.rentalbrain.common.notice.application.facade.NotificationPublisher;
+import com.devoops.rentalbrain.common.notice.application.strategy.event.ApprovalRequestEvent;
 import com.devoops.rentalbrain.common.segmentrebuild.command.service.SegmentTransitionCommandService;
 import com.devoops.rentalbrain.customer.customerlist.command.entity.CustomerlistCommandEntity;
 import com.devoops.rentalbrain.employee.command.dto.UserImpl;
@@ -56,6 +58,7 @@ public class ContractCommandServiceImpl implements ContractCommandService {
     private final SegmentTransitionCommandService segmentTransitionCommandService;
     private final PromotionCommandService promotionCommandService;
     private final CouponCommandService couponCommandService;
+    private final NotificationPublisher notificationPublisher;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -71,7 +74,8 @@ public class ContractCommandServiceImpl implements ContractCommandService {
             CodeGenerator codeGenerator,
             SegmentTransitionCommandService segmentTransitionCommandService,
             PromotionCommandService promotionCommandService,
-            CouponCommandService couponCommandService
+            CouponCommandService couponCommandService,
+            NotificationPublisher notificationPublisher
     ) {
         this.contractCommandRepository = contractCommandRepository;
         this.approvalCommandRepository = approvalCommandRepository;
@@ -83,6 +87,7 @@ public class ContractCommandServiceImpl implements ContractCommandService {
         this.segmentTransitionCommandService = segmentTransitionCommandService;
         this.promotionCommandService = promotionCommandService;
         this.couponCommandService = couponCommandService;
+        this.notificationPublisher = notificationPublisher;
     }
 
     @Override
@@ -429,6 +434,7 @@ public class ContractCommandServiceImpl implements ContractCommandService {
 
             contract.setCurrentStep(2);
             contract.setStatus("W");
+            notificationPublisher.publish(new ApprovalRequestEvent(ceoId,approval.getTitle()));
             return;
         }
 
@@ -470,6 +476,8 @@ public class ContractCommandServiceImpl implements ContractCommandService {
 
         contract.setCurrentStep(1);
         contract.setStatus("W");
+
+        notificationPublisher.publish(new ApprovalRequestEvent(leaderId,approval.getTitle()));
     }
 
     private void insertPaymentDetailsForContract(ContractCommandEntity contract) {

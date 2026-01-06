@@ -13,6 +13,7 @@ import com.devoops.rentalbrain.common.error.ErrorCode;
 import com.devoops.rentalbrain.common.error.exception.BusinessException;
 import com.devoops.rentalbrain.common.notice.application.domain.PositionType;
 import com.devoops.rentalbrain.common.notice.application.facade.NotificationPublisher;
+import com.devoops.rentalbrain.common.notice.application.strategy.event.ApprovalRequestEvent;
 import com.devoops.rentalbrain.common.notice.application.strategy.event.ContractApprovedEvent;
 import com.devoops.rentalbrain.common.notice.application.strategy.event.QuoteInsertedEvent;
 import com.devoops.rentalbrain.employee.command.dto.UserImpl;
@@ -91,6 +92,8 @@ public class ApprovalCommandServiceImpl implements ApprovalCommandService {
         } else {
             // 아직 전부 Y가 아니면: current_step 업데이트
             contract.setCurrentStep(approvedStep);
+            ApprovalMappingCommandEntity approvalMappingCommandEntity = approvalMappingCommandRepository.findByApprovalIdAndIsApproved(approval.getId(), "U");
+            notificationPublisher.publish(new ApprovalRequestEvent(approvalMappingCommandEntity.getEmployee().getId(),approval.getTitle()));
         }
     }
 
