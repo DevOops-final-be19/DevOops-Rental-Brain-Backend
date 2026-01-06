@@ -18,6 +18,8 @@
                 FROM contract t LEFT JOIN customer c
             ON t.cum_id = c.id
         <where>
+            AND t.is_deleted = 'N'
+
             <if test="status != null and status != ''">
                 AND t.status = #{status}
             </if>
@@ -55,6 +57,9 @@
         FROM contract t LEFT JOIN customer c
         ON t.cum_id = c.id
         <where>
+
+            AND t.is_deleted = 'N'
+
             <if test="status != null and status != ''">
                 AND t.status = #{status}
             </if>

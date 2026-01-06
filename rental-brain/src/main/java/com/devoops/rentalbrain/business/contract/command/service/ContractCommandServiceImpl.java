@@ -376,6 +376,36 @@ public class ContractCommandServiceImpl implements ContractCommandService {
         );
     }
 
+    @Transactional
+    @Override
+    public void deleteContract(Long contractId) {
+
+        ContractCommandEntity contract =
+                contractCommandRepository.findById(contractId)
+                        .orElseThrow(() ->
+                                new BusinessException(ErrorCode.CONTRACT_NOT_FOUND));
+
+        // 이미 삭제된 계약
+        if ("Y".equals(contract.getIsDeleted())) {
+            throw new BusinessException(
+                    ErrorCode.INVALID_CONTRACT_STATUS,
+                    "이미 삭제된 계약입니다."
+            );
+        }
+
+        int updated =
+                itemRepository.updateItemsToOverdueExceptRepairAndStatus(contractId);
+
+        contract.setIsDeleted("Y");
+
+        log.info(
+                "[CONTRACT][DELETED] contractId={}, overdueItems={}, status={}",
+                contractId,
+                updated,
+                contract.getStatus()
+        );
+    }
+
 
     private void createApprovalMapping(
             ApprovalCommandEntity approval,

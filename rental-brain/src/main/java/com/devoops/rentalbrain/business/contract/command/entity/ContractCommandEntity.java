@@ -92,4 +92,7 @@ public class ContractCommandEntity {
     @JoinColumn(name = "cum_id", nullable = false)
     private CustomerlistCommandEntity customer;
 
+    @Column(name = "is_deleted")
+    private String isDeleted;
+
 }
