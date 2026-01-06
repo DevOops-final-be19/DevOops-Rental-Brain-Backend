@@ -32,7 +32,7 @@
 ---
 
 ## 프로젝트 기획서
-[![프로젝트 기획서](https://img.shields.io/badge/프로젝트_기획서-바로가기-blue?style=for-the-badge)](Project-Plan)
+[![프로젝트 기획서](https://img.shields.io/badge/프로젝트_기획서-바로가기-blue?style=for-the-badge)](문서/Project-Plan)
 
 ---
 
