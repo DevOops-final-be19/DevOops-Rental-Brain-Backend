@@ -134,7 +134,7 @@
 ---
 
 ## 트러블 슈팅
-[![트러블 슈팅](https://img.shields.io/badge/트러블_슈팅-바로가기-violet?style=for-the-badge)](여기에_링크_입력)
+[![트러블 슈팅](https://img.shields.io/badge/트러블_슈팅-바로가기-violet?style=for-the-badge)](https://ohgiraffers.notion.site/2e0649136c1180868121e8af14c360fc?source=copy_link)
 
 ---
 
