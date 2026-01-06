@@ -1,4 +1,4 @@
-# Rental Brain - 감이 아닌 확신으로, 렌탈 운영의 기준을 바꾸는 전자 비서
+# Rental Brain - 렌탈 운영의 기준을 바꾸는 전자 비서
 
 <img width="950" alt="Image" src="./image/banner.png" />
 
