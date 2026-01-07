@@ -93,7 +93,7 @@
     <select id="countAllContracts" resultType="long">
         SELECT COUNT(*)
         FROM contract
-        WHERE STATUS IN ('P', 'E', 'I', 'C')
+        WHERE is_deleted = "N"
     </select>
 
     <!-- 진행중 계약 수 -->
