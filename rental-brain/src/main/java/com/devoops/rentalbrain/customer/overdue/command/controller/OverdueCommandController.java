@@ -60,5 +60,43 @@ public class OverdueCommandController {
     ) {
         overdueCommandService.updateItemOverdue(overdueId, dto);
     }
+
+    @Operation(
+            summary = "수납 연체 삭제",
+            description = """
+                수납 연체 이력을 삭제합니다.
+                
+                - 존재하지 않는 id 요청 시 오류 발생
+                - 물리 삭제 방식
+                """
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "수납 연체 삭제 성공"),
+            @ApiResponse(responseCode = "404", description = "수납 연체 정보 없음")
+    })
+    @DeleteMapping("/pay/{id}")
+    public void deletePayOverdue(@PathVariable Long id) {
+        overdueCommandService.deletePayOverdue(id);
+    }
+
+
+    @Operation(
+            summary = "제품 연체 삭제",
+            description = """
+                제품 연체 이력을 삭제합니다.
+                
+                - 존재하지 않는 id 요청 시 오류 발생
+                - 물리 삭제 방식
+                """
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "제품 연체 삭제 성공"),
+            @ApiResponse(responseCode = "404", description = "제품 연체 정보 없음")
+    })
+    @DeleteMapping("/item/{id}")
+    public void deleteItemOverdue(@PathVariable Long id) {
+        overdueCommandService.deleteItemOverdue(id);
+    }
+
 }
 
