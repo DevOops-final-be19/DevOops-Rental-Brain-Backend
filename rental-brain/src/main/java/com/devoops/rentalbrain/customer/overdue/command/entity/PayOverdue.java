@@ -31,7 +31,7 @@ public class PayOverdue {
     @Column(name = "status")
     private String status; // P / C
 
-    @Column(name = "contract_id", nullable = false)
+    @Column(name = "contract_id")
     private Long contractId;
 
     @Column(name = "cum_id", nullable = false)

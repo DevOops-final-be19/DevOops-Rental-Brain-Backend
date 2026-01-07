@@ -40,4 +40,12 @@ public interface PaymentDetailCommandRepository extends JpaRepository<PaymentDet
       and p.paymentDue < :now
 """)
     int markAsNonPayment(@Param("now") LocalDateTime now);
+
+    @Modifying
+    @Query("""
+    UPDATE PaymentDetailCommandEntity p
+       SET p.contractId=NULL
+     WHERE p.contractId=:contractId
+""")
+    void detachPaymentDetail(Long contractId);
 }

@@ -47,7 +47,7 @@ public class PaymentDetailCommandEntity {
     /**
      * 계약 ID (FK)
      */
-    @Column(name = "con_id", nullable = false)
+    @Column(name = "con_id")
     private Long contractId;
 
 

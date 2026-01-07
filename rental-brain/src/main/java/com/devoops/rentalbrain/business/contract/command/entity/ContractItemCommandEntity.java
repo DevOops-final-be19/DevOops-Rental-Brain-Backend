@@ -11,7 +11,7 @@ public class ContractItemCommandEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "contract_id", nullable = false)
+    @Column(name = "contract_id")
     private Long contractId;
 
     @Column(name = "item_id", nullable = false)

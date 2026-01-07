@@ -7,4 +7,6 @@ public interface ContractCommandService {
     void createContract(ContractCreateDTO  contractCreateDTO);
     void terminateContract(Long contractId);
     void deleteContract(Long contractId);
+
+    void deleteContractHard(Long contractId);
 }

@@ -50,7 +50,7 @@ public class ApprovalCommandEntity {
      * 계약 (N:1)
      */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "contract_id", nullable = false)
+    @JoinColumn(name = "contract_id")
     private ContractCommandEntity contract;
 
     /**
