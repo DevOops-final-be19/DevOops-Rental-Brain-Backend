@@ -58,8 +58,7 @@ public class CustomerlistQueryServiceImpl implements CustomerlistQueryService {
 
         // 2. [종합 정보] 탭용 통합 히스토리
         // 파라미터: (고객ID, offset, amount)
-        // 예: offset=0, amount=10 (최신 10개 조회)
-        detail.setHistoryList(mapper.selectCustomerHistory(id, 0, 10));
+        detail.setHistoryList(mapper.selectCustomerHistory(id, 0, Integer.MAX_VALUE));
 
         // 3. 탭별 데이터 조회 및 설정
         detail.setSupportList(mapper.selectSupportList(id));

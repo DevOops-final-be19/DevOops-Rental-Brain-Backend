@@ -258,6 +258,29 @@
             LEFT JOIN segment PS ON H.previous_segment_id = PS.id
             LEFT JOIN segment CS ON H.current_segment_id = CS.id
             WHERE H.customer_id = #{customerId}
+
+            UNION ALL
+            SELECT
+            '쿠폰' AS type,
+            CONCAT(C.name, ' (', C.rate, '% 할인)') AS content,
+            IC.issued_date AS date,
+            'System' AS performer,
+            CASE WHEN IC.is_used = 'Y' THEN '사용 완료' ELSE '발급 완료' END AS status
+            FROM issued_coupon IC
+            JOIN coupon C ON IC.coupon_id = C.id
+            WHERE IC.cum_id = #{customerId}
+
+            UNION ALL
+            SELECT
+            '프로모션' AS type,
+            P.name AS content,
+            PL.participation_date AS date,
+            'System' AS performer,
+            '참여 완료' AS status
+            FROM promotion_log PL
+            JOIN promotion P ON PL.promotion_id = P.id
+            WHERE PL.cum_id = #{customerId}
+
             ) combined_history
         ORDER BY date DESC
             LIMIT #{amount} OFFSET #{offset}

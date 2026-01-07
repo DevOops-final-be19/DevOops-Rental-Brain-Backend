@@ -22,12 +22,12 @@ public class AfterServiceQueryServiceImpl implements AfterServiceQueryService {
 
     @Transactional(readOnly = true)
     @Override
-    public AfterServiceSearchDTO findAll(int page, int size, String type, String status, String keyword, String summaryType) {
+    public AfterServiceSearchDTO findAll(int page, int size, String type, String status, String keyword, String summaryType, String sortField, String sortOrder) {
 
         int offset = (page - 1) * size;
 
         List<AfterServiceDTO> list =
-                mapper.findAllWithPaging(offset, size, type, status, keyword, summaryType);
+                mapper.findAllWithPaging(offset, size, type, status, keyword, summaryType, sortField, sortOrder);
 
         long totalCount =
                 mapper.countAll(type, status, keyword, summaryType);

@@ -92,19 +92,31 @@ public interface SegmentRebuildBatchRepository extends JpaRepository<Customerlis
        ※ OR 유지(요구대로) — 나중에 AND로 변경 예정
        ========================================================= */
 
+    interface VipTargetRow {
+        Long getCustomerId();
+        Integer getSumMonths();
+        Long getSumAmount();
+        Integer getByMonths();
+        Integer getByAmount();
+    }
+
     @Query(value = """
-        SELECT c.id
-        FROM customer c
-        JOIN `contract` ct ON ct.cum_id = c.id
-        WHERE c.segment_id = 3
-          AND c.is_deleted = 'N'
-          AND c.id NOT IN (:excludeIds)
-          AND ct.status <> 'T'
-        GROUP BY c.id
-        HAVING SUM(ct.contract_period) >= 36
-            OR SUM(ct.total_amount) >= 300000000
-        """, nativeQuery = true)
-    List<Long> findNormalToVipTargetCustomerIdsExcluding(@Param("excludeIds") List<Long> excludeIds);
+    SELECT
+        c.id AS customerId,
+        SUM(ct.contract_period) AS sumMonths,
+        SUM(ct.total_amount) AS sumAmount,
+        CASE WHEN SUM(ct.contract_period) >= 36 THEN 1 ELSE 0 END AS byMonths,
+        CASE WHEN SUM(ct.total_amount) >= 300000000 THEN 1 ELSE 0 END AS byAmount
+    FROM customer c
+    JOIN `contract` ct ON ct.cum_id = c.id
+    WHERE c.segment_id = 3
+      AND c.is_deleted = 'N'
+      AND c.id NOT IN (:excludeIds)
+      AND ct.status <> 'T'
+    GROUP BY c.id
+    HAVING byMonths = 1 OR byAmount = 1
+    """, nativeQuery = true)
+    List<VipTargetRow> findNormalToVipTargetsExcluding(@Param("excludeIds") List<Long> excludeIds);
 
     @Transactional
     @Modifying(clearAutomatically = true, flushAutomatically = true)
@@ -130,88 +142,89 @@ public interface SegmentRebuildBatchRepository extends JpaRepository<Customerlis
     interface RiskTargetRow {
         Long getCustomerId();
         Long getFromSegmentId();
-        String getReasonCode();
+
+        Integer getHasTermination();
+        Integer getHasLowSat();
+        Integer getHasExpiring13m();
+        Integer getHasOverdueLt3m();
+        Integer getHasEndedWithin3m();
     }
 
     @Query(value = """
-        SELECT
-            c.id AS customerId,
-            c.segment_id AS fromSegmentId,
-            CASE
-                WHEN EXISTS (
-                    SELECT 1
-                    FROM `contract` ct
-                    WHERE ct.cum_id = c.id
-                      AND ct.status = 'T'
-                ) THEN 'TERMINATION'
+    SELECT
+        c.id AS customerId,
+        c.segment_id AS fromSegmentId,
 
-                WHEN EXISTS (
-                    SELECT 1
-                    FROM `contract` ct
-                    WHERE ct.cum_id = c.id
-                      AND DATE_ADD(ct.start_date, INTERVAL ct.contract_period MONTH)
-                          BETWEEN DATE_ADD(CURDATE(), INTERVAL 1 MONTH)
-                              AND DATE_ADD(CURDATE(), INTERVAL 3 MONTH)
-                ) THEN 'EXPIRING_1_3M'
+        CASE WHEN EXISTS (
+            SELECT 1 FROM `contract` ct
+            WHERE ct.cum_id = c.id
+              AND ct.status = 'T'
+        ) THEN 1 ELSE 0 END AS hasTermination,
 
-                WHEN EXISTS (
-                    SELECT 1
-                    FROM (
-                        SELECT cum_id, MAX(overdue_period) AS max_overdue
-                        FROM pay_overdue
-                        WHERE due_date < CURDATE()
-                          AND (status IS NULL OR status <> 'C')
-                        GROUP BY cum_id
+        CASE WHEN EXISTS (
+            SELECT 1 FROM `contract` ct
+            WHERE ct.cum_id = c.id
+              AND DATE_ADD(ct.start_date, INTERVAL ct.contract_period MONTH)
+                  BETWEEN DATE_ADD(CURDATE(), INTERVAL 1 MONTH)
+                      AND DATE_ADD(CURDATE(), INTERVAL 3 MONTH)
+        ) THEN 1 ELSE 0 END AS hasExpiring13m,
 
-                        UNION ALL
+        CASE WHEN EXISTS (
+            SELECT 1
+            FROM (
+                SELECT cum_id, MAX(overdue_period) AS max_overdue
+                FROM pay_overdue
+                WHERE due_date < CURDATE()
+                  AND (status IS NULL OR status <> 'C')
+                GROUP BY cum_id
 
-                        SELECT cum_id, MAX(overdue_period)
-                        FROM item_overdue
-                        WHERE due_date < CURDATE()
-                          AND (status IS NULL OR status <> 'C')
-                        GROUP BY cum_id
-                    ) od
-                    WHERE od.cum_id = c.id
-                      AND od.max_overdue BETWEEN 1 AND 89
-                ) THEN 'OVERDUE_LT_3M'
+                UNION ALL
 
-                WHEN (
-                    SELECT AVG(f.star)
-                    FROM feedback f
-                    WHERE f.cum_id = c.id
-                      AND f.star IS NOT NULL
-                      AND f.create_date >= DATE_SUB(NOW(), INTERVAL 3 MONTH)
-                ) <= 2.5
-                AND EXISTS (
-                    SELECT 1
-                    FROM feedback fx
-                    WHERE fx.cum_id = c.id
-                      AND fx.star IS NOT NULL
-                      AND fx.create_date >= DATE_SUB(NOW(), INTERVAL 3 MONTH)
-                ) THEN 'LOW_SAT'
+                SELECT cum_id, MAX(overdue_period)
+                FROM item_overdue
+                WHERE due_date < CURDATE()
+                  AND (status IS NULL OR status <> 'C')
+                GROUP BY cum_id
+            ) od
+            WHERE od.cum_id = c.id
+              AND od.max_overdue BETWEEN 1 AND 89
+        ) THEN 1 ELSE 0 END AS hasOverdueLt3m,
 
-                WHEN (
-                    NOT EXISTS (
-                        SELECT 1
-                        FROM `contract` ct
-                        WHERE ct.cum_id = c.id
-                          AND ct.start_date <= CURDATE()
-                          AND DATE_ADD(ct.start_date, INTERVAL ct.contract_period MONTH) >= CURDATE()
-                    )
-                    AND (
-                        SELECT MAX(DATE_ADD(ct2.start_date, INTERVAL ct2.contract_period MONTH))
-                        FROM `contract` ct2
-                        WHERE ct2.cum_id = c.id
-                    ) BETWEEN DATE_SUB(CURDATE(), INTERVAL 3 MONTH) AND CURDATE()
-                ) THEN 'ENDED_WITHIN_3M'
+        CASE WHEN (
+            (SELECT AVG(f.star)
+             FROM feedback f
+             WHERE f.cum_id = c.id
+               AND f.star IS NOT NULL
+               AND f.create_date >= DATE_SUB(NOW(), INTERVAL 3 MONTH)
+            ) <= 2.5
+            AND EXISTS (
+                SELECT 1 FROM feedback fx
+                WHERE fx.cum_id = c.id
+                  AND fx.star IS NOT NULL
+                  AND fx.create_date >= DATE_SUB(NOW(), INTERVAL 3 MONTH)
+            )
+        ) THEN 1 ELSE 0 END AS hasLowSat,
 
-                ELSE 'NONE'
-            END AS reasonCode
-        FROM customer c
-        WHERE c.segment_id IN (2,3,5,7)
-          AND c.is_deleted = 'N'
-          AND c.id NOT IN (:excludeIds)
-        HAVING reasonCode <> 'NONE'
+        CASE WHEN (
+            NOT EXISTS (
+                SELECT 1 FROM `contract` ct
+                WHERE ct.cum_id = c.id
+                  AND ct.start_date <= CURDATE()
+                  AND DATE_ADD(ct.start_date, INTERVAL ct.contract_period MONTH) >= CURDATE()
+            )
+            AND (
+                SELECT MAX(DATE_ADD(ct2.start_date, INTERVAL ct2.contract_period MONTH))
+                FROM `contract` ct2
+                WHERE ct2.cum_id = c.id
+            ) BETWEEN DATE_SUB(CURDATE(), INTERVAL 3 MONTH) AND CURDATE()
+        ) THEN 1 ELSE 0 END AS hasEndedWithin3m
+
+    FROM customer c
+    WHERE c.segment_id IN (2,3,5,7)
+      AND c.is_deleted = 'N'
+      AND c.id NOT IN (:excludeIds)
+
+    HAVING (hasTermination + hasExpiring13m + hasOverdueLt3m + hasLowSat + hasEndedWithin3m) > 0
         """, nativeQuery = true)
     List<RiskTargetRow> findToRiskTargetsExcluding(@Param("excludeIds") List<Long> excludeIds);
 
