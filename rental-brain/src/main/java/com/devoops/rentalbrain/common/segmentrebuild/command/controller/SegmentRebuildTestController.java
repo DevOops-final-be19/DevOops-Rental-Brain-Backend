@@ -31,7 +31,7 @@ public class SegmentRebuildTestController {
     )
     public ResponseEntity<Map<String, Integer>> runOnce() {
 
-        // ✅ Quartz Job과 동일한 실행 경로
+        //  Quartz Job과 동일한 실행 경로
         Map<String, Integer> result =
                 segmentRebuildBatchService.runWithPriorityOnce();
 
