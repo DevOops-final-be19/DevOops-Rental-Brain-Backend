@@ -72,4 +72,32 @@ public class OverdueCommandServiceImpl implements OverdueCommandService {
             entity.resolve();
         }
     }
+
+    @Override
+    public void deletePayOverdue(Long id) {
+
+        PayOverdue entity = payRepo.findById(id)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("수납 연체 정보 없음. id=" + id));
+
+        if ("C".equals(entity.getStatus())) {
+            throw new IllegalStateException("해결된 수납 연체는 삭제할 수 없습니다.");
+        }
+
+        payRepo.delete(entity);
+    }
+
+    @Override
+    public void deleteItemOverdue(Long id) {
+
+        ItemOverdue entity = itemRepo.findById(id)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("제품 연체 정보 없음. id=" + id));
+
+        if ("C".equals(entity.getStatus())) {
+            throw new IllegalStateException("해결된 제품 연체는 삭제할 수 없습니다.");
+        }
+
+        itemRepo.delete(entity);
+    }
 }

@@ -114,4 +114,40 @@ public class AfterServiceCommandController {
     ) {
         service.update(asId, request);
     }
+
+    @Operation(
+            summary = "AS / 정기점검 삭제",
+            description = """
+                AS 또는 정기점검 일정을 삭제한다.
+                
+                - 존재하지 않는 asId로 요청 시 오류 발생
+                - 삭제는 물리 삭제 방식으로 처리됨
+                """
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "삭제 성공"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "AS / 정기점검 정보 없음",
+                    content = @Content(schema = @Schema(example = """
+                    {
+                      "code": "AS003",
+                      "message": "삭제할 AS/정기점검이 존재하지 않습니다."
+                    }
+                """))
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "서버 오류"
+            )
+    })
+    @DeleteMapping("/{asId}")
+    public void delete(@PathVariable Long asId) {
+        service
+                .delete(asId);
+    }
+
 }

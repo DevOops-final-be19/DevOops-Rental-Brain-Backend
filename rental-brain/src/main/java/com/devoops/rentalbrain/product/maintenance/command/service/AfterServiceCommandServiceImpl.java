@@ -11,6 +11,7 @@ import com.devoops.rentalbrain.product.maintenance.command.entity.AfterService;
 import com.devoops.rentalbrain.product.maintenance.command.repository.AfterServiceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@Primary
 @RequiredArgsConstructor
 @Slf4j
 @Transactional
@@ -169,5 +171,25 @@ public class AfterServiceCommandServiceImpl implements AfterServiceCommandServic
             );
         }
     }
+
+    /**
+     * AS / 정기점검 삭제
+     */
+    @Override
+    public void delete(Long asId) {
+
+        AfterService entity = repository.findById(asId)
+                .orElseThrow(() ->
+                        new EntityNotFoundException(
+                                ErrorCode.AS_NOT_FOUND,
+                                "삭제할 AS/정기점검이 존재하지 않습니다. id=" + asId
+                        ));
+
+        repository.delete(entity);
+
+        log.info("AS/정기점검 삭제 완료. id={}, code={}",
+                entity.getId(), entity.getAfter_service_code());
+    }
+
 
 }

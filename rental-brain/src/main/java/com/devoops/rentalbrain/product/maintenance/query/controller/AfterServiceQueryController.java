@@ -41,9 +41,11 @@ public class AfterServiceQueryController {
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) String summaryType
+            @RequestParam(required = false) String summaryType,
+            @RequestParam(required = false, defaultValue = "dueDate") String sortField,
+            @RequestParam(required = false, defaultValue = "DESC") String sortOrder
     ) {
-        return afterServiceQueryService.findAll(page, size, type, status, keyword, summaryType);
+        return afterServiceQueryService.findAll(page, size, type, status, keyword, summaryType, sortField, sortOrder);
     }
 
     @Operation(
