@@ -99,7 +99,7 @@
 
         ORDER BY
         <choose>
-            <when test="sortField == 'code'">
+            <when test="sortField == 'afterServiceCode'">
                 a.after_service_code
             </when>
             <when test="sortField == 'dueDate'">
