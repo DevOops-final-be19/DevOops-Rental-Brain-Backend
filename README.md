@@ -109,7 +109,7 @@
 ---
 
 ## 주요 기능
-[![주요 기능](https://img.shields.io/badge/주요_기능-바로가기-green?style=for-the-badge)](여기에_링크_입력)
+[![주요 기능](https://img.shields.io/badge/주요_기능-바로가기-green?style=for-the-badge)](https://ohgiraffers.notion.site/2e2649136c11802d880ccdb592b21438?source=copy_link)
 
 ---
 
