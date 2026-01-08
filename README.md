@@ -27,7 +27,7 @@
 ---
 
 ## 발표 자료(PPT)
-[![발표 자료](https://img.shields.io/badge/발표_자료(PPT)-바로가기-blue?style=for-the-badge)](여기에_링크_입력)
+[![발표 자료](https://img.shields.io/badge/발표_자료(PPT)-바로가기-blue?style=for-the-badge)](https://github.com/DevOops-final-be19/DevOops-Rental-Brain-Backend/blob/readme/1%EC%A1%B0_DevOops_RentalBrain_%EB%B0%9C%ED%91%9C%EC%9A%A9PPT.pdf)
 
 ---
 
@@ -52,11 +52,6 @@
 
 ## 프로그램 사양서
 [![프로그램 사양서](https://img.shields.io/badge/프로그램_사양서-바로가기-orange?style=for-the-badge)](https://ohgiraffers.notion.site/2dc649136c1180048e10cb275fe62fe9?source=copy_link)
-
----
-
-## 주요 프로세스
-[![주요 프로세스](https://img.shields.io/badge/주요_프로세스-바로가기-orange?style=for-the-badge)](여기에_링크_입력)
 
 ---
 
