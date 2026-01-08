@@ -61,7 +61,7 @@
 ---
 
 ## 시스템 아키텍처
-[![시스템 아키텍처](https://img.shields.io/badge/시스템_아키텍처-바로가기-red?style=for-the-badge)](여기에_링크_입력)
+[![시스템 아키텍처](https://img.shields.io/badge/시스템_아키텍처-바로가기-red?style=for-the-badge)](https://github.com/DevOops-final-be19/DevOops-Rental-Brain-Backend/wiki/%EC%8B%9C%EC%8A%A4%ED%85%9C-%EB%B0%8F-%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98-%EA%B0%9C%EC%9A%94)
 
 ---
 
