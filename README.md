@@ -94,12 +94,12 @@
 ---
 
 ## DDL
-[![DDL](https://img.shields.io/badge/DDL-바로가기-red?style=for-the-badge)](Project-DDL)
+[![DDL](https://img.shields.io/badge/DDL-바로가기-red?style=for-the-badge)](https://github.com/DevOops-final-be19/DevOops-Rental-Brain-Backend/wiki/DDL)
 
 ---
 
 ## DML
-[![DML](https://img.shields.io/badge/DML-바로가기-red?style=for-the-badge)](Project-DML)
+[![DML](https://img.shields.io/badge/DML-바로가기-red?style=for-the-badge)](https://github.com/DevOops-final-be19/DevOops-Rental-Brain-Backend/wiki/DML)
 
 ---
 
