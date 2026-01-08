@@ -124,7 +124,7 @@
 ---
 
 ## 테스트 케이스
-[![테스트 케이스](https://img.shields.io/badge/테스트_케이스-바로가기-violet?style=for-the-badge)](여기에_링크_입력)
+[![테스트 케이스](https://img.shields.io/badge/테스트_케이스-바로가기-violet?style=for-the-badge)](https://github.com/DevOops-final-be19/DevOops-Rental-Brain-Backend/wiki/%ED%85%8C%EC%8A%A4%ED%8A%B8-%EC%BC%80%EC%9D%B4%EC%8A%A4)
 
 ---
 
