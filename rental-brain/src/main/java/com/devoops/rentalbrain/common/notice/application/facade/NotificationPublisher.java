@@ -15,6 +15,7 @@ public class NotificationPublisher {
     }
 
     // 알림 호출 인입점 인터페이스(facade)
+    /** 퍼사드 패턴은 아님 **/
     public void publish(NotificationEvent notificationEvent) {
         log.info("NotificationPublisher 호출");
         applicationEventPublisher.publishEvent(notificationEvent);
