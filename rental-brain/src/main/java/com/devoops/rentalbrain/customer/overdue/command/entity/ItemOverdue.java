@@ -33,7 +33,7 @@ public class ItemOverdue {
     @Column
     private String status; // P: 미해결, C: 해결
 
-    @Column(name = "contract_id", nullable = false)
+    @Column(name = "contract_id")
     private Long contractId;
 
     @Column(name = "cum_id", nullable = false)

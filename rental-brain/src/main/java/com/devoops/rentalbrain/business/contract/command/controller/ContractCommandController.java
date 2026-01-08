@@ -183,4 +183,10 @@ public class ContractCommandController {
 
         return ResponseEntity.ok().build();
     }
+
+    @DeleteMapping("/{contractId}/delete/hard")
+    public ResponseEntity<Void> deleteContractHard(@PathVariable Long contractId) {
+        contractCommandService.deleteContractHard(contractId);
+        return ResponseEntity.ok().build();
+    }
 }
