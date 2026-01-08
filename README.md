@@ -119,7 +119,7 @@
 ---
 
 ## 화면 시연
-[![화면 시연](https://img.shields.io/badge/화면_시연-바로가기-green?style=for-the-badge)](여기에_링크_입력)
+[![화면 시연](https://img.shields.io/badge/화면_시연-바로가기-green?style=for-the-badge)](https://ohgiraffers.notion.site/2e2649136c11805dbec0ede55f5d0005?source=copy_link)
 
 ---
 
