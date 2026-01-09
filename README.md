@@ -27,7 +27,7 @@
 ---
 
 ## 발표 자료(PPT)
-[![발표 자료](https://img.shields.io/badge/발표_자료(PPT)-바로가기-blue?style=for-the-badge)](여기에_링크_입력)
+[![발표 자료](https://img.shields.io/badge/발표_자료(PPT)-바로가기-blue?style=for-the-badge)](https://github.com/DevOops-final-be19/DevOops-Rental-Brain-Backend/blob/readme/1%EC%A1%B0_DevOops_RentalBrain_%EB%B0%9C%ED%91%9C%EC%9A%A9PPT.pdf)
 
 ---
 
@@ -55,13 +55,8 @@
 
 ---
 
-## 주요 프로세스
-[![주요 프로세스](https://img.shields.io/badge/주요_프로세스-바로가기-orange?style=for-the-badge)](여기에_링크_입력)
-
----
-
 ## 시스템 아키텍처
-[![시스템 아키텍처](https://img.shields.io/badge/시스템_아키텍처-바로가기-red?style=for-the-badge)](https://github.com/DevOops-final-be19/DevOops-Rental-Brain-Backend/wiki/%EC%8B%9C%EC%8A%A4%ED%85%9C-%EC%95%84%ED%82%A4%ED%85%8D%EC%B3%90)
+[![시스템 아키텍처](https://img.shields.io/badge/시스템_아키텍처-바로가기-red?style=for-the-badge)](https://github.com/DevOops-final-be19/DevOops-Rental-Brain-Backend/wiki/%EC%8B%9C%EC%8A%A4%ED%85%9C-%EB%B0%8F-%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98-%EA%B0%9C%EC%9A%94)
 
 ---
 
@@ -95,10 +90,12 @@
 
 ## DDL
 [![DDL](https://img.shields.io/badge/DDL-바로가기-red?style=for-the-badge)](https://github.com/DevOops-final-be19/DevOops-Rental-Brain-Backend/wiki/DDL)
+[![DDL](https://img.shields.io/badge/DDL-바로가기-red?style=for-the-badge)](https://github.com/DevOops-final-be19/DevOops-Rental-Brain-Backend/wiki/DDL)
 
 ---
 
 ## DML
+[![DML](https://img.shields.io/badge/DML-바로가기-red?style=for-the-badge)](https://github.com/DevOops-final-be19/DevOops-Rental-Brain-Backend/wiki/DML)
 [![DML](https://img.shields.io/badge/DML-바로가기-red?style=for-the-badge)](https://github.com/DevOops-final-be19/DevOops-Rental-Brain-Backend/wiki/DML)
 
 ---
@@ -114,7 +111,7 @@
 ---
 
 ## 주요 기능
-[![주요 기능](https://img.shields.io/badge/주요_기능-바로가기-green?style=for-the-badge)](여기에_링크_입력)
+[![주요 기능](https://img.shields.io/badge/주요_기능-바로가기-green?style=for-the-badge)](https://ohgiraffers.notion.site/2e2649136c11802d880ccdb592b21438?source=copy_link)
 
 ---
 
@@ -124,12 +121,12 @@
 ---
 
 ## 화면 시연
-[![화면 시연](https://img.shields.io/badge/화면_시연-바로가기-green?style=for-the-badge)](여기에_링크_입력)
+[![화면 시연](https://img.shields.io/badge/화면_시연-바로가기-green?style=for-the-badge)](https://ohgiraffers.notion.site/2e2649136c11805dbec0ede55f5d0005?source=copy_link)
 
 ---
 
 ## 테스트 케이스
-[![테스트 케이스](https://img.shields.io/badge/테스트_케이스-바로가기-violet?style=for-the-badge)](여기에_링크_입력)
+[![테스트 케이스](https://img.shields.io/badge/테스트_케이스-바로가기-violet?style=for-the-badge)](https://github.com/DevOops-final-be19/DevOops-Rental-Brain-Backend/wiki/%ED%85%8C%EC%8A%A4%ED%8A%B8-%EC%BC%80%EC%9D%B4%EC%8A%A4)
 
 ---
 
@@ -139,6 +136,6 @@
 ---
 
 ## 회고
-[![회고](https://img.shields.io/badge/회고-바로가기-violet?style=for-the-badge)](여기에_링크_입력)
+[![회고](https://img.shields.io/badge/회고-바로가기-violet?style=for-the-badge)](https://github.com/DevOops-final-be19/DevOops-Rental-Brain-Backend/wiki/%ED%9A%8C%EA%B3%A0)
 
 ---
