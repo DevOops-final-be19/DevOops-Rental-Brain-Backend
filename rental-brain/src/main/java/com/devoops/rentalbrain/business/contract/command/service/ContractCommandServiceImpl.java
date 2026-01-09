@@ -4,6 +4,7 @@ import com.devoops.rentalbrain.approval.command.Repository.ApprovalCommandReposi
 import com.devoops.rentalbrain.approval.command.Repository.ApprovalMappingCommandRepository;
 import com.devoops.rentalbrain.approval.command.entity.ApprovalCommandEntity;
 import com.devoops.rentalbrain.approval.command.entity.ApprovalMappingCommandEntity;
+import com.devoops.rentalbrain.business.campaign.command.repository.IssuedCouponRepository;
 import com.devoops.rentalbrain.business.campaign.command.service.CouponCommandService;
 import com.devoops.rentalbrain.business.campaign.command.service.PromotionCommandService;
 import com.devoops.rentalbrain.business.contract.command.dto.ContractCreateDTO;
@@ -23,6 +24,8 @@ import com.devoops.rentalbrain.common.notice.application.facade.NotificationPubl
 import com.devoops.rentalbrain.common.notice.application.strategy.event.ApprovalRequestEvent;
 import com.devoops.rentalbrain.common.segmentrebuild.command.service.SegmentTransitionCommandService;
 import com.devoops.rentalbrain.customer.customerlist.command.entity.CustomerlistCommandEntity;
+import com.devoops.rentalbrain.customer.overdue.command.repository.ItemOverdueRepository;
+import com.devoops.rentalbrain.customer.overdue.command.repository.PayOverdueRepository;
 import com.devoops.rentalbrain.employee.command.dto.UserImpl;
 import com.devoops.rentalbrain.employee.command.entity.Employee;
 import com.devoops.rentalbrain.product.productlist.command.repository.ItemRepository;
@@ -59,6 +62,9 @@ public class ContractCommandServiceImpl implements ContractCommandService {
     private final PromotionCommandService promotionCommandService;
     private final CouponCommandService couponCommandService;
     private final NotificationPublisher notificationPublisher;
+    private final IssuedCouponRepository issuedCouponRepository;
+    private final ItemOverdueRepository itemOverdueRepository;
+    private final PayOverdueRepository payOverdueRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -75,8 +81,10 @@ public class ContractCommandServiceImpl implements ContractCommandService {
             SegmentTransitionCommandService segmentTransitionCommandService,
             PromotionCommandService promotionCommandService,
             CouponCommandService couponCommandService,
-            NotificationPublisher notificationPublisher
-    ) {
+            NotificationPublisher notificationPublisher,
+            IssuedCouponRepository issuedCouponRepository,
+            ItemOverdueRepository itemOverdueRepository,
+            PayOverdueRepository payOverdueRepository) {
         this.contractCommandRepository = contractCommandRepository;
         this.approvalCommandRepository = approvalCommandRepository;
         this.itemRepository = itemRepository;
@@ -88,6 +96,9 @@ public class ContractCommandServiceImpl implements ContractCommandService {
         this.promotionCommandService = promotionCommandService;
         this.couponCommandService = couponCommandService;
         this.notificationPublisher = notificationPublisher;
+        this.issuedCouponRepository = issuedCouponRepository;
+        this.itemOverdueRepository = itemOverdueRepository;
+        this.payOverdueRepository = payOverdueRepository;
     }
 
     @Override
@@ -374,6 +385,49 @@ public class ContractCommandServiceImpl implements ContractCommandService {
                 contractId,
                 updated
         );
+    }
+
+    @Transactional
+    @Override
+    public void deleteContract(Long contractId) {
+
+        ContractCommandEntity contract =
+                contractCommandRepository.findById(contractId)
+                        .orElseThrow(() ->
+                                new BusinessException(ErrorCode.CONTRACT_NOT_FOUND));
+
+        // 이미 삭제된 계약
+        if ("Y".equals(contract.getIsDeleted())) {
+            throw new BusinessException(
+                    ErrorCode.INVALID_CONTRACT_STATUS,
+                    "이미 삭제된 계약입니다."
+            );
+        }
+
+        int updated =
+                itemRepository.updateItemsToOverdueExceptRepairAndStatus(contractId);
+
+        contract.setIsDeleted("Y");
+
+        log.info(
+                "[CONTRACT][DELETED] contractId={}, overdueItems={}, status={}",
+                contractId,
+                updated,
+                contract.getStatus()
+        );
+    }
+
+    @Override
+    @Transactional
+    public void deleteContractHard(Long contractId) {
+        approvalMappingCommandRepository.deleteAllByContractId(contractId);
+        approvalCommandRepository.detachApproval(contractId);
+        paymentDetailCommandRepository.detachPaymentDetail(contractId);
+        contractItemCommandRepository.detachContractItem(contractId);
+        issuedCouponRepository.detachIssuedCoupon(contractId);
+        itemOverdueRepository.detachItemOverdue(contractId);
+        payOverdueRepository.detachPayOverdue(contractId);
+        contractCommandRepository.deleteById(contractId);
     }
 
 

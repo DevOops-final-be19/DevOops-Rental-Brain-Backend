@@ -132,6 +132,21 @@ public class SegmentRebuildBatchServiceImpl implements SegmentRebuildBatchServic
         log.info("[BATCH][RISK] 이탈위험→블랙리스트 보정 {}건 (대상 {}명)", updated, ids.size());
 
         for (var t : targets) {
+
+            // (1) 세그먼트 전이 이력 저장 (customer_segment_history)
+            historyCommandRepository.save(
+                    HistoryCommandEntity.builder()
+                            .customerId(t.getCustomerId())
+                            .previousSegmentId(SEG_RISK)
+                            .currentSegmentId(SEG_BLACKLIST)
+                            .reason("연체 90일 이상 감지")
+                            .triggerType(SegmentChangeTriggerType.BATCH)
+                            .referenceType(SegmentChangeReferenceType.SYSTEM_RULE)
+                            .referenceId(null)
+                            .build()
+            );
+
+            // (2) 리스크 상세 이력 저장 (customer_risk_transition_history)
             riskTransitionCommandRepository.save(
                     RiskTransitionCommandEntity.builder()
                             .customerId(t.getCustomerId())
@@ -161,19 +176,77 @@ public class SegmentRebuildBatchServiceImpl implements SegmentRebuildBatchServic
             return 0;
         }
 
-        List<Long> ids = targets.stream().map(SegmentRebuildBatchRepository.RiskTargetRow::getCustomerId).toList();
+        List<Long> ids = targets.stream()
+                .map(SegmentRebuildBatchRepository.RiskTargetRow::getCustomerId)
+                .toList();
+
         int updated = segmentRebuildBatchRepository.bulkPromoteToRiskByIds(ids);
 
         for (var t : targets) {
 
-            String reason;
-            switch (t.getReasonCode()) {
-                case "TERMINATION"      -> reason = "해지 요청 고객";
-                case "EXPIRING_1_3M"    -> reason = "계약 만료 1~3개월 전";
-                case "OVERDUE_LT_3M"    -> reason = "연체 3개월 미만 발생";
-                case "LOW_SAT"          -> reason = "최근 피드백 평균 2.5점 이하";
-                case "ENDED_WITHIN_3M"  -> reason = "계약 종료 후 3개월 이내";
-                default                 -> reason = "이탈 위험 감지";
+            //  1) 화면에 보여줄 "사유"를 복수로 조합
+            List<String> reasons = new ArrayList<>();
+            List<String> reasonCodes = new ArrayList<>();
+
+            if (t.getHasTermination() != null && t.getHasTermination() == 1) {
+                reasonCodes.add("TERMINATION");
+                reasons.add("해지 요청");
+            }
+            if (t.getHasLowSat() != null && t.getHasLowSat() == 1) {
+                reasonCodes.add("LOW_SAT");
+                reasons.add("최근 3개월 평균 2.5점 이하");
+            }
+            if (t.getHasExpiring13m() != null && t.getHasExpiring13m() == 1) {
+                reasonCodes.add("EXPIRING_1_3M");
+                reasons.add("계약 만료 1~3개월 임박");
+            }
+            if (t.getHasOverdueLt3m() != null && t.getHasOverdueLt3m() == 1) {
+                reasonCodes.add("OVERDUE_LT_3M");
+                reasons.add("연체 1~89일");
+            }
+            if (t.getHasEndedWithin3m() != null && t.getHasEndedWithin3m() == 1) {
+                reasonCodes.add("ENDED_WITHIN_3M");
+                reasons.add("계약 종료 후 3개월 이내");
+            }
+
+            // 안전장치
+            if (reasons.isEmpty()) {
+                reasonCodes.add("NONE");
+                reasons.add("이탈 위험 감지");
+            }
+
+            String combinedReason = String.join(" / ", reasons);
+
+            //  2) (1) 세그먼트 전이 이력 저장 (customer_segment_history)
+            historyCommandRepository.save(
+                    HistoryCommandEntity.builder()
+                            .customerId(t.getCustomerId())
+                            .previousSegmentId(t.getFromSegmentId())
+                            .currentSegmentId(SEG_RISK)
+                            .reason(combinedReason) //  복수 사유 저장
+                            .triggerType(SegmentChangeTriggerType.BATCH)
+                            .referenceType(SegmentChangeReferenceType.SYSTEM_RULE)
+                            .referenceId(null)
+                            .build()
+            );
+
+            // ✅ 3) (2) 리스크 상세 이력 저장 (customer_risk_transition_history)
+            // 옵션 A: 대표 1개만 저장(우선순위)
+            String primaryCode;
+            String primaryReason;
+
+            if (reasonCodes.contains("TERMINATION")) {
+                primaryCode = "TERMINATION"; primaryReason = "해지 요청";
+            } else if (reasonCodes.contains("OVERDUE_LT_3M")) {
+                primaryCode = "OVERDUE_LT_3M"; primaryReason = "연체 1~89일";
+            } else if (reasonCodes.contains("LOW_SAT")) {
+                primaryCode = "LOW_SAT"; primaryReason = "최근 3개월 평균 2.5점 이하";
+            } else if (reasonCodes.contains("EXPIRING_1_3M")) {
+                primaryCode = "EXPIRING_1_3M"; primaryReason = "계약 만료 1~3개월 임박";
+            } else if (reasonCodes.contains("ENDED_WITHIN_3M")) {
+                primaryCode = "ENDED_WITHIN_3M"; primaryReason = "계약 종료 후 3개월 이내";
+            } else {
+                primaryCode = "NONE"; primaryReason = "이탈 위험 감지";
             }
 
             riskTransitionCommandRepository.save(
@@ -181,8 +254,8 @@ public class SegmentRebuildBatchServiceImpl implements SegmentRebuildBatchServic
                             .customerId(t.getCustomerId())
                             .fromSegmentId(t.getFromSegmentId())
                             .toSegmentId(SEG_RISK)
-                            .reasonCode(t.getReasonCode())
-                            .reason(reason)
+                            .reasonCode(primaryCode)
+                            .reason(primaryReason)
                             .triggerType(SegmentChangeTriggerType.BATCH.name())
                             .referenceType(SegmentChangeReferenceType.SYSTEM_RULE.name())
                             .referenceId(null)
@@ -192,7 +265,6 @@ public class SegmentRebuildBatchServiceImpl implements SegmentRebuildBatchServic
         }
 
         log.info("[BATCH][RISK] 고객→이탈위험 보정 {}건 (대상 {}명)", updated, ids.size());
-
         touched.addAll(ids);
         return updated;
     }
@@ -264,24 +336,45 @@ public class SegmentRebuildBatchServiceImpl implements SegmentRebuildBatchServic
 
     private int fixNormalToVipWithHistory(Set<Long> touched) {
 
-        List<Long> targets =
-                segmentRebuildBatchRepository.findNormalToVipTargetCustomerIdsExcluding(excludeList(touched));
+        List<SegmentRebuildBatchRepository.VipTargetRow> targets =
+                segmentRebuildBatchRepository.findNormalToVipTargetsExcluding(excludeList(touched));
 
         if (targets.isEmpty()) {
             log.info("[BATCH][세그먼트] 일반→VIP 대상 0건");
             return 0;
         }
 
-        int updated = segmentRebuildBatchRepository.bulkPromoteNormalToVipByIds(targets);
-        log.info("[BATCH][세그먼트] 일반→VIP 보정 {}건 (대상 {}명)", updated, targets.size());
+        List<Long> ids = targets.stream()
+                .map(SegmentRebuildBatchRepository.VipTargetRow::getCustomerId)
+                .toList();
 
-        for (Long customerId : targets) {
+        int updated = segmentRebuildBatchRepository.bulkPromoteNormalToVipByIds(ids);
+        log.info("[BATCH][세그먼트] 일반→VIP 보정 {}건 (대상 {}명)", updated, ids.size());
+
+        for (var t : targets) {
+
+            List<String> reasons = new ArrayList<>();
+
+            if (t.getByMonths() != null && t.getByMonths() == 1) {
+                reasons.add("누적 계약기간 36개월 이상 (" + t.getSumMonths() + "개월)");
+            }
+            if (t.getByAmount() != null && t.getByAmount() == 1) {
+                reasons.add("총 계약금액 3억원 이상 (" + t.getSumAmount() + "원)");
+            }
+
+            // 안전장치
+            if (reasons.isEmpty()) {
+                reasons.add("VIP 조건 충족");
+            }
+
+            String combinedReason = String.join(" / ", reasons);
+
             historyCommandRepository.save(
                     HistoryCommandEntity.builder()
-                            .customerId(customerId)
+                            .customerId(t.getCustomerId())
                             .previousSegmentId(SEG_NORMAL)
                             .currentSegmentId(SEG_VIP)
-                            .reason("누적 계약기간 36개월 이상 또는 총 계약금액 3억원 이상")
+                            .reason(combinedReason) //  분리된 사유 저장
                             .triggerType(SegmentChangeTriggerType.BATCH)
                             .referenceType(SegmentChangeReferenceType.CONTRACT)
                             .referenceId(null)
@@ -289,7 +382,7 @@ public class SegmentRebuildBatchServiceImpl implements SegmentRebuildBatchServic
             );
         }
 
-        touched.addAll(targets);
+        touched.addAll(ids);
         return updated;
     }
 

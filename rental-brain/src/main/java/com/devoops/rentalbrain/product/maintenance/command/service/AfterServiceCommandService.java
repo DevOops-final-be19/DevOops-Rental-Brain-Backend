@@ -7,6 +7,7 @@ public interface AfterServiceCommandService {
 
     void create(AfterServiceCreateRequest request);
     void update(Long asId, AfterServiceUpdateRequest request);
+    void delete(Long asId);
 
     void autoCompleteAndCreateNext();
 }

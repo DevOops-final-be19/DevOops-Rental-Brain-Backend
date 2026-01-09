@@ -96,9 +96,26 @@
         JOIN item i ON i.id = a.item_id
         <include refid="searchCondition"/>
         <include refid="summaryCondition"/>
-        ORDER BY a.due_date DESC
-        LIMIT #{size} OFFSET #{offset}
 
+        ORDER BY
+        <choose>
+            <when test="sortField == 'afterServiceCode'">
+                a.after_service_code
+            </when>
+            <when test="sortField == 'dueDate'">
+                a.due_date
+            </when>
+            <otherwise>
+                a.due_date
+            </otherwise>
+        </choose>
+
+        <choose>
+            <when test="sortOrder == 'ASC'"> ASC </when>
+            <otherwise> DESC </otherwise>
+        </choose>
+
+        LIMIT #{size} OFFSET #{offset}
     </select>
 
     <!-- 전체 건수 -->
