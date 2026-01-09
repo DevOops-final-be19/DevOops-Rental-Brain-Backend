@@ -134,6 +134,6 @@
 ---
 
 ## 회고
-[![회고](https://img.shields.io/badge/회고-바로가기-violet?style=for-the-badge)](여기에_링크_입력)
+[![회고](https://img.shields.io/badge/회고-바로가기-violet?style=for-the-badge)](https://github.com/DevOops-final-be19/DevOops-Rental-Brain-Backend/wiki/%ED%9A%8C%EA%B3%A0)
 
 ---
